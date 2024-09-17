@@ -185,12 +185,23 @@ int allocateLogicalDevice() {
     float normal_priority = 1.0f;
     VkResult result;
     VkBool32 surfaceSupported;
-    Uint32 graphicsFamilyIndex = context.queueFamilyPropertyCount;
-    Uint32 presentFamilyIndex = context.queueFamilyPropertyCount;
+    const unsigned GRAPHICS_FAMILY_INDEX = 0;
+    const unsigned PRESENT_FAMILY_INDEX  = 1;
+
+    VkDeviceQueueCreateInfo deviceQueueCreateInfos[2];
+    memset(deviceQueueCreateInfos, 0, sizeof(VkDeviceQueueCreateInfo));
+    deviceQueueCreateInfos[GRAPHICS_FAMILY_INDEX].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    deviceQueueCreateInfos[GRAPHICS_FAMILY_INDEX].pNext = NULL;
+    deviceQueueCreateInfos[GRAPHICS_FAMILY_INDEX].pQueuePriorities = &normal_priority;
+    deviceQueueCreateInfos[GRAPHICS_FAMILY_INDEX].queueCount = 1;
+    deviceQueueCreateInfos[ PRESENT_FAMILY_INDEX].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    deviceQueueCreateInfos[ PRESENT_FAMILY_INDEX].pNext = NULL;
+    deviceQueueCreateInfos[ PRESENT_FAMILY_INDEX].pQueuePriorities = &normal_priority;
+    deviceQueueCreateInfos[ PRESENT_FAMILY_INDEX].queueCount = 1;
 
     for(Uint32 p = context.queueFamilyPropertyCount; p == 0; p--) {
         if( (context.pQueueFamilyProperties[p - 1].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0 ) {
-            graphicsFamilyIndex = p - 1;
+            deviceQueueCreateInfos[GRAPHICS_FAMILY_INDEX].queueFamilyIndex = p - 1;
         }
 
         result = vkGetPhysicalDeviceSurfaceSupportKHR(context.physicalDevice, p - 1, context.surface, &surfaceSupported);
@@ -200,21 +211,8 @@ int allocateLogicalDevice() {
         }
 
         if(surfaceSupported == VK_TRUE)
-            presentFamilyIndex = p - 1;
+            deviceQueueCreateInfos[PRESENT_FAMILY_INDEX].queueFamilyIndex = p - 1;
     }
-
-    VkDeviceQueueCreateInfo deviceQueueCreateInfos[2];
-    memset(deviceQueueCreateInfos, 0, 2 * sizeof(VkDeviceQueueCreateInfo));
-    deviceQueueCreateInfos[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    deviceQueueCreateInfos[0].pNext = NULL;
-    deviceQueueCreateInfos[0].queueFamilyIndex = graphicsFamilyIndex;
-    deviceQueueCreateInfos[0].pQueuePriorities = &normal_priority;
-    deviceQueueCreateInfos[0].queueCount = 1;
-    deviceQueueCreateInfos[1].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    deviceQueueCreateInfos[1].pNext = NULL;
-    deviceQueueCreateInfos[1].queueFamilyIndex = presentFamilyIndex;
-    deviceQueueCreateInfos[1].pQueuePriorities = &normal_priority;
-    deviceQueueCreateInfos[1].queueCount = 1;
 
     VkPhysicalDeviceFeatures physicalDeviceFeatures;
     memset(&physicalDeviceFeatures, 0, sizeof(physicalDeviceFeatures));
@@ -237,8 +235,8 @@ int allocateLogicalDevice() {
         return -9;
     }
 
-    vkGetDeviceQueue(context.device, deviceQueueCreateInfos[0].queueFamilyIndex, 0, &context.graphicsQueue);
-    vkGetDeviceQueue(context.device, deviceQueueCreateInfos[1].queueFamilyIndex, 0, &context.presentationQueue);
+    vkGetDeviceQueue(context.device, deviceQueueCreateInfos[GRAPHICS_FAMILY_INDEX].queueFamilyIndex, 0, &context.graphicsQueue);
+    vkGetDeviceQueue(context.device, deviceQueueCreateInfos[ PRESENT_FAMILY_INDEX].queueFamilyIndex, 0, &context.presentationQueue);
 
     return 1;
 
