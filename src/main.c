@@ -39,10 +39,10 @@ VkLayerProperties* allocateLayerPropertiesArray(Uint32 *pPropertyCount) {
     *pPropertyCount = 0;
     VkLayerProperties *pLayerProperties = NULL;
 
-    vkEnumerateInstanceLayerProperties( pPropertyCount, NULL);
+    vkEnumerateInstanceLayerProperties(pPropertyCount, NULL);
 
     if(*pPropertyCount != 0)
-        pLayerProperties = malloc(sizeof(VkQueueFamilyProperties) * (*pPropertyCount));
+        pLayerProperties = malloc(sizeof(VkLayerProperties) * (*pPropertyCount));
 
     if(pLayerProperties != NULL)
         vkEnumerateInstanceLayerProperties(pPropertyCount, pLayerProperties);
@@ -77,6 +77,12 @@ int initInstance() {
 
     for(unsigned int i = 0; i < extensionCount; i++) {
         SDL_Log( "[%i] %s", i, ppExtensionNames[i]);
+    }
+
+    Uint32 everyLayerAmount = 0;
+    VkLayerProperties* pEveryLayerPropertiesArray = allocateLayerPropertiesArray(&everyLayerAmount);
+    for(unsigned int i = 0; i < everyLayerAmount; i++) {
+        SDL_Log( "[%i] %s", i, pEveryLayerPropertiesArray[i].layerName);
     }
 
     VkInstanceCreateInfo instanceCreateInfo;
