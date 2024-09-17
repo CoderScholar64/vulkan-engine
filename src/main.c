@@ -187,11 +187,12 @@ int allocateLogicalDevice() {
     VkBool32 surfaceSupported;
     const unsigned GRAPHICS_FAMILY_INDEX = 0;
     const unsigned PRESENT_FAMILY_INDEX  = 1;
+    const unsigned TOTAL_FAMILY_INDEXES  = 2;
 
-    VkDeviceQueueCreateInfo deviceQueueCreateInfos[2];
+    VkDeviceQueueCreateInfo deviceQueueCreateInfos[TOTAL_FAMILY_INDEXES];
     memset(deviceQueueCreateInfos, 0, sizeof(VkDeviceQueueCreateInfo));
 
-    for(int i = 0; i < 2; i++) {
+    for(int i = 0; i < TOTAL_FAMILY_INDEXES; i++) {
         deviceQueueCreateInfos[i].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
         deviceQueueCreateInfos[i].pNext = NULL;
         deviceQueueCreateInfos[i].pQueuePriorities = &normal_priority;
@@ -221,7 +222,7 @@ int allocateLogicalDevice() {
     deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     deviceCreateInfo.pNext = NULL;
     deviceCreateInfo.pQueueCreateInfos = deviceQueueCreateInfos;
-    deviceCreateInfo.queueCreateInfoCount = 2;
+    deviceCreateInfo.queueCreateInfoCount = TOTAL_FAMILY_INDEXES;
 
     deviceCreateInfo.pEnabledFeatures = &physicalDeviceFeatures;
 
