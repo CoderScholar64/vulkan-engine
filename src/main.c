@@ -9,6 +9,8 @@ struct Context {
     Uint32 flags;
     VkInstance instance;
     VkPhysicalDevice physicalDevice;
+    VkQueueFamilyProperties *pQueueFamilyProperties;
+    Uint32 queueFamilyPropertyCount;
     SDL_Window *pWindow;
 } context = {"Hello World", 0, 0, 1920, 1080, SDL_WINDOW_MAXIMIZED | SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN};
 
@@ -76,7 +78,26 @@ int initInstance() {
     return 1;
 }
 
+VkQueueFamilyProperties* allocateQueueFamilyArray(VkPhysicalDevice device, Uint32 *queueFamilyPropertyCount) {
+    *queueFamilyPropertyCount = 0;
+    VkQueueFamilyProperties *pQueueFamilyProperties = NULL;
+
+    vkGetPhysicalDeviceQueueFamilyProperties(device, queueFamilyPropertyCount, NULL);
+
+    if(*queueFamilyPropertyCount != 0)
+        pQueueFamilyProperties = malloc(sizeof(VkQueueFamilyProperties) * (*queueFamilyPropertyCount));
+
+    if(pQueueFamilyProperties != NULL)
+        vkGetPhysicalDeviceQueueFamilyProperties(device, queueFamilyPropertyCount, pQueueFamilyProperties);
+
+    return pQueueFamilyProperties;
+}
+
 int findPhysicalDevice() {
+    context.physicalDevice = NULL;
+    context.pQueueFamilyProperties = NULL;
+    context.queueFamilyPropertyCount = 0;
+
     Uint32 physicalDevicesCount = 0;
     VkPhysicalDevice *pPhysicalDevices = NULL;
 
@@ -106,12 +127,25 @@ int findPhysicalDevice() {
     }
     VkPhysicalDeviceProperties physicalDeviceProperties;
 
-    unsigned int device_index = 0;
+    unsigned int device_index = physicalDevicesCount;
+    Uint32 queueFamilyPropertyCount;
+    VkQueueFamilyProperties *pQueueFamilyProperties;
 
     for(unsigned int i = physicalDevicesCount; i != 0; i--) {
         memset(&physicalDeviceProperties, 0, sizeof(physicalDeviceProperties));
 
         vkGetPhysicalDeviceProperties(pPhysicalDevices[i - 1], &physicalDeviceProperties);
+
+        pQueueFamilyProperties = allocateQueueFamilyArray(pPhysicalDevices[i - 1], &queueFamilyPropertyCount);
+
+        for(Uint32 p = 0; p < queueFamilyPropertyCount; p++) {
+            if( (pQueueFamilyProperties[p].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0 ) {
+                device_index = i - 1;
+                break;
+            }
+        }
+
+        free(pQueueFamilyProperties);
 
         if(physicalDeviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
             device_index = i - 1;
@@ -120,7 +154,11 @@ int findPhysicalDevice() {
     }
     SDL_Log( "Index %i device selected", device_index);
 
-    context.physicalDevice = pPhysicalDevices[device_index];
+    if(device_index != physicalDevicesCount) {
+        context.physicalDevice = pPhysicalDevices[device_index];
+
+        context.pQueueFamilyProperties = allocateQueueFamilyArray(context.physicalDevice, &context.queueFamilyPropertyCount);
+    }
 
     free(pPhysicalDevices);
 
@@ -160,9 +198,11 @@ int main(int argc, char **argv) {
 
     returnCode = initVulkan();
 
-
     if( returnCode >= 0 )
         loop();
+
+    if(context.queueFamilyPropertyCount > 0)
+        free(context.pQueueFamilyProperties);
 
     vkDestroyInstance(context.instance, NULL);
     SDL_DestroyWindow(context.pWindow);
