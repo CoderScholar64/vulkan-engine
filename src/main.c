@@ -11,6 +11,7 @@ struct Context {
     VkPhysicalDevice physicalDevice;
     VkQueueFamilyProperties *pQueueFamilyProperties;
     Uint32 queueFamilyPropertyCount;
+    VkDevice device;
     SDL_Window *pWindow;
 } context = {"Hello World", 0, 0, 1920, 1080, SDL_WINDOW_MAXIMIZED | SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN};
 
@@ -165,6 +166,50 @@ int findPhysicalDevice() {
     return 1;
 }
 
+int allocateLogicalDevice() {
+    context.device = NULL;
+
+    float normal_priority = 1.0f;
+
+    VkDeviceQueueCreateInfo deviceQueueCreateInfo;
+    memset(&deviceQueueCreateInfo, 0, sizeof(deviceQueueCreateInfo));
+    deviceQueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    deviceQueueCreateInfo.pNext = NULL;
+    deviceQueueCreateInfo.pQueuePriorities = &normal_priority;
+    deviceQueueCreateInfo.queueCount = 1;
+
+    for(Uint32 p = 0; p < context.queueFamilyPropertyCount; p++) {
+        if( (context.pQueueFamilyProperties[p].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0 ) {
+            deviceQueueCreateInfo.queueFamilyIndex = p;
+            break;
+        }
+    }
+
+    VkPhysicalDeviceFeatures physicalDeviceFeatures;
+    memset(&physicalDeviceFeatures, 0, sizeof(physicalDeviceFeatures));
+
+    VkDeviceCreateInfo deviceCreateInfo;
+    memset(&deviceCreateInfo, 0, sizeof(deviceCreateInfo));
+    deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    deviceCreateInfo.pNext = NULL;
+    deviceCreateInfo.pQueueCreateInfos = &deviceQueueCreateInfo;
+    deviceCreateInfo.queueCreateInfoCount = 1;
+
+    deviceCreateInfo.pEnabledFeatures = &physicalDeviceFeatures;
+
+    deviceCreateInfo.enabledExtensionCount = 0;
+    deviceCreateInfo.enabledLayerCount = 0;
+
+    VkResult result = vkCreateDevice(context.physicalDevice, &deviceCreateInfo, NULL, &context.device);
+    if(result != VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to create rendering device returned %i", result);
+        return -9;
+    }
+
+    return 1;
+
+}
+
 int initVulkan() {
     context.instance = NULL;
 
@@ -175,6 +220,10 @@ int initVulkan() {
         return returnCode;
 
     returnCode = findPhysicalDevice();
+    if( returnCode < 0 )
+        return returnCode;
+
+    returnCode = allocateLogicalDevice();
     if( returnCode < 0 )
         return returnCode;
 
@@ -204,6 +253,7 @@ int main(int argc, char **argv) {
     if(context.queueFamilyPropertyCount > 0)
         free(context.pQueueFamilyProperties);
 
+    vkDestroyDevice(context.device, NULL);
     vkDestroyInstance(context.instance, NULL);
     SDL_DestroyWindow(context.pWindow);
 
