@@ -190,7 +190,7 @@ int allocateLogicalDevice() {
     const unsigned TOTAL_FAMILY_INDEXES  = 2;
 
     VkDeviceQueueCreateInfo deviceQueueCreateInfos[TOTAL_FAMILY_INDEXES];
-    memset(deviceQueueCreateInfos, 0, sizeof(VkDeviceQueueCreateInfo));
+    memset(deviceQueueCreateInfos, 0, TOTAL_FAMILY_INDEXES * sizeof(VkDeviceQueueCreateInfo));
 
     for(int i = 0; i < TOTAL_FAMILY_INDEXES; i++) {
         deviceQueueCreateInfos[i].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
@@ -214,6 +214,9 @@ int allocateLogicalDevice() {
             deviceQueueCreateInfos[PRESENT_FAMILY_INDEX].queueFamilyIndex = p - 1;
     }
 
+    SDL_Log( "Queue Family index %i selected for GRAPHICS_FAMILY_INDEX", deviceQueueCreateInfos[GRAPHICS_FAMILY_INDEX].queueFamilyIndex);
+    SDL_Log( "Queue Family index %i selected for PRESENT_FAMILY_INDEX",  deviceQueueCreateInfos[ PRESENT_FAMILY_INDEX].queueFamilyIndex);
+
     VkPhysicalDeviceFeatures physicalDeviceFeatures;
     memset(&physicalDeviceFeatures, 0, sizeof(physicalDeviceFeatures));
 
@@ -221,8 +224,13 @@ int allocateLogicalDevice() {
     memset(&deviceCreateInfo, 0, sizeof(deviceCreateInfo));
     deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     deviceCreateInfo.pNext = NULL;
-    deviceCreateInfo.pQueueCreateInfos = deviceQueueCreateInfos;
-    deviceCreateInfo.queueCreateInfoCount = TOTAL_FAMILY_INDEXES;
+
+    deviceCreateInfo.pQueueCreateInfos    = deviceQueueCreateInfos;
+
+    if( deviceQueueCreateInfos[GRAPHICS_FAMILY_INDEX].queueFamilyIndex == deviceQueueCreateInfos[PRESENT_FAMILY_INDEX].queueFamilyIndex)
+        deviceCreateInfo.queueCreateInfoCount = 1;
+    else
+        deviceCreateInfo.queueCreateInfoCount = TOTAL_FAMILY_INDEXES;
 
     deviceCreateInfo.pEnabledFeatures = &physicalDeviceFeatures;
 
