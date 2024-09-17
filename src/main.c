@@ -135,7 +135,6 @@ int findPhysicalDevice() {
 
     unsigned int deviceIndex = physicalDevicesCount;
     Uint32 queueFamilyPropertyCount;
-    VkBool32 surfaceSupported;
     VkQueueFamilyProperties *pQueueFamilyProperties;
     int requiredParameters;
 
@@ -150,20 +149,13 @@ int findPhysicalDevice() {
 
         for(Uint32 p = 0; p < queueFamilyPropertyCount; p++) {
             if( (pQueueFamilyProperties[p].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0 ) {
-                requiredParameters |= 3; // 1;
+                requiredParameters |= 1;
             }
-            /*result = vkGetPhysicalDeviceSurfaceSupportKHR(context.physicalDevice, p - 1, context.surface, &surfaceSupported);
-
-            if(result != VK_SUCCESS) {
-                SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "At index %i for vkGetPhysicalDeviceSurfaceSupportKHR returned %i", p - 1, result);
-            }
-            else if(surfaceSupported)
-                requiredParameters |= 2;*/
         }
 
         free(pQueueFamilyProperties);
 
-        if(requiredParameters == 3) {
+        if(requiredParameters == 1) {
             if(deviceIndex == physicalDevicesCount) {
                 deviceIndex = i - 1;
             }
