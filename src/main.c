@@ -190,14 +190,13 @@ int allocateLogicalDevice() {
 
     VkDeviceQueueCreateInfo deviceQueueCreateInfos[2];
     memset(deviceQueueCreateInfos, 0, sizeof(VkDeviceQueueCreateInfo));
-    deviceQueueCreateInfos[GRAPHICS_FAMILY_INDEX].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    deviceQueueCreateInfos[GRAPHICS_FAMILY_INDEX].pNext = NULL;
-    deviceQueueCreateInfos[GRAPHICS_FAMILY_INDEX].pQueuePriorities = &normal_priority;
-    deviceQueueCreateInfos[GRAPHICS_FAMILY_INDEX].queueCount = 1;
-    deviceQueueCreateInfos[ PRESENT_FAMILY_INDEX].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    deviceQueueCreateInfos[ PRESENT_FAMILY_INDEX].pNext = NULL;
-    deviceQueueCreateInfos[ PRESENT_FAMILY_INDEX].pQueuePriorities = &normal_priority;
-    deviceQueueCreateInfos[ PRESENT_FAMILY_INDEX].queueCount = 1;
+
+    for(int i = 0; i < 2; i++) {
+        deviceQueueCreateInfos[i].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        deviceQueueCreateInfos[i].pNext = NULL;
+        deviceQueueCreateInfos[i].pQueuePriorities = &normal_priority;
+        deviceQueueCreateInfos[i].queueCount = 1;
+    }
 
     for(Uint32 p = context.queueFamilyPropertyCount; p == 0; p--) {
         if( (context.pQueueFamilyProperties[p - 1].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0 ) {
