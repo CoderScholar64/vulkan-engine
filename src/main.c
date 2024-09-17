@@ -7,12 +7,15 @@ struct Context {
     int x, y;
     int w, h;
     Uint32 flags;
+    SDL_Window *pWindow;
+
     VkInstance instance;
     VkPhysicalDevice physicalDevice;
     VkQueueFamilyProperties *pQueueFamilyProperties;
     Uint32 queueFamilyPropertyCount;
     VkDevice device;
-    SDL_Window *pWindow;
+    VkQueue graphicsQueue;
+
 } context = {"Hello World", 0, 0, 1920, 1080, SDL_WINDOW_MAXIMIZED | SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN};
 
 void loop() {
@@ -205,6 +208,8 @@ int allocateLogicalDevice() {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to create rendering device returned %i", result);
         return -9;
     }
+
+    vkGetDeviceQueue(context.device, deviceQueueCreateInfo.queueFamilyIndex, 0, &context.graphicsQueue);
 
     return 1;
 
