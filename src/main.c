@@ -20,16 +20,34 @@ struct Context {
 
 } context = {"Hello World", 0, 0, 1920, 1080, SDL_WINDOW_MAXIMIZED | SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN};
 
-void loop() {
-    SDL_Event event;
-    int run = 1;
+VkQueueFamilyProperties* allocateQueueFamilyArray(VkPhysicalDevice device, Uint32 *pQueueFamilyPropertyCount) {
+    *pQueueFamilyPropertyCount = 0;
+    VkQueueFamilyProperties *pQueueFamilyProperties = NULL;
 
-    while(run) {
-        SDL_PollEvent(&event);
-        if (event.type == SDL_QUIT) {
-            run = 0;
-        }
-    }
+    vkGetPhysicalDeviceQueueFamilyProperties(device, pQueueFamilyPropertyCount, NULL);
+
+    if(*pQueueFamilyPropertyCount != 0)
+        pQueueFamilyProperties = malloc(sizeof(VkQueueFamilyProperties) * (*pQueueFamilyPropertyCount));
+
+    if(pQueueFamilyProperties != NULL)
+        vkGetPhysicalDeviceQueueFamilyProperties(device, pQueueFamilyPropertyCount, pQueueFamilyProperties);
+
+    return pQueueFamilyProperties;
+}
+
+VkLayerProperties* allocateLayerPropertiesArray(Uint32 *pPropertyCount) {
+    *pPropertyCount = 0;
+    VkLayerProperties *pLayerProperties = NULL;
+
+    vkEnumerateInstanceLayerProperties( pPropertyCount, NULL);
+
+    if(*pPropertyCount != 0)
+        pLayerProperties = malloc(sizeof(VkQueueFamilyProperties) * (*pPropertyCount));
+
+    if(pLayerProperties != NULL)
+        vkEnumerateInstanceLayerProperties(pPropertyCount, pLayerProperties);
+
+    return pLayerProperties;
 }
 
 int initInstance() {
@@ -82,36 +100,6 @@ int initInstance() {
     }
 
     return 1;
-}
-
-VkQueueFamilyProperties* allocateQueueFamilyArray(VkPhysicalDevice device, Uint32 *pQueueFamilyPropertyCount) {
-    *pQueueFamilyPropertyCount = 0;
-    VkQueueFamilyProperties *pQueueFamilyProperties = NULL;
-
-    vkGetPhysicalDeviceQueueFamilyProperties(device, pQueueFamilyPropertyCount, NULL);
-
-    if(*pQueueFamilyPropertyCount != 0)
-        pQueueFamilyProperties = malloc(sizeof(VkQueueFamilyProperties) * (*pQueueFamilyPropertyCount));
-
-    if(pQueueFamilyProperties != NULL)
-        vkGetPhysicalDeviceQueueFamilyProperties(device, pQueueFamilyPropertyCount, pQueueFamilyProperties);
-
-    return pQueueFamilyProperties;
-}
-
-VkLayerProperties* allocateLayerPropertiesArray(VkPhysicalDevice device, Uint32 *pPropertyCount) {
-    *pPropertyCount = 0;
-    VkLayerProperties *pLayerProperties = NULL;
-
-    vkEnumerateDeviceLayerProperties(device, pPropertyCount, NULL);
-
-    if(*pPropertyCount != 0)
-        pLayerProperties = malloc(sizeof(VkQueueFamilyProperties) * (*pPropertyCount));
-
-    if(pLayerProperties != NULL)
-        vkEnumerateDeviceLayerProperties(device, pPropertyCount, pLayerProperties);
-
-    return pLayerProperties;
 }
 
 int findPhysicalDevice() {
@@ -297,6 +285,18 @@ int initVulkan() {
         return returnCode;
 
     return 1;
+}
+
+void loop() {
+    SDL_Event event;
+    int run = 1;
+
+    while(run) {
+        SDL_PollEvent(&event);
+        if (event.type == SDL_QUIT) {
+            run = 0;
+        }
+    }
 }
 
 int main(int argc, char **argv) {
