@@ -136,6 +136,7 @@ int findPhysicalDevice() {
     unsigned int deviceIndex = physicalDevicesCount;
     Uint32 queueFamilyPropertyCount;
     VkQueueFamilyProperties *pQueueFamilyProperties;
+    VkBool32 surfaceSupported;
     int requiredParameters;
 
     for(unsigned int i = physicalDevicesCount; i != 0; i--) {
@@ -151,11 +152,19 @@ int findPhysicalDevice() {
             if( (pQueueFamilyProperties[p].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0 ) {
                 requiredParameters |= 1;
             }
+
+            result = vkGetPhysicalDeviceSurfaceSupportKHR(pPhysicalDevices[i - 1], p - 1, context.surface, &surfaceSupported);
+
+            if(result != VK_SUCCESS) {
+                SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "At index %i for vkGetPhysicalDeviceSurfaceSupportKHR returned %i", p - 1, result);
+            }
+            else if(surfaceSupported)
+                requiredParameters |= 2;
         }
 
         free(pQueueFamilyProperties);
 
-        if(requiredParameters == 1) {
+        if(requiredParameters == 3) {
             if(deviceIndex == physicalDevicesCount) {
                 deviceIndex = i - 1;
             }
@@ -259,14 +268,14 @@ int initVulkan() {
     if( returnCode < 0 )
         return returnCode;
 
-    returnCode = findPhysicalDevice();
-    if( returnCode < 0 )
-        return returnCode;
-
     if(SDL_Vulkan_CreateSurface(context.pWindow, context.instance, &context.surface) != SDL_TRUE) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to create rendering device returned %s", SDL_GetError());
         returnCode = -10;
     }
+
+    returnCode = findPhysicalDevice();
+    if( returnCode < 0 )
+        return returnCode;
 
     returnCode = allocateLogicalDevice();
     if( returnCode < 0 )
