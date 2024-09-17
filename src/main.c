@@ -15,6 +15,7 @@ struct Context {
     Uint32 queueFamilyPropertyCount;
     VkDevice device;
     VkQueue graphicsQueue;
+    VkSurfaceKHR surface;
 
 } context = {"Hello World", 0, 0, 1920, 1080, SDL_WINDOW_MAXIMIZED | SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN};
 
@@ -252,13 +253,22 @@ int main(int argc, char **argv) {
 
     returnCode = initVulkan();
 
-    if( returnCode >= 0 )
+    if( returnCode < 0 ) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Thus initVulkan() failed with code %s", SDL_GetError());
+    }
+    else if(SDL_Vulkan_CreateSurface(context.pWindow, context.instance, &context.surface) != SDL_TRUE) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to create rendering device returned %s", SDL_GetError());
+        returnCode = -10;
+    }
+    else {
         loop();
+    }
 
     if(context.queueFamilyPropertyCount > 0)
         free(context.pQueueFamilyProperties);
 
     vkDestroyDevice(context.device, NULL);
+    vkDestroySurfaceKHR(context.instance, context.surface, NULL);
     vkDestroyInstance(context.instance, NULL);
     SDL_DestroyWindow(context.pWindow);
 
