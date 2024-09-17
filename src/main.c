@@ -84,19 +84,34 @@ int initInstance() {
     return 1;
 }
 
-VkQueueFamilyProperties* allocateQueueFamilyArray(VkPhysicalDevice device, Uint32 *queueFamilyPropertyCount) {
-    *queueFamilyPropertyCount = 0;
+VkQueueFamilyProperties* allocateQueueFamilyArray(VkPhysicalDevice device, Uint32 *pQueueFamilyPropertyCount) {
+    *pQueueFamilyPropertyCount = 0;
     VkQueueFamilyProperties *pQueueFamilyProperties = NULL;
 
-    vkGetPhysicalDeviceQueueFamilyProperties(device, queueFamilyPropertyCount, NULL);
+    vkGetPhysicalDeviceQueueFamilyProperties(device, pQueueFamilyPropertyCount, NULL);
 
-    if(*queueFamilyPropertyCount != 0)
-        pQueueFamilyProperties = malloc(sizeof(VkQueueFamilyProperties) * (*queueFamilyPropertyCount));
+    if(*pQueueFamilyPropertyCount != 0)
+        pQueueFamilyProperties = malloc(sizeof(VkQueueFamilyProperties) * (*pQueueFamilyPropertyCount));
 
     if(pQueueFamilyProperties != NULL)
-        vkGetPhysicalDeviceQueueFamilyProperties(device, queueFamilyPropertyCount, pQueueFamilyProperties);
+        vkGetPhysicalDeviceQueueFamilyProperties(device, pQueueFamilyPropertyCount, pQueueFamilyProperties);
 
     return pQueueFamilyProperties;
+}
+
+VkLayerProperties* allocateLayerPropertiesArray(VkPhysicalDevice device, Uint32 *pPropertyCount) {
+    *pPropertyCount = 0;
+    VkLayerProperties *pLayerProperties = NULL;
+
+    vkEnumerateDeviceLayerProperties(device, pPropertyCount, NULL);
+
+    if(*pPropertyCount != 0)
+        pLayerProperties = malloc(sizeof(VkQueueFamilyProperties) * (*pPropertyCount));
+
+    if(pLayerProperties != NULL)
+        vkEnumerateDeviceLayerProperties(device, pPropertyCount, pLayerProperties);
+
+    return pLayerProperties;
 }
 
 int findPhysicalDevice() {
