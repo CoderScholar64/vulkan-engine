@@ -8,6 +8,7 @@ struct Context {
     int w, h;
     Uint32 flags;
     VkInstance instance;
+    VkPhysicalDevice physicalDevice;
     SDL_Window *pWindow;
 } context = {"Hello World", 0, 0, 1920, 1080, SDL_WINDOW_MAXIMIZED | SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN};
 
@@ -75,6 +76,57 @@ int initInstance() {
     return 1;
 }
 
+int findPhysicalDevice() {
+    Uint32 physicalDevicesCount = 0;
+    VkPhysicalDevice *pPhysicalDevices = NULL;
+
+    VkResult result = vkEnumeratePhysicalDevices(context.instance, &physicalDevicesCount, NULL);
+    if(result != VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkEnumeratePhysicalDevices for amount returned %i", result);
+        return -5;
+    }
+
+    if(physicalDevicesCount != 0)
+        pPhysicalDevices = malloc(sizeof(VkPhysicalDevice) * physicalDevicesCount);
+    else {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "There are not any rendering device available!");
+        return -6;
+    }
+
+    if(pPhysicalDevices == NULL) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "pPhysicalDevices failed to allocate %i names!", physicalDevicesCount);
+        return -7;
+    }
+
+    result = vkEnumeratePhysicalDevices(context.instance, &physicalDevicesCount, pPhysicalDevices);
+    if(result != VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkEnumeratePhysicalDevices for devices returned %i", result);
+        free(pPhysicalDevices);
+        return -8;
+    }
+    VkPhysicalDeviceProperties physicalDeviceProperties;
+
+    unsigned int device_index = 0;
+
+    for(unsigned int i = physicalDevicesCount; i != 0; i--) {
+        memset(&physicalDeviceProperties, 0, sizeof(physicalDeviceProperties));
+
+        vkGetPhysicalDeviceProperties(pPhysicalDevices[i - 1], &physicalDeviceProperties);
+
+        if(physicalDeviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+            device_index = i - 1;
+
+        SDL_Log( "[%i] %s", i - 1, physicalDeviceProperties.deviceName);
+    }
+    SDL_Log( "Index %i device selected", device_index);
+
+    context.physicalDevice = pPhysicalDevices[device_index];
+
+    free(pPhysicalDevices);
+
+    return 1;
+}
+
 int initVulkan() {
     context.instance = NULL;
 
@@ -84,9 +136,9 @@ int initVulkan() {
     if( returnCode < 0 )
         return returnCode;
 
-    //Uint32 physicalDevicesCount = 0;
-
-    //vkEnumeratePhysicalDevices(context.instance, &physicalDevicesCount, NULL);
+    returnCode = findPhysicalDevice();
+    if( returnCode < 0 )
+        return returnCode;
 
     return 1;
 }
