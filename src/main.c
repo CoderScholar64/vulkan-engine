@@ -51,6 +51,44 @@ VkLayerProperties* allocateLayerPropertiesArray(Uint32 *pPropertyCount) {
     return pLayerProperties;
 }
 
+int hasRequiredExtensions(VkPhysicalDevice physicalDevice, const char * const* ppRequiredExtension, Uint32 requiredExtensionCount) {
+    Uint32 extensionCount = 0;
+    VkExtensionProperties *pExtensionProperties = NULL;
+    int found;
+    int everythingFound = 1;
+
+    vkEnumerateDeviceExtensionProperties(physicalDevice, NULL, &extensionCount, NULL);
+
+    if(extensionCount != 0)
+        pExtensionProperties = malloc(sizeof(VkExtensionProperties) * extensionCount);
+
+    if(pExtensionProperties != NULL) {
+        vkEnumerateDeviceExtensionProperties(physicalDevice, NULL, &extensionCount, pExtensionProperties);
+    }
+    else {
+        return -1;
+    }
+
+    for(Uint32 r = 0; r < requiredExtensionCount; r++) {
+        found = 0;
+
+        for(Uint32 e = 0; e < extensionCount && found == 0; e++) {
+            if(strcmp(ppRequiredExtension[r], pExtensionProperties[e].extensionName) == 0) {
+                found = 1;
+            }
+        }
+
+        if(found == 0) {
+            everythingFound = 0;
+            break;
+        }
+    }
+
+    free(pExtensionProperties);
+
+    return everythingFound;
+}
+
 int initInstance() {
     VkApplicationInfo applicationInfo;
     memset(&applicationInfo, 0, sizeof(applicationInfo));
@@ -121,7 +159,7 @@ int initInstance() {
     return 1;
 }
 
-int findPhysicalDevice() {
+int findPhysicalDevice(const char * const* ppRequiredExtensions, Uint32 requiredExtensionsAmount) {
     context.physicalDevice = NULL;
     context.pQueueFamilyProperties = NULL;
     context.queueFamilyPropertyCount = 0;
@@ -182,11 +220,18 @@ int findPhysicalDevice() {
             }
             else if(surfaceSupported)
                 requiredParameters |= 2;
+
+            // Check for required extensions
+            if(hasRequiredExtensions(pPhysicalDevices[i - 1], ppRequiredExtensions, requiredExtensionsAmount)) {
+                requiredParameters |= 4;
+            }
+
+
         }
 
         free(pQueueFamilyProperties);
 
-        if(requiredParameters == 3) {
+        if(requiredParameters == 7) {
             if(deviceIndex == physicalDevicesCount) {
                 deviceIndex = i - 1;
             }
@@ -203,6 +248,11 @@ int findPhysicalDevice() {
         context.physicalDevice = pPhysicalDevices[deviceIndex];
 
         context.pQueueFamilyProperties = allocateQueueFamilyArray(context.physicalDevice, &context.queueFamilyPropertyCount);
+    }
+    else {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to find suitable device!");
+        free(pPhysicalDevices);
+        return -11;
     }
 
     free(pPhysicalDevices);
@@ -295,7 +345,9 @@ int initVulkan() {
         returnCode = -10;
     }
 
-    returnCode = findPhysicalDevice();
+    const char *const requiredExtensions[] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+
+    returnCode = findPhysicalDevice(requiredExtensions, 1);
     if( returnCode < 0 )
         return returnCode;
 
