@@ -27,6 +27,7 @@ struct Context {
         VkSwapchainKHR swapChain;
         Uint32 swapChainImageCount;
         VkImage *pSwapChainImages;
+        VkImageView *pSwapChainImageViews;
 
         VkSurfaceCapabilitiesKHR surfaceCapabilities;
         VkSurfaceFormatKHR *pSurfaceFormat;
@@ -545,6 +546,15 @@ int allocateSwapChain() {
     return 1;
 }
 
+int allocateSwapChainImageViews() {
+    VkResult result;
+
+    context.vk.pSwapChainImageViews = malloc(sizeof(VkImageView) * context.vk.swapChainImageCount);
+    memset(context.vk.pSwapChainImageViews, 0, sizeof(VkImageView) * context.vk.swapChainImageCount);
+
+    return 1;
+}
+
 int initVulkan() {
     context.vk.instance = NULL;
     context.vk.physicalDevice = NULL;
@@ -559,6 +569,7 @@ int initVulkan() {
     context.vk.swapChain = NULL;
     context.vk.swapChainImageCount = 0;
     context.vk.pSwapChainImages = NULL;
+    context.vk.pSwapChainImageViews = NULL;
 
     int returnCode;
 
@@ -582,6 +593,10 @@ int initVulkan() {
         return returnCode;
 
     returnCode = allocateSwapChain();
+    if( returnCode < 0 )
+        return returnCode;
+
+    returnCode = allocateSwapChainImageViews();
     if( returnCode < 0 )
         return returnCode;
 
@@ -633,8 +648,15 @@ int main(int argc, char **argv) {
     if(context.vk.pQueueFamilyProperties != NULL)
         free(context.vk.pQueueFamilyProperties);
 
-    if(context.vk.pSwapChainImages != NULL) {
+    if(context.vk.pSwapChainImages != NULL)
         free(context.vk.pSwapChainImages);
+
+    if(context.vk.pSwapChainImageViews != NULL) {
+        for(Uint32 i = context.vk.swapChainImageCount; i != 0; i--) {
+            vkDestroyImageView(context.vk.device, context.vk.pSwapChainImageViews[i - 1], NULL);
+        }
+
+        free(context.vk.pSwapChainImageViews);
     }
 
     vkDestroySwapchainKHR(context.vk.device, context.vk.swapChain, NULL);
