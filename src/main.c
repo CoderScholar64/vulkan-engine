@@ -404,7 +404,12 @@ int allocateSwapChain() {
     int foundPriority;
     int currentPriority;
 
-    updateSwapChainCapabilities(context.vk.physicalDevice, context.vk.surface);
+    int updateResult = updateSwapChainCapabilities(context.vk.physicalDevice, context.vk.surface);
+
+    if(updateResult < 0) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to update swap chain capabilities %i", updateResult);
+        return -15;
+    }
 
     // Find VkSurfaceFormatKHR
     const VkFormat format[] = {VK_FORMAT_B8G8R8A8_SRGB, VK_FORMAT_R8G8B8A8_SRGB, VK_FORMAT_B8G8R8_SRGB, VK_FORMAT_R8G8B8_SRGB};
