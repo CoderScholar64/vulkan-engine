@@ -82,23 +82,33 @@ int initInstance() {
 
     Uint32 everyLayerAmount = 0;
     VkLayerProperties* pEveryLayerPropertiesArray = allocateLayerPropertiesArray(&everyLayerAmount);
+    const char * name = NULL;
     for(unsigned int i = 0; i < everyLayerAmount; i++) {
         SDL_Log( "[%i] %s", i, pEveryLayerPropertiesArray[i].layerName);
-    }
 
-    free(pEveryLayerPropertiesArray);
+        if(strcmp(pEveryLayerPropertiesArray[i].layerName, "VK_LAYER_KHRONOS_validation") == 0)
+            name = pEveryLayerPropertiesArray[i].layerName;
+    }
+    const char ** names = &name;
 
     VkInstanceCreateInfo instanceCreateInfo;
     memset(&instanceCreateInfo, 0, sizeof(instanceCreateInfo));
     instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     instanceCreateInfo.pNext = NULL;
     instanceCreateInfo.pApplicationInfo = &applicationInfo;
-    instanceCreateInfo.enabledLayerCount = 0;
-    instanceCreateInfo.ppEnabledLayerNames = NULL;
+
+    if(name == NULL)
+        instanceCreateInfo.enabledLayerCount = 0;
+    else
+        instanceCreateInfo.enabledLayerCount = 1;
+    instanceCreateInfo.ppEnabledLayerNames = names;
+
     instanceCreateInfo.enabledExtensionCount = extensionCount;
     instanceCreateInfo.ppEnabledExtensionNames = ppExtensionNames;
 
     VkResult result = vkCreateInstance(&instanceCreateInfo, NULL, &context.instance);
+
+    free(pEveryLayerPropertiesArray);
 
     if(ppExtensionNames != NULL)
         free(ppExtensionNames);
