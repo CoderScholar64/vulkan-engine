@@ -175,7 +175,7 @@ int findPhysicalDevice() {
                 requiredParameters |= 1;
             }
 
-            result = vkGetPhysicalDeviceSurfaceSupportKHR(pPhysicalDevices[i - 1], p - 1, context.surface, &surfaceSupported);
+            result = vkGetPhysicalDeviceSurfaceSupportKHR(pPhysicalDevices[i - 1], p, context.surface, &surfaceSupported);
 
             if(result != VK_SUCCESS) {
                 SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "At index %i for vkGetPhysicalDeviceSurfaceSupportKHR returned %i", p - 1, result);
