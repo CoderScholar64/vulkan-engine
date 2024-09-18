@@ -1,4 +1,4 @@
-project('vulkan', 'c')
+project('vulkan', 'c', default_options : ['c_std=c11'])
 
 is_windows = false
 

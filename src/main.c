@@ -400,8 +400,31 @@ int allocateLogicalDevice(const char * const* ppRequiredExtensions, Uint32 requi
 int allocateSwapChain() {
     updateSwapChainCapabilities(context.vk.physicalDevice, context.vk.surface);
 
+    const VkFormat format[] = {VK_FORMAT_B8G8R8A8_SRGB, VK_FORMAT_R8G8B8A8_SRGB, VK_FORMAT_B8G8R8_SRGB, VK_FORMAT_R8G8B8_SRGB};
+    const unsigned FORMAT_AMOUNT = sizeof(format) / sizeof(VkFormat);
+
     // Find VkSurfaceFormatKHR
     context.vk.surfaceFormat = context.vk.pSurfaceFormat[0];
+    int foundFormatPriority = FORMAT_AMOUNT;
+    int currentFormatPriority = FORMAT_AMOUNT;
+
+    for(Uint32 f = context.vk.surfaceFormatCount; f != 0; f--) {
+        if(context.vk.pSurfaceFormat[f - 1].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+            currentFormatPriority = FORMAT_AMOUNT;
+
+            for(Uint32 p = FORMAT_AMOUNT; p != 0; p--) {
+                if(format[p - 1] == context.vk.pSurfaceFormat[f - 1].format) {
+                    currentFormatPriority = p - 1;
+                    break;
+                }
+            }
+
+            if(foundFormatPriority > currentFormatPriority) {
+                context.vk.surfaceFormat = context.vk.pSurfaceFormat[f - 1];
+                foundFormatPriority = currentFormatPriority;
+            }
+        }
+    }
 
     // Find VkPresentModeKHR
 
