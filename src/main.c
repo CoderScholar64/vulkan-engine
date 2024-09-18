@@ -97,6 +97,58 @@ int hasRequiredExtensions(VkPhysicalDevice physicalDevice, const char * const* p
     return everythingFound;
 }
 
+int updateSwapChainCapabilities(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface) {
+    VkResult result;
+
+    if(context.vk.surfaceFormatCount > 0)
+        free(context.vk.pSurfaceFormat);
+
+    if(context.vk.presentModeCount > 0)
+        free(context.vk.pPresentMode);
+
+    context.vk.pSurfaceFormat = NULL;
+    context.vk.surfaceFormatCount = 0;
+    context.vk.pPresentMode = NULL;
+    context.vk.presentModeCount = 0;
+
+    result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &context.vk.surfaceCapabilities);
+
+    if(result != VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkGetPhysicalDeviceSurfaceCapabilitiesKHR had failed with %i", result);
+        return -1;
+    }
+
+    result = vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &context.vk.surfaceFormatCount, NULL);
+
+    if(result < VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkGetPhysicalDeviceSurfaceFormatsKHR for count had failed with %i", result);
+        return -2;
+    }
+
+    result = vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &context.vk.surfaceFormatCount, context.vk.pSurfaceFormat);
+
+    if(result < VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkGetPhysicalDeviceSurfaceFormatsKHR for allocation had failed with %i", result);
+        return -3;
+    }
+
+    result = vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &context.vk.presentModeCount, NULL);
+
+    if(result < VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkGetPhysicalDeviceSurfacePresentModesKHR for count had failed with %i", result);
+        return -4;
+    }
+
+    result = vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &context.vk.presentModeCount, context.vk.pPresentMode);
+
+    if(result < VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkGetPhysicalDeviceSurfacePresentModesKHR for allocation had failed with %i", result);
+        return -5;
+    }
+
+    return 1;
+}
+
 int initInstance() {
     VkApplicationInfo applicationInfo;
     memset(&applicationInfo, 0, sizeof(applicationInfo));
