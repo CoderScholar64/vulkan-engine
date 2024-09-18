@@ -14,8 +14,8 @@ struct Context {
     struct {
         VkDevice device;
         VkInstance instance;
-        VkQueue graphicsQueue;
-        VkQueue presentationQueue;
+        Uint32 graphicsQueueFamilyIndex;
+        Uint32 presentationQueueFamilyIndex;
         VkPhysicalDevice physicalDevice;
         VkQueueFamilyProperties *pQueueFamilyProperties;
         VkSurfaceKHR surface;
@@ -394,8 +394,10 @@ int allocateLogicalDevice(const char * const* ppRequiredExtensions, Uint32 requi
         return -9;
     }
 
-    vkGetDeviceQueue(context.vk.device, deviceQueueCreateInfos[GRAPHICS_FAMILY_INDEX].queueFamilyIndex, 0, &context.vk.graphicsQueue);
-    vkGetDeviceQueue(context.vk.device, deviceQueueCreateInfos[ PRESENT_FAMILY_INDEX].queueFamilyIndex, 0, &context.vk.presentationQueue);
+    //vkGetDeviceQueue(context.vk.device, deviceQueueCreateInfos[GRAPHICS_FAMILY_INDEX].queueFamilyIndex, 0, &context.vk.graphicsQueue);
+
+    context.vk.graphicsQueueFamilyIndex     = deviceQueueCreateInfos[GRAPHICS_FAMILY_INDEX].queueFamilyIndex;
+    context.vk.presentationQueueFamilyIndex = deviceQueueCreateInfos[ PRESENT_FAMILY_INDEX].queueFamilyIndex;
 
     return 1;
 }
@@ -493,7 +495,7 @@ int allocateSwapChain() {
     swapchainCreateInfo.imageArrayLayers = 1;
     swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-    if(context.vk.graphicsQueue == context.vk.presentationQueue) {
+    if(context.vk.graphicsQueueFamilyIndex == context.vk.presentationQueueFamilyIndex) {
         swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
         swapchainCreateInfo.queueFamilyIndexCount = 0;
         swapchainCreateInfo.pQueueFamilyIndices = NULL;
