@@ -146,7 +146,10 @@ int updateSwapChainCapabilities(VkPhysicalDevice physicalDevice, VkSurfaceKHR su
         return -5;
     }
 
-    return 1;
+    if(context.vk.surfaceFormatCount != 0 && context.vk.presentModeCount != 0)
+        return 1;
+    else
+        return 0;
 }
 
 int initInstance() {
@@ -279,7 +282,8 @@ int findPhysicalDevice(const char * const* ppRequiredExtensions, Uint32 required
 
             // Check for required extensions
             if(hasRequiredExtensions(pPhysicalDevices[i - 1], ppRequiredExtensions, requiredExtensionsAmount)) {
-                requiredParameters |= 4;
+                if(updateSwapChainCapabilities(pPhysicalDevices[i - 1], context.vk.surface))
+                    requiredParameters |= 4;
             }
 
 
