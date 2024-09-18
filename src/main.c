@@ -19,6 +19,7 @@ struct Context {
         VkQueueFamilyProperties *pQueueFamilyProperties;
         VkSurfaceKHR surface;
         Uint32 queueFamilyPropertyCount;
+        VkSurfaceFormatKHR surfaceFormat;
 
         VkSurfaceCapabilitiesKHR surfaceCapabilities;
         VkSurfaceFormatKHR *pSurfaceFormat;
@@ -125,9 +126,11 @@ int updateSwapChainCapabilities(VkPhysicalDevice physicalDevice, VkSurfaceKHR su
         return -2;
     }
 
+    context.vk.pSurfaceFormat = malloc(context.vk.surfaceFormatCount * sizeof(VkSurfaceFormatKHR));
+
     result = vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &context.vk.surfaceFormatCount, context.vk.pSurfaceFormat);
 
-    if(result < VK_SUCCESS) {
+    if(result != VK_SUCCESS || context.vk.pSurfaceFormat == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkGetPhysicalDeviceSurfaceFormatsKHR for allocation had failed with %i", result);
         return -3;
     }
@@ -139,9 +142,11 @@ int updateSwapChainCapabilities(VkPhysicalDevice physicalDevice, VkSurfaceKHR su
         return -4;
     }
 
+    context.vk.pPresentMode = malloc(context.vk.presentModeCount * sizeof(VkPresentModeKHR));
+
     result = vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &context.vk.presentModeCount, context.vk.pPresentMode);
 
-    if(result < VK_SUCCESS) {
+    if(result != VK_SUCCESS || context.vk.pPresentMode == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkGetPhysicalDeviceSurfacePresentModesKHR for allocation had failed with %i", result);
         return -5;
     }
@@ -340,7 +345,7 @@ int allocateLogicalDevice(const char * const* ppRequiredExtensions, Uint32 requi
         deviceQueueCreateInfos[i].queueCount = 1;
     }
 
-    for(Uint32 p = context.vk.queueFamilyPropertyCount; p == 0; p--) {
+    for(Uint32 p = context.vk.queueFamilyPropertyCount; p != 0; p--) {
         if( (context.vk.pQueueFamilyProperties[p - 1].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0 ) {
             deviceQueueCreateInfos[GRAPHICS_FAMILY_INDEX].queueFamilyIndex = p - 1;
         }
@@ -390,7 +395,19 @@ int allocateLogicalDevice(const char * const* ppRequiredExtensions, Uint32 requi
     vkGetDeviceQueue(context.vk.device, deviceQueueCreateInfos[ PRESENT_FAMILY_INDEX].queueFamilyIndex, 0, &context.vk.presentationQueue);
 
     return 1;
+}
 
+int allocateSwapChain() {
+    updateSwapChainCapabilities(context.vk.physicalDevice, context.vk.surface);
+
+    // Find VkSurfaceFormatKHR
+    context.vk.surfaceFormat = context.vk.pSurfaceFormat[0];
+
+    // Find VkPresentModeKHR
+
+    // Find VkExtent2D
+
+    return 1;
 }
 
 int initVulkan() {
@@ -421,6 +438,10 @@ int initVulkan() {
         return returnCode;
 
     returnCode = allocateLogicalDevice(requiredExtensions, 1);
+    if( returnCode < 0 )
+        return returnCode;
+
+    returnCode = allocateSwapChain();
     if( returnCode < 0 )
         return returnCode;
 
