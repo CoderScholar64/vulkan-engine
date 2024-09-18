@@ -470,7 +470,7 @@ int allocateSwapChain() {
     const Uint32 MAX_U32 = (Uint32) - 1;
 
     if(context.vk.surfaceCapabilities.currentExtent.width != MAX_U32)
-        context.vk.swapExtent.width = context.vk.surfaceCapabilities.currentExtent.width;
+        context.vk.swapExtent = context.vk.surfaceCapabilities.currentExtent;
     else {
         int width, height;
 
