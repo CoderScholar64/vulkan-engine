@@ -536,7 +536,7 @@ int allocateSwapChain() {
 
     context.vk.pSwapChainImages = malloc(sizeof(VkImage) * context.vk.swapChainImageCount);
 
-    result = vkGetSwapchainImagesKHR(context.vk.device, context.vk.swapChain, &context.vk.swapChainImageCount, NULL);
+    result = vkGetSwapchainImagesKHR(context.vk.device, context.vk.swapChain, &context.vk.swapChainImageCount, context.vk.pSwapChainImages);
 
     if(result != VK_SUCCESS || context.vk.pSwapChainImages == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to vkGetSwapchainImagesKHR for allocation returned %i", result);
@@ -547,10 +547,39 @@ int allocateSwapChain() {
 }
 
 int allocateSwapChainImageViews() {
+    VkImageViewCreateInfo imageViewCreateInfo;
     VkResult result;
 
     context.vk.pSwapChainImageViews = malloc(sizeof(VkImageView) * context.vk.swapChainImageCount);
     memset(context.vk.pSwapChainImageViews, 0, sizeof(VkImageView) * context.vk.swapChainImageCount);
+
+    for(Uint32 i = 0; i < context.vk.swapChainImageCount; i++) {
+        memset(&imageViewCreateInfo, 0, sizeof(imageViewCreateInfo));
+        imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        imageViewCreateInfo.image = context.vk.pSwapChainImages[i];
+
+        imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        imageViewCreateInfo.format = context.vk.surfaceFormat.format;
+
+        imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+        imageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+        imageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+        imageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+
+        imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
+        imageViewCreateInfo.subresourceRange.levelCount = 1;
+        imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+        imageViewCreateInfo.subresourceRange.layerCount = 1;
+
+        result = vkCreateImageView(context.vk.device, &imageViewCreateInfo, NULL, &context.vk.pSwapChainImageViews[i]);
+
+        if(result != VK_SUCCESS) {
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to vkCreateImageView at index %i for allocate returned %i", i, result);
+            return -19;
+        }
+
+    }
 
     return 1;
 }
