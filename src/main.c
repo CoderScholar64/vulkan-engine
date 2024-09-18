@@ -624,16 +624,16 @@ int main(int argc, char **argv) {
         loop();
     }
 
-    if(context.vk.surfaceFormatCount > 0)
+    if(context.vk.pSurfaceFormat != NULL)
         free(context.vk.pSurfaceFormat);
 
-    if(context.vk.presentModeCount > 0)
+    if(context.vk.pPresentMode != NULL)
         free(context.vk.pPresentMode);
 
-    if(context.vk.queueFamilyPropertyCount > 0)
+    if(context.vk.pQueueFamilyProperties != NULL)
         free(context.vk.pQueueFamilyProperties);
 
-    if(context.vk.swapChainImageCount > 0) {
+    if(context.vk.pSwapChainImages != NULL) {
         free(context.vk.pSwapChainImages);
     }
 
