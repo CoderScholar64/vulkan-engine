@@ -10,14 +10,16 @@ struct Context {
     Uint32 flags;
     SDL_Window *pWindow;
 
-    VkInstance instance;
-    VkPhysicalDevice physicalDevice;
-    VkQueueFamilyProperties *pQueueFamilyProperties;
-    Uint32 queueFamilyPropertyCount;
-    VkDevice device;
-    VkQueue graphicsQueue;
-    VkQueue presentationQueue;
-    VkSurfaceKHR surface;
+    struct {
+        VkInstance instance;
+        VkPhysicalDevice physicalDevice;
+        VkQueueFamilyProperties *pQueueFamilyProperties;
+        Uint32 queueFamilyPropertyCount;
+        VkDevice device;
+        VkQueue graphicsQueue;
+        VkQueue presentationQueue;
+        VkSurfaceKHR surface;
+    } vk;
 
 } context = {"Hello World", 0, 0, 1920, 1080, SDL_WINDOW_MAXIMIZED | SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN};
 
@@ -144,7 +146,7 @@ int initInstance() {
     instanceCreateInfo.enabledExtensionCount = extensionCount;
     instanceCreateInfo.ppEnabledExtensionNames = ppExtensionNames;
 
-    VkResult result = vkCreateInstance(&instanceCreateInfo, NULL, &context.instance);
+    VkResult result = vkCreateInstance(&instanceCreateInfo, NULL, &context.vk.instance);
 
     free(pEveryLayerPropertiesArray);
 
@@ -160,14 +162,14 @@ int initInstance() {
 }
 
 int findPhysicalDevice(const char * const* ppRequiredExtensions, Uint32 requiredExtensionsAmount) {
-    context.physicalDevice = NULL;
-    context.pQueueFamilyProperties = NULL;
-    context.queueFamilyPropertyCount = 0;
+    context.vk.physicalDevice = NULL;
+    context.vk.pQueueFamilyProperties = NULL;
+    context.vk.queueFamilyPropertyCount = 0;
 
     Uint32 physicalDevicesCount = 0;
     VkPhysicalDevice *pPhysicalDevices = NULL;
 
-    VkResult result = vkEnumeratePhysicalDevices(context.instance, &physicalDevicesCount, NULL);
+    VkResult result = vkEnumeratePhysicalDevices(context.vk.instance, &physicalDevicesCount, NULL);
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkEnumeratePhysicalDevices for amount returned %i", result);
         return -5;
@@ -185,7 +187,7 @@ int findPhysicalDevice(const char * const* ppRequiredExtensions, Uint32 required
         return -7;
     }
 
-    result = vkEnumeratePhysicalDevices(context.instance, &physicalDevicesCount, pPhysicalDevices);
+    result = vkEnumeratePhysicalDevices(context.vk.instance, &physicalDevicesCount, pPhysicalDevices);
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkEnumeratePhysicalDevices for devices returned %i", result);
         free(pPhysicalDevices);
@@ -213,7 +215,7 @@ int findPhysicalDevice(const char * const* ppRequiredExtensions, Uint32 required
                 requiredParameters |= 1;
             }
 
-            result = vkGetPhysicalDeviceSurfaceSupportKHR(pPhysicalDevices[i - 1], p, context.surface, &surfaceSupported);
+            result = vkGetPhysicalDeviceSurfaceSupportKHR(pPhysicalDevices[i - 1], p, context.vk.surface, &surfaceSupported);
 
             if(result != VK_SUCCESS) {
                 SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "At index %i for vkGetPhysicalDeviceSurfaceSupportKHR returned %i", p - 1, result);
@@ -245,9 +247,9 @@ int findPhysicalDevice(const char * const* ppRequiredExtensions, Uint32 required
     SDL_Log( "Index %i device selected", deviceIndex);
 
     if(deviceIndex != physicalDevicesCount) {
-        context.physicalDevice = pPhysicalDevices[deviceIndex];
+        context.vk.physicalDevice = pPhysicalDevices[deviceIndex];
 
-        context.pQueueFamilyProperties = allocateQueueFamilyArray(context.physicalDevice, &context.queueFamilyPropertyCount);
+        context.vk.pQueueFamilyProperties = allocateQueueFamilyArray(context.vk.physicalDevice, &context.vk.queueFamilyPropertyCount);
     }
     else {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to find suitable device!");
@@ -261,7 +263,7 @@ int findPhysicalDevice(const char * const* ppRequiredExtensions, Uint32 required
 }
 
 int allocateLogicalDevice(const char * const* ppRequiredExtensions, Uint32 requiredExtensionsAmount) {
-    context.device = NULL;
+    context.vk.device = NULL;
 
     float normal_priority = 1.0f;
     VkResult result;
@@ -280,12 +282,12 @@ int allocateLogicalDevice(const char * const* ppRequiredExtensions, Uint32 requi
         deviceQueueCreateInfos[i].queueCount = 1;
     }
 
-    for(Uint32 p = context.queueFamilyPropertyCount; p == 0; p--) {
-        if( (context.pQueueFamilyProperties[p - 1].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0 ) {
+    for(Uint32 p = context.vk.queueFamilyPropertyCount; p == 0; p--) {
+        if( (context.vk.pQueueFamilyProperties[p - 1].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0 ) {
             deviceQueueCreateInfos[GRAPHICS_FAMILY_INDEX].queueFamilyIndex = p - 1;
         }
 
-        result = vkGetPhysicalDeviceSurfaceSupportKHR(context.physicalDevice, p - 1, context.surface, &surfaceSupported);
+        result = vkGetPhysicalDeviceSurfaceSupportKHR(context.vk.physicalDevice, p - 1, context.vk.surface, &surfaceSupported);
 
         if(result != VK_SUCCESS) {
              SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "At index %i for vkGetPhysicalDeviceSurfaceSupportKHR returned %i", p - 1, result);
@@ -320,21 +322,21 @@ int allocateLogicalDevice(const char * const* ppRequiredExtensions, Uint32 requi
 
     deviceCreateInfo.enabledLayerCount = 0;
 
-    result = vkCreateDevice(context.physicalDevice, &deviceCreateInfo, NULL, &context.device);
+    result = vkCreateDevice(context.vk.physicalDevice, &deviceCreateInfo, NULL, &context.vk.device);
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to create rendering device returned %i", result);
         return -9;
     }
 
-    vkGetDeviceQueue(context.device, deviceQueueCreateInfos[GRAPHICS_FAMILY_INDEX].queueFamilyIndex, 0, &context.graphicsQueue);
-    vkGetDeviceQueue(context.device, deviceQueueCreateInfos[ PRESENT_FAMILY_INDEX].queueFamilyIndex, 0, &context.presentationQueue);
+    vkGetDeviceQueue(context.vk.device, deviceQueueCreateInfos[GRAPHICS_FAMILY_INDEX].queueFamilyIndex, 0, &context.vk.graphicsQueue);
+    vkGetDeviceQueue(context.vk.device, deviceQueueCreateInfos[ PRESENT_FAMILY_INDEX].queueFamilyIndex, 0, &context.vk.presentationQueue);
 
     return 1;
 
 }
 
 int initVulkan() {
-    context.instance = NULL;
+    context.vk.instance = NULL;
 
     int returnCode;
 
@@ -342,7 +344,7 @@ int initVulkan() {
     if( returnCode < 0 )
         return returnCode;
 
-    if(SDL_Vulkan_CreateSurface(context.pWindow, context.instance, &context.surface) != SDL_TRUE) {
+    if(SDL_Vulkan_CreateSurface(context.pWindow, context.vk.instance, &context.vk.surface) != SDL_TRUE) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to create rendering device returned %s", SDL_GetError());
         returnCode = -10;
     }
@@ -396,12 +398,12 @@ int main(int argc, char **argv) {
         loop();
     }
 
-    if(context.queueFamilyPropertyCount > 0)
-        free(context.pQueueFamilyProperties);
+    if(context.vk.queueFamilyPropertyCount > 0)
+        free(context.vk.pQueueFamilyProperties);
 
-    vkDestroyDevice(context.device, NULL);
-    vkDestroySurfaceKHR(context.instance, context.surface, NULL);
-    vkDestroyInstance(context.instance, NULL);
+    vkDestroyDevice(context.vk.device, NULL);
+    vkDestroySurfaceKHR(context.vk.instance, context.vk.surface, NULL);
+    vkDestroyInstance(context.vk.instance, NULL);
     SDL_DestroyWindow(context.pWindow);
 
     return returnCode;
