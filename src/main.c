@@ -168,10 +168,6 @@ int initInstance() {
 }
 
 int findPhysicalDevice(const char * const* ppRequiredExtensions, Uint32 requiredExtensionsAmount) {
-    context.vk.physicalDevice = NULL;
-    context.vk.pQueueFamilyProperties = NULL;
-    context.vk.queueFamilyPropertyCount = 0;
-
     Uint32 physicalDevicesCount = 0;
     VkPhysicalDevice *pPhysicalDevices = NULL;
 
@@ -343,6 +339,13 @@ int allocateLogicalDevice(const char * const* ppRequiredExtensions, Uint32 requi
 
 int initVulkan() {
     context.vk.instance = NULL;
+    context.vk.physicalDevice = NULL;
+    context.vk.pQueueFamilyProperties = NULL;
+    context.vk.queueFamilyPropertyCount = 0;
+    context.vk.pSurfaceFormat = NULL;
+    context.vk.surfaceFormatCount = 0;
+    context.vk.pPresentMode = NULL;
+    context.vk.presentModeCount = 0;
 
     int returnCode;
 
@@ -403,6 +406,12 @@ int main(int argc, char **argv) {
     else {
         loop();
     }
+
+    if(context.vk.surfaceFormatCount > 0)
+        free(context.vk.pSurfaceFormat);
+
+    if(context.vk.presentModeCount > 0)
+        free(context.vk.pPresentMode);
 
     if(context.vk.queueFamilyPropertyCount > 0)
         free(context.vk.pQueueFamilyProperties);
