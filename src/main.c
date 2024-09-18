@@ -260,7 +260,7 @@ int findPhysicalDevice(const char * const* ppRequiredExtensions, Uint32 required
     return 1;
 }
 
-int allocateLogicalDevice() {
+int allocateLogicalDevice(const char * const* ppRequiredExtensions, Uint32 requiredExtensionsAmount) {
     context.device = NULL;
 
     float normal_priority = 1.0f;
@@ -315,7 +315,9 @@ int allocateLogicalDevice() {
 
     deviceCreateInfo.pEnabledFeatures = &physicalDeviceFeatures;
 
-    deviceCreateInfo.enabledExtensionCount = 0;
+    deviceCreateInfo.ppEnabledExtensionNames = ppRequiredExtensions;
+    deviceCreateInfo.enabledExtensionCount = requiredExtensionsAmount;
+
     deviceCreateInfo.enabledLayerCount = 0;
 
     result = vkCreateDevice(context.physicalDevice, &deviceCreateInfo, NULL, &context.device);
@@ -351,7 +353,7 @@ int initVulkan() {
     if( returnCode < 0 )
         return returnCode;
 
-    returnCode = allocateLogicalDevice();
+    returnCode = allocateLogicalDevice(requiredExtensions, 1);
     if( returnCode < 0 )
         return returnCode;
 
