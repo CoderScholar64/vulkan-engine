@@ -477,6 +477,31 @@ int allocateSwapChain() {
         context.vk.swapExtent.height = MIN(context.vk.surfaceCapabilities.maxImageExtent.height, MAX(context.vk.surfaceCapabilities.minImageExtent.height, (Uint32)height));
     }
 
+    Uint32 imageCount = context.vk.surfaceCapabilities.minImageCount + 1;
+
+    if(context.vk.surfaceCapabilities.maxImageCount != 0 && imageCount > context.vk.surfaceCapabilities.maxImageCount)
+        imageCount = context.vk.surfaceCapabilities.maxImageCount;
+
+    VkSwapchainCreateInfoKHR swapchainCreateInfo;
+    memset(&swapchainCreateInfo, 0, sizeof(swapchainCreateInfo));
+    swapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    swapchainCreateInfo.surface = context.vk.surface;
+    swapchainCreateInfo.minImageCount = imageCount;
+    swapchainCreateInfo.imageFormat = context.vk.surfaceFormat.format;
+    swapchainCreateInfo.imageColorSpace = context.vk.surfaceFormat.colorSpace;
+    swapchainCreateInfo.imageExtent = context.vk.swapExtent;
+    swapchainCreateInfo.imageArrayLayers = 1;
+    swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+    if(context.vk.graphicsQueue == context.vk.presentationQueue) {
+        swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        swapchainCreateInfo.queueFamilyIndexCount = 0;
+        swapchainCreateInfo.pQueueFamilyIndices = NULL;
+    }
+    else {
+        //TODO
+    }
+
     return 1;
 }
 
