@@ -20,6 +20,7 @@ struct Context {
         VkSurfaceKHR surface;
         Uint32 queueFamilyPropertyCount;
         VkSurfaceFormatKHR surfaceFormat;
+        VkPresentModeKHR presentMode;
 
         VkSurfaceCapabilitiesKHR surfaceCapabilities;
         VkSurfaceFormatKHR *pSurfaceFormat;
@@ -398,35 +399,62 @@ int allocateLogicalDevice(const char * const* ppRequiredExtensions, Uint32 requi
 }
 
 int allocateSwapChain() {
+    int foundPriority;
+    int currentPriority;
+
     updateSwapChainCapabilities(context.vk.physicalDevice, context.vk.surface);
 
+    // Find VkSurfaceFormatKHR
     const VkFormat format[] = {VK_FORMAT_B8G8R8A8_SRGB, VK_FORMAT_R8G8B8A8_SRGB, VK_FORMAT_B8G8R8_SRGB, VK_FORMAT_R8G8B8_SRGB};
     const unsigned FORMAT_AMOUNT = sizeof(format) / sizeof(VkFormat);
 
-    // Find VkSurfaceFormatKHR
     context.vk.surfaceFormat = context.vk.pSurfaceFormat[0];
-    int foundFormatPriority = FORMAT_AMOUNT;
-    int currentFormatPriority = FORMAT_AMOUNT;
+
+    foundPriority = FORMAT_AMOUNT;
+    currentPriority = FORMAT_AMOUNT;
 
     for(Uint32 f = context.vk.surfaceFormatCount; f != 0; f--) {
         if(context.vk.pSurfaceFormat[f - 1].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
-            currentFormatPriority = FORMAT_AMOUNT;
+            currentPriority = FORMAT_AMOUNT;
 
             for(Uint32 p = FORMAT_AMOUNT; p != 0; p--) {
                 if(format[p - 1] == context.vk.pSurfaceFormat[f - 1].format) {
-                    currentFormatPriority = p - 1;
+                    currentPriority = p - 1;
                     break;
                 }
             }
 
-            if(foundFormatPriority > currentFormatPriority) {
+            if(foundPriority > currentPriority) {
                 context.vk.surfaceFormat = context.vk.pSurfaceFormat[f - 1];
-                foundFormatPriority = currentFormatPriority;
+                foundPriority = currentPriority;
             }
         }
     }
 
     // Find VkPresentModeKHR
+    const VkPresentModeKHR presentModes[] = {VK_PRESENT_MODE_MAILBOX_KHR, VK_PRESENT_MODE_FIFO_KHR, VK_PRESENT_MODE_FIFO_RELAXED_KHR, VK_PRESENT_MODE_IMMEDIATE_KHR};
+    const unsigned PRESENT_MODE_AMOUNT = sizeof(presentModes) / sizeof(VkPresentModeKHR);
+
+    context.vk.presentMode = context.vk.pPresentMode[0];
+
+    foundPriority = PRESENT_MODE_AMOUNT;
+    currentPriority = PRESENT_MODE_AMOUNT;
+
+    for(Uint32 f = context.vk.presentModeCount; f != 0; f--) {
+        currentPriority = PRESENT_MODE_AMOUNT;
+
+        for(Uint32 p = PRESENT_MODE_AMOUNT; p != 0; p--) {
+            if(presentModes[p - 1] == context.vk.pPresentMode[f - 1]) {
+                currentPriority = p - 1;
+                break;
+            }
+        }
+
+        if(foundPriority > currentPriority) {
+            context.vk.presentMode = context.vk.pPresentMode[f - 1];
+            foundPriority = currentPriority;
+        }
+    }
 
     // Find VkExtent2D
 
