@@ -23,6 +23,7 @@ struct Context {
         VkSurfaceFormatKHR surfaceFormat;
         VkPresentModeKHR presentMode;
         VkExtent2D swapExtent;
+        VkSwapchainKHR swapChain;
 
         VkSurfaceCapabilitiesKHR surfaceCapabilities;
         VkSurfaceFormatKHR *pSurfaceFormat;
@@ -495,13 +496,31 @@ int allocateSwapChain() {
     swapchainCreateInfo.imageArrayLayers = 1;
     swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
+    const Uint32 familyIndex[] = {context.vk.graphicsQueueFamilyIndex, context.vk.presentationQueueFamilyIndex};
+    const unsigned FAMILY_INDEX_AMOUNT = sizeof(familyIndex) / sizeof(familyIndex[0]);
+
     if(context.vk.graphicsQueueFamilyIndex == context.vk.presentationQueueFamilyIndex) {
         swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
         swapchainCreateInfo.queueFamilyIndexCount = 0;
         swapchainCreateInfo.pQueueFamilyIndices = NULL;
     }
     else {
-        //TODO
+        swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+        swapchainCreateInfo.queueFamilyIndexCount = FAMILY_INDEX_AMOUNT;
+        swapchainCreateInfo.pQueueFamilyIndices = familyIndex;
+    }
+
+    swapchainCreateInfo.preTransform = context.vk.surfaceCapabilities.currentTransform;
+    swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+    swapchainCreateInfo.presentMode = context.vk.presentMode;
+    swapchainCreateInfo.clipped = VK_TRUE;
+    swapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
+
+    VkResult result = vkCreateSwapchainKHR(context.vk.device, &swapchainCreateInfo, NULL, &context.vk.swapChain);
+
+    if(result != VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to create swap chain returned %i", result);
+        return -16;
     }
 
     return 1;
@@ -516,6 +535,7 @@ int initVulkan() {
     context.vk.surfaceFormatCount = 0;
     context.vk.pPresentMode = NULL;
     context.vk.presentModeCount = 0;
+    context.vk.swapChain = NULL;
 
     int returnCode;
 
@@ -590,6 +610,7 @@ int main(int argc, char **argv) {
     if(context.vk.queueFamilyPropertyCount > 0)
         free(context.vk.pQueueFamilyProperties);
 
+    vkDestroySwapchainKHR(context.vk.device, context.vk.swapChain, NULL);
     vkDestroyDevice(context.vk.device, NULL);
     vkDestroySurfaceKHR(context.vk.instance, context.vk.surface, NULL);
     vkDestroyInstance(context.vk.instance, NULL);
