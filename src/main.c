@@ -11,14 +11,20 @@ struct Context {
     SDL_Window *pWindow;
 
     struct {
-        VkInstance instance;
-        VkPhysicalDevice physicalDevice;
-        VkQueueFamilyProperties *pQueueFamilyProperties;
-        Uint32 queueFamilyPropertyCount;
         VkDevice device;
+        VkInstance instance;
         VkQueue graphicsQueue;
         VkQueue presentationQueue;
+        VkPhysicalDevice physicalDevice;
+        VkQueueFamilyProperties *pQueueFamilyProperties;
         VkSurfaceKHR surface;
+        Uint32 queueFamilyPropertyCount;
+
+        VkSurfaceCapabilitiesKHR surfaceCapabilities;
+        VkSurfaceFormatKHR *pSurfaceFormat;
+        Uint32 surfaceFormatCount;
+        VkPresentModeKHR *pPresentMode;
+        Uint32 presentModeCount;
     } vk;
 
 } context = {"Hello World", 0, 0, 1920, 1080, SDL_WINDOW_MAXIMIZED | SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN};
