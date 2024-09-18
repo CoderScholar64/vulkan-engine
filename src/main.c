@@ -2,6 +2,7 @@
 #include <vulkan/vulkan.h>
 #include "SDL_vulkan.h"
 #include <string.h>
+#include "math_utility.h"
 
 struct Context {
     char title[64];
@@ -21,6 +22,7 @@ struct Context {
         Uint32 queueFamilyPropertyCount;
         VkSurfaceFormatKHR surfaceFormat;
         VkPresentModeKHR presentMode;
+        VkExtent2D swapExtent;
 
         VkSurfaceCapabilitiesKHR surfaceCapabilities;
         VkSurfaceFormatKHR *pSurfaceFormat;
@@ -457,6 +459,18 @@ int allocateSwapChain() {
     }
 
     // Find VkExtent2D
+    const Uint32 MAX_U32 = (Uint32) - 1;
+
+    if(context.vk.surfaceCapabilities.currentExtent.width != MAX_U32)
+        context.vk.swapExtent.width = context.vk.surfaceCapabilities.currentExtent.width;
+    else {
+        int width, height;
+
+        SDL_Vulkan_GetDrawableSize(context.pWindow, &width, &height);
+
+        context.vk.swapExtent.width  = MIN(context.vk.surfaceCapabilities.maxImageExtent.width,  MAX(context.vk.surfaceCapabilities.minImageExtent.width,  (Uint32)width));
+        context.vk.swapExtent.height = MIN(context.vk.surfaceCapabilities.maxImageExtent.height, MAX(context.vk.surfaceCapabilities.minImageExtent.height, (Uint32)height));
+    }
 
     return 1;
 }
