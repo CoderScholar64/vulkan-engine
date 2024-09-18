@@ -1,6 +1,7 @@
 #include "SDL.h"
 #include <vulkan/vulkan.h>
 #include "SDL_vulkan.h"
+#include <string.h>
 
 struct Context {
     char title[64];
@@ -84,6 +85,8 @@ int initInstance() {
     for(unsigned int i = 0; i < everyLayerAmount; i++) {
         SDL_Log( "[%i] %s", i, pEveryLayerPropertiesArray[i].layerName);
     }
+
+    free(pEveryLayerPropertiesArray);
 
     VkInstanceCreateInfo instanceCreateInfo;
     memset(&instanceCreateInfo, 0, sizeof(instanceCreateInfo));
