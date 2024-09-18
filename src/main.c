@@ -23,7 +23,10 @@ struct Context {
         VkSurfaceFormatKHR surfaceFormat;
         VkPresentModeKHR presentMode;
         VkExtent2D swapExtent;
+
         VkSwapchainKHR swapChain;
+        Uint32 swapChainImageCount;
+        VkImage *pSwapChainImages;
 
         VkSurfaceCapabilitiesKHR surfaceCapabilities;
         VkSurfaceFormatKHR *pSurfaceFormat;
@@ -523,6 +526,22 @@ int allocateSwapChain() {
         return -16;
     }
 
+    result = vkGetSwapchainImagesKHR(context.vk.device, context.vk.swapChain, &context.vk.swapChainImageCount, NULL);
+
+    if(result < VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to vkGetSwapchainImagesKHR for count returned %i", result);
+        return -17;
+    }
+
+    context.vk.pSwapChainImages = malloc(sizeof(VkImage) * context.vk.swapChainImageCount);
+
+    result = vkGetSwapchainImagesKHR(context.vk.device, context.vk.swapChain, &context.vk.swapChainImageCount, NULL);
+
+    if(result != VK_SUCCESS || context.vk.pSwapChainImages == NULL) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to vkGetSwapchainImagesKHR for allocation returned %i", result);
+        return -18;
+    }
+
     return 1;
 }
 
@@ -531,11 +550,15 @@ int initVulkan() {
     context.vk.physicalDevice = NULL;
     context.vk.pQueueFamilyProperties = NULL;
     context.vk.queueFamilyPropertyCount = 0;
+
     context.vk.pSurfaceFormat = NULL;
     context.vk.surfaceFormatCount = 0;
     context.vk.pPresentMode = NULL;
     context.vk.presentModeCount = 0;
+
     context.vk.swapChain = NULL;
+    context.vk.swapChainImageCount = 0;
+    context.vk.pSwapChainImages = NULL;
 
     int returnCode;
 
@@ -609,6 +632,10 @@ int main(int argc, char **argv) {
 
     if(context.vk.queueFamilyPropertyCount > 0)
         free(context.vk.pQueueFamilyProperties);
+
+    if(context.vk.swapChainImageCount > 0) {
+        free(context.vk.pSwapChainImages);
+    }
 
     vkDestroySwapchainKHR(context.vk.device, context.vk.swapChain, NULL);
     vkDestroyDevice(context.vk.device, NULL);
