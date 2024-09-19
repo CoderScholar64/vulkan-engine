@@ -6,7 +6,7 @@
 #include "SDL_vulkan.h"
 #include "SDL.h"
 #include <string.h>
-#include "math_utility.h"
+#include "u_math.h"
 
 
 static VkQueueFamilyProperties* allocateQueueFamilyArray(VkPhysicalDevice device, Uint32 *pQueueFamilyPropertyCount);

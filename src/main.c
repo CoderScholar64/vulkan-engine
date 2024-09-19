@@ -3,8 +3,6 @@
 
 #include "SDL.h"
 
-#include "math_utility.h"
-
 struct Context context = {"Hello World", 0, 0, 1920, 1080, SDL_WINDOW_MAXIMIZED | SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN};
 
 void loop() {
