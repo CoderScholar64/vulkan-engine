@@ -782,21 +782,44 @@ static int allocateGraphicsPipeline() {
     pipelineRasterizationStateCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
     pipelineRasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
     pipelineRasterizationStateCreateInfo.depthBiasEnable = VK_FALSE;
-    pipelineRasterizationStateCreateInfo.depthBiasConstantFactor = 0.0f;
-    pipelineRasterizationStateCreateInfo.depthBiasClamp = 0.0f;
-    pipelineRasterizationStateCreateInfo.depthBiasSlopeFactor = 0.0f;
+    pipelineRasterizationStateCreateInfo.depthBiasConstantFactor = 0.0f; // OPTIONAL
+    pipelineRasterizationStateCreateInfo.depthBiasClamp = 0.0f; // OPTIONAL
+    pipelineRasterizationStateCreateInfo.depthBiasSlopeFactor = 0.0f; // OPTIONAL
 
     VkPipelineMultisampleStateCreateInfo pipelineMultisampleStateCreateInfo;
     memset(&pipelineMultisampleStateCreateInfo, 0, sizeof(pipelineMultisampleStateCreateInfo));
     pipelineMultisampleStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     pipelineMultisampleStateCreateInfo.sampleShadingEnable = VK_FALSE;
     pipelineMultisampleStateCreateInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-    pipelineMultisampleStateCreateInfo.minSampleShading = 1.0f;
-    pipelineMultisampleStateCreateInfo.pSampleMask = NULL;
-    pipelineMultisampleStateCreateInfo.alphaToCoverageEnable = VK_FALSE;
-    pipelineMultisampleStateCreateInfo.alphaToOneEnable = VK_FALSE;
+    pipelineMultisampleStateCreateInfo.minSampleShading = 1.0f; // OPTIONAL
+    pipelineMultisampleStateCreateInfo.pSampleMask = NULL; // OPTIONAL
+    pipelineMultisampleStateCreateInfo.alphaToCoverageEnable = VK_FALSE; // OPTIONAL
+    pipelineMultisampleStateCreateInfo.alphaToOneEnable = VK_FALSE; // OPTIONAL
 
     // VkPipelineDepthStencilStateCreateInfo // TODO Add that for 3D.
+
+    VkPipelineColorBlendAttachmentState pipelineColorBlendAttachmentState;
+    memset(&pipelineColorBlendAttachmentState, 0, sizeof(pipelineColorBlendAttachmentState));
+    pipelineColorBlendAttachmentState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+    pipelineColorBlendAttachmentState.blendEnable = VK_FALSE;
+    pipelineColorBlendAttachmentState.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
+    pipelineColorBlendAttachmentState.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
+    pipelineColorBlendAttachmentState.colorBlendOp = VK_BLEND_OP_ADD;
+    pipelineColorBlendAttachmentState.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+    pipelineColorBlendAttachmentState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+    pipelineColorBlendAttachmentState.alphaBlendOp = VK_BLEND_OP_ADD;
+
+    VkPipelineColorBlendStateCreateInfo pipelineColorBlendStateCreateInfo;
+    memset(&pipelineColorBlendStateCreateInfo, 0, sizeof(pipelineColorBlendStateCreateInfo));
+    pipelineColorBlendStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+    pipelineColorBlendStateCreateInfo.logicOpEnable = VK_FALSE;
+    pipelineColorBlendStateCreateInfo.logicOp = VK_LOGIC_OP_COPY; // OPTIONAL
+    pipelineColorBlendStateCreateInfo.attachmentCount = 1;
+    pipelineColorBlendStateCreateInfo.pAttachments = &pipelineColorBlendAttachmentState;
+    pipelineColorBlendStateCreateInfo.blendConstants[0] = 0.0f; // OPTIONAL
+    pipelineColorBlendStateCreateInfo.blendConstants[1] = 0.0f; // OPTIONAL
+    pipelineColorBlendStateCreateInfo.blendConstants[2] = 0.0f; // OPTIONAL
+    pipelineColorBlendStateCreateInfo.blendConstants[3] = 0.0f; // OPTIONAL
 
     vkDestroyShaderModule(context.vk.device,   vertexShaderModule, NULL);
     vkDestroyShaderModule(context.vk.device, fragmentShaderModule, NULL);
