@@ -45,7 +45,7 @@ int v_init() {
 
     if(SDL_Vulkan_CreateSurface(context.pWindow, context.vk.instance, &context.vk.surface) != SDL_TRUE) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to create rendering device returned %s", SDL_GetError());
-        returnCode = -10;
+        returnCode = -1;
     }
 
     const char *const requiredExtensions[] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
@@ -186,14 +186,14 @@ static int updateSwapChainCapabilities(VkPhysicalDevice physicalDevice, VkSurfac
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkGetPhysicalDeviceSurfaceCapabilitiesKHR had failed with %i", result);
-        return -1;
+        return -2;
     }
 
     result = vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &context.vk.surfaceFormatCount, NULL);
 
     if(result < VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkGetPhysicalDeviceSurfaceFormatsKHR for count had failed with %i", result);
-        return -2;
+        return -3;
     }
 
     context.vk.pSurfaceFormat = malloc(context.vk.surfaceFormatCount * sizeof(VkSurfaceFormatKHR));
@@ -202,14 +202,14 @@ static int updateSwapChainCapabilities(VkPhysicalDevice physicalDevice, VkSurfac
 
     if(result != VK_SUCCESS || context.vk.pSurfaceFormat == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkGetPhysicalDeviceSurfaceFormatsKHR for allocation had failed with %i", result);
-        return -3;
+        return -4;
     }
 
     result = vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &context.vk.presentModeCount, NULL);
 
     if(result < VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkGetPhysicalDeviceSurfacePresentModesKHR for count had failed with %i", result);
-        return -4;
+        return -5;
     }
 
     context.vk.pPresentMode = malloc(context.vk.presentModeCount * sizeof(VkPresentModeKHR));
@@ -218,7 +218,7 @@ static int updateSwapChainCapabilities(VkPhysicalDevice physicalDevice, VkSurfac
 
     if(result != VK_SUCCESS || context.vk.pPresentMode == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkGetPhysicalDeviceSurfacePresentModesKHR for allocation had failed with %i", result);
-        return -5;
+        return -6;
     }
 
     if(context.vk.surfaceFormatCount != 0 && context.vk.presentModeCount != 0)
@@ -242,14 +242,14 @@ static int initInstance() {
     const char **ppExtensionNames = NULL;
     if(!SDL_Vulkan_GetInstanceExtensions(context.pWindow, &extensionCount, ppExtensionNames)) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Getting number of extensions had failed with %s", SDL_GetError());
-        return -3;
+        return -7;
     }
     if(extensionCount != 0)
         ppExtensionNames = malloc(sizeof(char*) * extensionCount);
     if(!SDL_Vulkan_GetInstanceExtensions(context.pWindow, &extensionCount, ppExtensionNames)) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Getting names of extensions had failed with %s", SDL_GetError());
         free(ppExtensionNames);
-        return -4;
+        return -8;
     }
 
     for(unsigned int i = 0; i < extensionCount; i++) {
@@ -291,7 +291,7 @@ static int initInstance() {
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkCreateInstance returned %i", result);
-        return -4;
+        return -9;
     }
 
     return 1;
@@ -304,26 +304,26 @@ static int findPhysicalDevice(const char * const* ppRequiredExtensions, Uint32 r
     VkResult result = vkEnumeratePhysicalDevices(context.vk.instance, &physicalDevicesCount, NULL);
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkEnumeratePhysicalDevices for amount returned %i", result);
-        return -5;
+        return -10;
     }
 
     if(physicalDevicesCount != 0)
         pPhysicalDevices = malloc(sizeof(VkPhysicalDevice) * physicalDevicesCount);
     else {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "There are not any rendering device available!");
-        return -6;
+        return -11;
     }
 
     if(pPhysicalDevices == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "pPhysicalDevices failed to allocate %i names!", physicalDevicesCount);
-        return -7;
+        return -12;
     }
 
     result = vkEnumeratePhysicalDevices(context.vk.instance, &physicalDevicesCount, pPhysicalDevices);
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkEnumeratePhysicalDevices for devices returned %i", result);
         free(pPhysicalDevices);
-        return -8;
+        return -13;
     }
     VkPhysicalDeviceProperties physicalDeviceProperties;
 
@@ -387,7 +387,7 @@ static int findPhysicalDevice(const char * const* ppRequiredExtensions, Uint32 r
     else {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to find suitable device!");
         free(pPhysicalDevices);
-        return -11;
+        return -14;
     }
 
     free(pPhysicalDevices);
@@ -458,7 +458,7 @@ static int allocateLogicalDevice(const char * const* ppRequiredExtensions, Uint3
     result = vkCreateDevice(context.vk.physicalDevice, &deviceCreateInfo, NULL, &context.vk.device);
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to create rendering device returned %i", result);
-        return -9;
+        return -15;
     }
 
     //vkGetDeviceQueue(context.vk.device, deviceQueueCreateInfos[GRAPHICS_FAMILY_INDEX].queueFamilyIndex, 0, &context.vk.graphicsQueue);
@@ -477,7 +477,7 @@ static int allocateSwapChain() {
 
     if(updateResult < 0) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to update swap chain capabilities %i", updateResult);
-        return -15;
+        return -16;
     }
 
     // Find VkSurfaceFormatKHR
@@ -586,14 +586,14 @@ static int allocateSwapChain() {
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to create swap chain returned %i", result);
-        return -16;
+        return -17;
     }
 
     result = vkGetSwapchainImagesKHR(context.vk.device, context.vk.swapChain, &context.vk.swapChainImageCount, NULL);
 
     if(result < VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to vkGetSwapchainImagesKHR for count returned %i", result);
-        return -17;
+        return -18;
     }
 
     context.vk.pSwapChainImages = malloc(sizeof(VkImage) * context.vk.swapChainImageCount);
@@ -602,7 +602,7 @@ static int allocateSwapChain() {
 
     if(result != VK_SUCCESS || context.vk.pSwapChainImages == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to vkGetSwapchainImagesKHR for allocation returned %i", result);
-        return -18;
+        return -19;
     }
 
     return 1;
@@ -638,7 +638,7 @@ static int allocateSwapChainImageViews() {
 
         if(result != VK_SUCCESS) {
             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to vkCreateImageView at index %i for allocate returned %i", i, result);
-            return -19;
+            return -20;
         }
 
     }
