@@ -18,6 +18,7 @@ static int findPhysicalDevice(const char * const* ppRequiredExtensions, Uint32 r
 static int allocateLogicalDevice(const char * const* ppRequiredExtensions, Uint32 requiredExtensionsAmount);
 static int allocateSwapChain();
 static int allocateSwapChainImageViews();
+static int allocateGraphicsPipeline();
 
 
 int v_init() {
@@ -62,6 +63,10 @@ int v_init() {
         return returnCode;
 
     returnCode = allocateSwapChainImageViews();
+    if( returnCode < 0 )
+        return returnCode;
+
+    returnCode = allocateGraphicsPipeline();
     if( returnCode < 0 )
         return returnCode;
 
@@ -638,5 +643,9 @@ static int allocateSwapChainImageViews() {
 
     }
 
+    return 1;
+}
+
+static int allocateGraphicsPipeline() {
     return 1;
 }
