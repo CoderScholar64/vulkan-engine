@@ -24,20 +24,8 @@ static int allocateGraphicsPipeline();
 
 
 int v_init() {
-    context.vk.instance = NULL;
-    context.vk.physicalDevice = NULL;
-    context.vk.pQueueFamilyProperties = NULL;
-    context.vk.queueFamilyPropertyCount = 0;
-
-    context.vk.pSurfaceFormat = NULL;
-    context.vk.surfaceFormatCount = 0;
-    context.vk.pPresentMode = NULL;
-    context.vk.presentModeCount = 0;
-
-    context.vk.swapChain = NULL;
-    context.vk.swapChainImageCount = 0;
-    context.vk.pSwapChainImages = NULL;
-    context.vk.pSwapChainImageViews = NULL;
+    // Clear the entire vulkan context.
+    memset(&context.vk, 0, sizeof(context.vk));
 
     int returnCode;
 
