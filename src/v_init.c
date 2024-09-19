@@ -728,6 +728,50 @@ static int allocateGraphicsPipeline() {
     pipelineShaderStageCreateInfos[FRAGMENT_INDEX].pName = "main";
     // pipelineShaderStageCreateInfos[FRAGMENT_INDEX].pSpecializationInfo = NULL; // This allows the specification of constraints
 
+    //TODO Get to the point where vertex data could be added.
+    VkPipelineVertexInputStateCreateInfo pipelineVertexInputStateCreateInfo;
+    memset(&pipelineVertexInputStateCreateInfo, 0, sizeof(pipelineVertexInputStateCreateInfo));
+    pipelineVertexInputStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    pipelineVertexInputStateCreateInfo.vertexBindingDescriptionCount = 0;
+    pipelineVertexInputStateCreateInfo.pVertexBindingDescriptions = NULL;
+    pipelineVertexInputStateCreateInfo.vertexAttributeDescriptionCount = 0;
+    pipelineVertexInputStateCreateInfo.pVertexAttributeDescriptions = NULL;
+
+    VkPipelineInputAssemblyStateCreateInfo pipelineInputAssemblyStateCreateInfo;
+    memset(&pipelineInputAssemblyStateCreateInfo, 0, sizeof(pipelineInputAssemblyStateCreateInfo));
+    pipelineInputAssemblyStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+    pipelineInputAssemblyStateCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    pipelineInputAssemblyStateCreateInfo.primitiveRestartEnable = VK_FALSE;
+
+    VkViewport viewport;
+    memset(&viewport, 0, sizeof(viewport));
+    viewport.x = 0.0f;
+    viewport.y = 0.0f;
+    viewport.width  = (float) context.vk.swapExtent.width;
+    viewport.height = (float) context.vk.swapExtent.height;
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
+
+    VkRect2D scissor;
+    memset(&scissor, 0, sizeof(scissor));
+    scissor.offset.x = 0.0f;
+    scissor.offset.y = 0.0f;
+    scissor.extent = context.vk.swapExtent;
+
+    VkDynamicState dynamicStates[] = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
+
+    VkPipelineDynamicStateCreateInfo pipelineDynamicStateInfo;
+    memset(&pipelineDynamicStateInfo, 0, sizeof(pipelineDynamicStateInfo));
+    pipelineDynamicStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    pipelineDynamicStateInfo.dynamicStateCount = sizeof(dynamicStates) / sizeof(dynamicStates[0]);
+    pipelineDynamicStateInfo.pDynamicStates = dynamicStates;
+
+    VkPipelineViewportStateCreateInfo pipelineViewportStateCreateInfo;
+    memset(&pipelineViewportStateCreateInfo, 0, sizeof(pipelineViewportStateCreateInfo));
+    pipelineViewportStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+    pipelineViewportStateCreateInfo.viewportCount = 1;
+    pipelineViewportStateCreateInfo.scissorCount  = 1;
+
     vkDestroyShaderModule(context.vk.device,   vertexShaderModule, NULL);
     vkDestroyShaderModule(context.vk.device, fragmentShaderModule, NULL);
 
