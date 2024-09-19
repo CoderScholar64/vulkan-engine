@@ -34,16 +34,16 @@ int main(int argc, char **argv) {
         return -2;
     }
 
-    returnCode = initVulkan();
+    returnCode = v_init();
 
     if( returnCode < 0 ) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Thus initVulkan() failed with code %s", SDL_GetError());
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Thus v_init() failed with code %s", SDL_GetError());
     }
     else {
         loop();
     }
 
-    deinitVulkan();
+    v_deinit();
     SDL_DestroyWindow(context.pWindow);
 
     return returnCode;

@@ -8,7 +8,7 @@
 #include <string.h>
 #include "math_utility.h"
 
-VkQueueFamilyProperties* allocateQueueFamilyArray(VkPhysicalDevice device, Uint32 *pQueueFamilyPropertyCount) {
+static VkQueueFamilyProperties* allocateQueueFamilyArray(VkPhysicalDevice device, Uint32 *pQueueFamilyPropertyCount) {
     *pQueueFamilyPropertyCount = 0;
     VkQueueFamilyProperties *pQueueFamilyProperties = NULL;
 
@@ -23,7 +23,7 @@ VkQueueFamilyProperties* allocateQueueFamilyArray(VkPhysicalDevice device, Uint3
     return pQueueFamilyProperties;
 }
 
-VkLayerProperties* allocateLayerPropertiesArray(Uint32 *pPropertyCount) {
+static VkLayerProperties* allocateLayerPropertiesArray(Uint32 *pPropertyCount) {
     *pPropertyCount = 0;
     VkLayerProperties *pLayerProperties = NULL;
 
@@ -38,7 +38,7 @@ VkLayerProperties* allocateLayerPropertiesArray(Uint32 *pPropertyCount) {
     return pLayerProperties;
 }
 
-int hasRequiredExtensions(VkPhysicalDevice physicalDevice, const char * const* ppRequiredExtension, Uint32 requiredExtensionCount) {
+static int hasRequiredExtensions(VkPhysicalDevice physicalDevice, const char * const* ppRequiredExtension, Uint32 requiredExtensionCount) {
     Uint32 extensionCount = 0;
     VkExtensionProperties *pExtensionProperties = NULL;
     int found;
@@ -76,7 +76,7 @@ int hasRequiredExtensions(VkPhysicalDevice physicalDevice, const char * const* p
     return everythingFound;
 }
 
-int updateSwapChainCapabilities(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface) {
+static int updateSwapChainCapabilities(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface) {
     VkResult result;
 
     if(context.vk.surfaceFormatCount > 0)
@@ -135,7 +135,7 @@ int updateSwapChainCapabilities(VkPhysicalDevice physicalDevice, VkSurfaceKHR su
         return 0;
 }
 
-int initInstance() {
+static int initInstance() {
     VkApplicationInfo applicationInfo;
     memset(&applicationInfo, 0, sizeof(applicationInfo));
     applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -205,7 +205,7 @@ int initInstance() {
     return 1;
 }
 
-int findPhysicalDevice(const char * const* ppRequiredExtensions, Uint32 requiredExtensionsAmount) {
+static int findPhysicalDevice(const char * const* ppRequiredExtensions, Uint32 requiredExtensionsAmount) {
     Uint32 physicalDevicesCount = 0;
     VkPhysicalDevice *pPhysicalDevices = NULL;
 
@@ -303,7 +303,7 @@ int findPhysicalDevice(const char * const* ppRequiredExtensions, Uint32 required
     return 1;
 }
 
-int allocateLogicalDevice(const char * const* ppRequiredExtensions, Uint32 requiredExtensionsAmount) {
+static int allocateLogicalDevice(const char * const* ppRequiredExtensions, Uint32 requiredExtensionsAmount) {
     context.vk.device = NULL;
 
     float normal_priority = 1.0f;
@@ -377,7 +377,7 @@ int allocateLogicalDevice(const char * const* ppRequiredExtensions, Uint32 requi
     return 1;
 }
 
-int allocateSwapChain() {
+static int allocateSwapChain() {
     int foundPriority;
     int currentPriority;
 
@@ -516,7 +516,7 @@ int allocateSwapChain() {
     return 1;
 }
 
-int allocateSwapChainImageViews() {
+static int allocateSwapChainImageViews() {
     VkImageViewCreateInfo imageViewCreateInfo;
     VkResult result;
 
@@ -554,7 +554,7 @@ int allocateSwapChainImageViews() {
     return 1;
 }
 
-int initVulkan() {
+int v_init() {
     context.vk.instance = NULL;
     context.vk.physicalDevice = NULL;
     context.vk.pQueueFamilyProperties = NULL;
@@ -602,7 +602,7 @@ int initVulkan() {
     return 1;
 }
 
-void deinitVulkan() {
+void v_deinit() {
     if(context.vk.pSurfaceFormat != NULL)
         free(context.vk.pSurfaceFormat);
 
