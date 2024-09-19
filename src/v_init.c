@@ -100,6 +100,7 @@ void v_deinit() {
         free(context.vk.pSwapChainImageViews);
     }
 
+    vkDestroyPipeline(context.vk.device, context.vk.graphicsPipeline, NULL);
     vkDestroyPipelineLayout(context.vk.device, context.vk.pipelineLayout, NULL);
     vkDestroyRenderPass(context.vk.device, context.vk.renderPass, NULL);
     vkDestroySwapchainKHR(context.vk.device, context.vk.swapChain, NULL);
@@ -913,8 +914,15 @@ static int allocateGraphicsPipeline() {
     graphicsPipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE; // OPTIONAL
     graphicsPipelineCreateInfo.basePipelineIndex  = -1; // OPTIONAL
 
+    result = vkCreateGraphicsPipelines(context.vk.device, VK_NULL_HANDLE, 1, &graphicsPipelineCreateInfo, NULL, &context.vk.graphicsPipeline);
+
     vkDestroyShaderModule(context.vk.device,   vertexShaderModule, NULL);
     vkDestroyShaderModule(context.vk.device, fragmentShaderModule, NULL);
+
+    if(result != VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkCreateGraphicsPipelines creation failed with result: %i", result);
+        return -27;
+    }
 
     return 1;
 }
