@@ -648,7 +648,27 @@ static int allocateSwapChainImageViews() {
 }
 
 static VkShaderModule allocateShaderModule(Uint8* data, size_t size) {
-    return NULL;
+    VkShaderModuleCreateInfo shaderModuleCreateInfo;
+    VkShaderModule shaderModule = NULL;
+    VkResult result;
+
+    memset(&shaderModuleCreateInfo, 0, sizeof(shaderModuleCreateInfo));
+    shaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    shaderModuleCreateInfo.codeSize = size;
+    shaderModuleCreateInfo.pCode = (const Uint32*)(data);
+
+    result = vkCreateShaderModule(context.vk.device, &shaderModuleCreateInfo, NULL, &shaderModule);
+
+    if(result != VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Shader Module Failed to allocate %i", result);
+
+        if(shaderModule != NULL)
+            vkDestroyShaderModule(context.vk.device, shaderModule, NULL);
+
+        shaderModule = NULL;
+    }
+
+    return shaderModule;
 }
 
 static int allocateGraphicsPipeline() {
@@ -674,6 +694,21 @@ static int allocateGraphicsPipeline() {
 
     free(pVertexShaderCode);
     free(pFragmentShaderCode);
+
+    if(vertexShaderModule == NULL) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Vulkan failed to parse vertex shader code!");
+
+        vkDestroyShaderModule(context.vk.device, fragmentShaderModule, NULL);
+
+        return -23;
+    }
+    else if(fragmentShaderModule == NULL) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Vulkan failed to parse fragment shader code!");
+
+        vkDestroyShaderModule(context.vk.device, vertexShaderModule, NULL);
+
+        return -24;
+    }
 
     vkDestroyShaderModule(context.vk.device,   vertexShaderModule, NULL);
     vkDestroyShaderModule(context.vk.device, fragmentShaderModule, NULL);

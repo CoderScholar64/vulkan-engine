@@ -17,6 +17,7 @@ Uint8* u_read_file(const char *const pFilepath, Sint64 *pFileSize) {
 
     if(size <= 0) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "u_read_file: Cannot read binary \"%s\".", pFilepath);
+        SDL_RWclose(pFile);
         return NULL;
     }
 
@@ -24,9 +25,25 @@ Uint8* u_read_file(const char *const pFilepath, Sint64 *pFileSize) {
 
     if(pData == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "u_read_file: Failed to allocate data for \"%s\" with size %li.", pFilepath, size);
+        SDL_RWclose(pFile);
         return NULL;
     }
 
+    if(SDL_RWseek(pFile, 0, RW_SEEK_SET) < 0) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "u_read_file: Failed to get back to position for \"%s\" with size %li.", pFilepath, size);
+        SDL_RWclose(pFile);
+        free(pData);
+        return NULL;
+    }
+
+    if(SDL_RWread(pFile, pData, size, 1) <= 0) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "u_read_file: Failed to read buffer for \"%s\" with size %li.", pFilepath, size);
+        SDL_RWclose(pFile);
+        free(pData);
+        return NULL;
+    }
+
+    SDL_RWclose(pFile);
     *pFileSize = size;
     return pData;
 }
