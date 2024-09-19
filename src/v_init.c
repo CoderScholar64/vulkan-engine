@@ -882,11 +882,36 @@ static int allocateGraphicsPipeline() {
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Pipeline Layout creation failed with result: %i", result);
+
         vkDestroyShaderModule(context.vk.device,   vertexShaderModule, NULL);
         vkDestroyShaderModule(context.vk.device, fragmentShaderModule, NULL);
 
         return -26;
     }
+
+    VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo;
+    memset(&graphicsPipelineCreateInfo, 0, sizeof(graphicsPipelineCreateInfo));
+
+    graphicsPipelineCreateInfo.sType      = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    graphicsPipelineCreateInfo.stageCount = sizeof(pipelineShaderStageCreateInfos) / sizeof(pipelineShaderStageCreateInfos[0]);
+    graphicsPipelineCreateInfo.pStages    = pipelineShaderStageCreateInfos;
+
+    graphicsPipelineCreateInfo.pVertexInputState   = &pipelineVertexInputStateCreateInfo;
+    graphicsPipelineCreateInfo.pInputAssemblyState = &pipelineInputAssemblyStateCreateInfo;
+    graphicsPipelineCreateInfo.pViewportState      = &pipelineViewportStateCreateInfo;
+    graphicsPipelineCreateInfo.pRasterizationState = &pipelineRasterizationStateCreateInfo;
+    graphicsPipelineCreateInfo.pMultisampleState   = &pipelineMultisampleStateCreateInfo;
+    graphicsPipelineCreateInfo.pDepthStencilState  =  NULL; // OPTIONAL
+    graphicsPipelineCreateInfo.pColorBlendState    = &pipelineColorBlendStateCreateInfo;
+    graphicsPipelineCreateInfo.pDynamicState       = &pipelineDynamicStateInfo;
+
+    graphicsPipelineCreateInfo.layout = context.vk.pipelineLayout;
+
+    graphicsPipelineCreateInfo.renderPass = context.vk.renderPass;
+    graphicsPipelineCreateInfo.subpass    = 0;
+
+    graphicsPipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE; // OPTIONAL
+    graphicsPipelineCreateInfo.basePipelineIndex  = -1; // OPTIONAL
 
     vkDestroyShaderModule(context.vk.device,   vertexShaderModule, NULL);
     vkDestroyShaderModule(context.vk.device, fragmentShaderModule, NULL);
