@@ -786,6 +786,18 @@ static int allocateGraphicsPipeline() {
     pipelineRasterizationStateCreateInfo.depthBiasClamp = 0.0f;
     pipelineRasterizationStateCreateInfo.depthBiasSlopeFactor = 0.0f;
 
+    VkPipelineMultisampleStateCreateInfo pipelineMultisampleStateCreateInfo;
+    memset(&pipelineMultisampleStateCreateInfo, 0, sizeof(pipelineMultisampleStateCreateInfo));
+    pipelineMultisampleStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+    pipelineMultisampleStateCreateInfo.sampleShadingEnable = VK_FALSE;
+    pipelineMultisampleStateCreateInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+    pipelineMultisampleStateCreateInfo.minSampleShading = 1.0f;
+    pipelineMultisampleStateCreateInfo.pSampleMask = NULL;
+    pipelineMultisampleStateCreateInfo.alphaToCoverageEnable = VK_FALSE;
+    pipelineMultisampleStateCreateInfo.alphaToOneEnable = VK_FALSE;
+
+    // VkPipelineDepthStencilStateCreateInfo // TODO Add that for 3D.
+
     vkDestroyShaderModule(context.vk.device,   vertexShaderModule, NULL);
     vkDestroyShaderModule(context.vk.device, fragmentShaderModule, NULL);
 
