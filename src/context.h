@@ -29,6 +29,8 @@ struct Context {
         VkImage *pSwapChainImages;
         VkImageView *pSwapChainImageViews;
 
+        VkPipelineLayout pipelineLayout;
+
         VkSurfaceCapabilitiesKHR surfaceCapabilities;
         VkSurfaceFormatKHR *pSurfaceFormat;
         Uint32 surfaceFormatCount;

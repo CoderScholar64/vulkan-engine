@@ -95,6 +95,7 @@ void v_deinit() {
         free(context.vk.pSwapChainImageViews);
     }
 
+    vkDestroyPipelineLayout(context.vk.device, context.vk.pipelineLayout, NULL);
     vkDestroySwapchainKHR(context.vk.device, context.vk.swapChain, NULL);
     vkDestroyDevice(context.vk.device, NULL);
     vkDestroySurfaceKHR(context.vk.instance, context.vk.surface, NULL);
@@ -820,6 +821,25 @@ static int allocateGraphicsPipeline() {
     pipelineColorBlendStateCreateInfo.blendConstants[1] = 0.0f; // OPTIONAL
     pipelineColorBlendStateCreateInfo.blendConstants[2] = 0.0f; // OPTIONAL
     pipelineColorBlendStateCreateInfo.blendConstants[3] = 0.0f; // OPTIONAL
+
+    // Here is where uniforms should go.
+    VkPipelineLayoutCreateInfo pipelineLayoutInfo;
+    memset(&pipelineLayoutInfo, 0, sizeof(pipelineLayoutInfo));
+    pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    pipelineLayoutInfo.setLayoutCount = 0; // OPTIONAL
+    pipelineLayoutInfo.pSetLayouts = NULL; // OPTIONAL
+    pipelineLayoutInfo.pushConstantRangeCount = 0; // OPTIONAL
+    pipelineLayoutInfo.pPushConstantRanges = NULL; // OPTIONAL
+
+    VkResult result = vkCreatePipelineLayout(context.vk.device, &pipelineLayoutInfo, NULL, &context.vk.pipelineLayout);
+
+    if(result != VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Pipeline Layout creation failed with result: %i", result);
+        vkDestroyShaderModule(context.vk.device,   vertexShaderModule, NULL);
+        vkDestroyShaderModule(context.vk.device, fragmentShaderModule, NULL);
+
+        return -25;
+    }
 
     vkDestroyShaderModule(context.vk.device,   vertexShaderModule, NULL);
     vkDestroyShaderModule(context.vk.device, fragmentShaderModule, NULL);
