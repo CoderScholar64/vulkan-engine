@@ -8,6 +8,93 @@
 #include <string.h>
 #include "math_utility.h"
 
+
+static VkQueueFamilyProperties* allocateQueueFamilyArray(VkPhysicalDevice device, Uint32 *pQueueFamilyPropertyCount);
+static VkLayerProperties* allocateLayerPropertiesArray(Uint32 *pPropertyCount);
+static int hasRequiredExtensions(VkPhysicalDevice physicalDevice, const char * const* ppRequiredExtension, Uint32 requiredExtensionCount);
+static int updateSwapChainCapabilities(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
+static int initInstance();
+static int findPhysicalDevice(const char * const* ppRequiredExtensions, Uint32 requiredExtensionsAmount);
+static int allocateLogicalDevice(const char * const* ppRequiredExtensions, Uint32 requiredExtensionsAmount);
+static int allocateSwapChain();
+static int allocateSwapChainImageViews();
+
+
+int v_init() {
+    context.vk.instance = NULL;
+    context.vk.physicalDevice = NULL;
+    context.vk.pQueueFamilyProperties = NULL;
+    context.vk.queueFamilyPropertyCount = 0;
+
+    context.vk.pSurfaceFormat = NULL;
+    context.vk.surfaceFormatCount = 0;
+    context.vk.pPresentMode = NULL;
+    context.vk.presentModeCount = 0;
+
+    context.vk.swapChain = NULL;
+    context.vk.swapChainImageCount = 0;
+    context.vk.pSwapChainImages = NULL;
+    context.vk.pSwapChainImageViews = NULL;
+
+    int returnCode;
+
+    returnCode = initInstance();
+    if( returnCode < 0 )
+        return returnCode;
+
+    if(SDL_Vulkan_CreateSurface(context.pWindow, context.vk.instance, &context.vk.surface) != SDL_TRUE) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to create rendering device returned %s", SDL_GetError());
+        returnCode = -10;
+    }
+
+    const char *const requiredExtensions[] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+
+    returnCode = findPhysicalDevice(requiredExtensions, 1);
+    if( returnCode < 0 )
+        return returnCode;
+
+    returnCode = allocateLogicalDevice(requiredExtensions, 1);
+    if( returnCode < 0 )
+        return returnCode;
+
+    returnCode = allocateSwapChain();
+    if( returnCode < 0 )
+        return returnCode;
+
+    returnCode = allocateSwapChainImageViews();
+    if( returnCode < 0 )
+        return returnCode;
+
+    return 1;
+}
+
+void v_deinit() {
+    if(context.vk.pSurfaceFormat != NULL)
+        free(context.vk.pSurfaceFormat);
+
+    if(context.vk.pPresentMode != NULL)
+        free(context.vk.pPresentMode);
+
+    if(context.vk.pQueueFamilyProperties != NULL)
+        free(context.vk.pQueueFamilyProperties);
+
+    if(context.vk.pSwapChainImages != NULL)
+        free(context.vk.pSwapChainImages);
+
+    if(context.vk.pSwapChainImageViews != NULL) {
+        for(Uint32 i = context.vk.swapChainImageCount; i != 0; i--) {
+            vkDestroyImageView(context.vk.device, context.vk.pSwapChainImageViews[i - 1], NULL);
+        }
+
+        free(context.vk.pSwapChainImageViews);
+    }
+
+    vkDestroySwapchainKHR(context.vk.device, context.vk.swapChain, NULL);
+    vkDestroyDevice(context.vk.device, NULL);
+    vkDestroySurfaceKHR(context.vk.instance, context.vk.surface, NULL);
+    vkDestroyInstance(context.vk.instance, NULL);
+}
+
 static VkQueueFamilyProperties* allocateQueueFamilyArray(VkPhysicalDevice device, Uint32 *pQueueFamilyPropertyCount) {
     *pQueueFamilyPropertyCount = 0;
     VkQueueFamilyProperties *pQueueFamilyProperties = NULL;
@@ -552,79 +639,4 @@ static int allocateSwapChainImageViews() {
     }
 
     return 1;
-}
-
-int v_init() {
-    context.vk.instance = NULL;
-    context.vk.physicalDevice = NULL;
-    context.vk.pQueueFamilyProperties = NULL;
-    context.vk.queueFamilyPropertyCount = 0;
-
-    context.vk.pSurfaceFormat = NULL;
-    context.vk.surfaceFormatCount = 0;
-    context.vk.pPresentMode = NULL;
-    context.vk.presentModeCount = 0;
-
-    context.vk.swapChain = NULL;
-    context.vk.swapChainImageCount = 0;
-    context.vk.pSwapChainImages = NULL;
-    context.vk.pSwapChainImageViews = NULL;
-
-    int returnCode;
-
-    returnCode = initInstance();
-    if( returnCode < 0 )
-        return returnCode;
-
-    if(SDL_Vulkan_CreateSurface(context.pWindow, context.vk.instance, &context.vk.surface) != SDL_TRUE) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to create rendering device returned %s", SDL_GetError());
-        returnCode = -10;
-    }
-
-    const char *const requiredExtensions[] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-
-    returnCode = findPhysicalDevice(requiredExtensions, 1);
-    if( returnCode < 0 )
-        return returnCode;
-
-    returnCode = allocateLogicalDevice(requiredExtensions, 1);
-    if( returnCode < 0 )
-        return returnCode;
-
-    returnCode = allocateSwapChain();
-    if( returnCode < 0 )
-        return returnCode;
-
-    returnCode = allocateSwapChainImageViews();
-    if( returnCode < 0 )
-        return returnCode;
-
-    return 1;
-}
-
-void v_deinit() {
-    if(context.vk.pSurfaceFormat != NULL)
-        free(context.vk.pSurfaceFormat);
-
-    if(context.vk.pPresentMode != NULL)
-        free(context.vk.pPresentMode);
-
-    if(context.vk.pQueueFamilyProperties != NULL)
-        free(context.vk.pQueueFamilyProperties);
-
-    if(context.vk.pSwapChainImages != NULL)
-        free(context.vk.pSwapChainImages);
-
-    if(context.vk.pSwapChainImageViews != NULL) {
-        for(Uint32 i = context.vk.swapChainImageCount; i != 0; i--) {
-            vkDestroyImageView(context.vk.device, context.vk.pSwapChainImageViews[i - 1], NULL);
-        }
-
-        free(context.vk.pSwapChainImageViews);
-    }
-
-    vkDestroySwapchainKHR(context.vk.device, context.vk.swapChain, NULL);
-    vkDestroyDevice(context.vk.device, NULL);
-    vkDestroySurfaceKHR(context.vk.instance, context.vk.surface, NULL);
-    vkDestroyInstance(context.vk.instance, NULL);
 }
