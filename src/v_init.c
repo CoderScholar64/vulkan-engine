@@ -772,6 +772,20 @@ static int allocateGraphicsPipeline() {
     pipelineViewportStateCreateInfo.viewportCount = 1;
     pipelineViewportStateCreateInfo.scissorCount  = 1;
 
+    VkPipelineRasterizationStateCreateInfo pipelineRasterizationStateCreateInfo;
+    memset(&pipelineRasterizationStateCreateInfo, 0, sizeof(pipelineRasterizationStateCreateInfo));
+    pipelineRasterizationStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+    pipelineRasterizationStateCreateInfo.depthClampEnable = VK_FALSE; // No shadows for this pipeline.
+    pipelineRasterizationStateCreateInfo.rasterizerDiscardEnable = VK_FALSE; // Please do not discard everything. I just want to draw a triangle...
+    pipelineRasterizationStateCreateInfo.polygonMode = VK_POLYGON_MODE_FILL; // VK_POLYGON_MODE_LINE and VK_POLYGON_MODE_POINT.
+    pipelineRasterizationStateCreateInfo.lineWidth = 1.0f; // One pixel lines please.
+    pipelineRasterizationStateCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+    pipelineRasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
+    pipelineRasterizationStateCreateInfo.depthBiasEnable = VK_FALSE;
+    pipelineRasterizationStateCreateInfo.depthBiasConstantFactor = 0.0f;
+    pipelineRasterizationStateCreateInfo.depthBiasClamp = 0.0f;
+    pipelineRasterizationStateCreateInfo.depthBiasSlopeFactor = 0.0f;
+
     vkDestroyShaderModule(context.vk.device,   vertexShaderModule, NULL);
     vkDestroyShaderModule(context.vk.device, fragmentShaderModule, NULL);
 
