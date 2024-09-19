@@ -7,7 +7,7 @@
 #include "SDL.h"
 #include <string.h>
 #include "u_math.h"
-
+#include "u_read.h"
 
 static VkQueueFamilyProperties* allocateQueueFamilyArray(VkPhysicalDevice device, Uint32 *pQueueFamilyPropertyCount);
 static VkLayerProperties* allocateLayerPropertiesArray(Uint32 *pPropertyCount);
@@ -18,6 +18,7 @@ static int findPhysicalDevice(const char * const* ppRequiredExtensions, Uint32 r
 static int allocateLogicalDevice(const char * const* ppRequiredExtensions, Uint32 requiredExtensionsAmount);
 static int allocateSwapChain();
 static int allocateSwapChainImageViews();
+static VkShaderModule allocateShaderModule(Uint8* data, size_t size);
 static int allocateGraphicsPipeline();
 
 
@@ -646,6 +647,35 @@ static int allocateSwapChainImageViews() {
     return 1;
 }
 
+static VkShaderModule allocateShaderModule(Uint8* data, size_t size) {
+    return NULL;
+}
+
 static int allocateGraphicsPipeline() {
+    Sint64 vertexShaderCodeLength;
+    Uint8* pVertexShaderCode = u_read_file("hello_world_vert.spv", &vertexShaderCodeLength);
+
+    if(pVertexShaderCode == NULL) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to load vertex shader code");
+        return -21;
+    }
+
+    Sint64 fragmentShaderCodeLength;
+    Uint8* pFragmentShaderCode = u_read_file("hello_world_frag.spv", &fragmentShaderCodeLength);
+
+    if(pFragmentShaderCode == NULL) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to load fragment shader code");
+        free(pVertexShaderCode);
+        return -22;
+    }
+
+    VkShaderModule   vertexShaderModule = allocateShaderModule(  pVertexShaderCode,   vertexShaderCodeLength);
+    VkShaderModule fragmentShaderModule = allocateShaderModule(pFragmentShaderCode, fragmentShaderCodeLength);
+
+    free(pVertexShaderCode);
+    free(pFragmentShaderCode);
+
+    vkDestroyShaderModule(context.vk.device,   vertexShaderModule, NULL);
+    vkDestroyShaderModule(context.vk.device, fragmentShaderModule, NULL);
     return 1;
 }
