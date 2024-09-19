@@ -29,6 +29,7 @@ struct Context {
         VkImage *pSwapChainImages;
         VkImageView *pSwapChainImageViews;
 
+        VkRenderPass renderPass;
         VkPipelineLayout pipelineLayout;
 
         VkSurfaceCapabilitiesKHR surfaceCapabilities;

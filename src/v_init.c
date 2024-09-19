@@ -19,6 +19,7 @@ static int allocateLogicalDevice(const char * const* ppRequiredExtensions, Uint3
 static int allocateSwapChain();
 static int allocateSwapChainImageViews();
 static VkShaderModule allocateShaderModule(Uint8* data, size_t size);
+static int createRenderPass();
 static int allocateGraphicsPipeline();
 
 
@@ -67,6 +68,10 @@ int v_init() {
     if( returnCode < 0 )
         return returnCode;
 
+    returnCode = createRenderPass();
+    if( returnCode < 0 )
+        return returnCode;
+
     returnCode = allocateGraphicsPipeline();
     if( returnCode < 0 )
         return returnCode;
@@ -96,6 +101,7 @@ void v_deinit() {
     }
 
     vkDestroyPipelineLayout(context.vk.device, context.vk.pipelineLayout, NULL);
+    vkDestroyRenderPass(context.vk.device, context.vk.renderPass, NULL);
     vkDestroySwapchainKHR(context.vk.device, context.vk.swapChain, NULL);
     vkDestroyDevice(context.vk.device, NULL);
     vkDestroySurfaceKHR(context.vk.instance, context.vk.surface, NULL);
@@ -648,6 +654,47 @@ static int allocateSwapChainImageViews() {
     return 1;
 }
 
+static int createRenderPass() {
+    VkAttachmentDescription colorAttachmentDescription;
+    memset(&colorAttachmentDescription, 0, sizeof(colorAttachmentDescription));
+    colorAttachmentDescription.format  = context.vk.surfaceFormat.format;
+    colorAttachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
+    colorAttachmentDescription.loadOp  = VK_ATTACHMENT_LOAD_OP_CLEAR; // I guess it means clear buffer every frame.
+    colorAttachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    colorAttachmentDescription.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE; // No stencil buffer.
+    colorAttachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    colorAttachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    colorAttachmentDescription.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+    VkAttachmentReference colorAttachmentReference;
+    memset(&colorAttachmentReference, 0, sizeof(colorAttachmentReference));
+    colorAttachmentReference.attachment = 0;
+    colorAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    VkSubpassDescription subpassDescription;
+    memset(&subpassDescription, 0, sizeof(subpassDescription));
+    subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpassDescription.colorAttachmentCount = 1;
+    subpassDescription.pColorAttachments = &colorAttachmentReference;
+
+    VkRenderPassCreateInfo renderPassCreateInfo;
+    memset(&renderPassCreateInfo, 0, sizeof(renderPassCreateInfo));
+    renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    renderPassCreateInfo.attachmentCount = 1;
+    renderPassCreateInfo.pAttachments = &colorAttachmentDescription;
+    renderPassCreateInfo.subpassCount = 1;
+    renderPassCreateInfo.pSubpasses = &subpassDescription;
+
+    VkResult result = vkCreateRenderPass(context.vk.device, &renderPassCreateInfo, NULL, &context.vk.renderPass);
+
+    if(result != VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkCreateRenderPass() Failed to allocate %i", result);
+        return -21;
+    }
+
+    return 1;
+}
+
 static VkShaderModule allocateShaderModule(Uint8* data, size_t size) {
     VkShaderModuleCreateInfo shaderModuleCreateInfo;
     VkShaderModule shaderModule = NULL;
@@ -678,7 +725,7 @@ static int allocateGraphicsPipeline() {
 
     if(pVertexShaderCode == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to load vertex shader code");
-        return -21;
+        return -22;
     }
 
     Sint64 fragmentShaderCodeLength;
@@ -687,7 +734,7 @@ static int allocateGraphicsPipeline() {
     if(pFragmentShaderCode == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to load fragment shader code");
         free(pVertexShaderCode);
-        return -22;
+        return -23;
     }
 
     VkShaderModule   vertexShaderModule = allocateShaderModule(  pVertexShaderCode,   vertexShaderCodeLength);
@@ -701,14 +748,14 @@ static int allocateGraphicsPipeline() {
 
         vkDestroyShaderModule(context.vk.device, fragmentShaderModule, NULL);
 
-        return -23;
+        return -24;
     }
     else if(fragmentShaderModule == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Vulkan failed to parse fragment shader code!");
 
         vkDestroyShaderModule(context.vk.device, vertexShaderModule, NULL);
 
-        return -24;
+        return -25;
     }
 
     VkPipelineShaderStageCreateInfo pipelineShaderStageCreateInfos[2];
@@ -838,7 +885,7 @@ static int allocateGraphicsPipeline() {
         vkDestroyShaderModule(context.vk.device,   vertexShaderModule, NULL);
         vkDestroyShaderModule(context.vk.device, fragmentShaderModule, NULL);
 
-        return -25;
+        return -26;
     }
 
     vkDestroyShaderModule(context.vk.device,   vertexShaderModule, NULL);
