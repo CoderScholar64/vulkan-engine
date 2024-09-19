@@ -710,7 +710,26 @@ static int allocateGraphicsPipeline() {
         return -24;
     }
 
+    VkPipelineShaderStageCreateInfo pipelineShaderStageCreateInfos[2];
+    const unsigned   VERTEX_INDEX = 0;
+    const unsigned FRAGMENT_INDEX = 1;
+
+    memset(&pipelineShaderStageCreateInfos[VERTEX_INDEX], 0, sizeof(VkPipelineShaderStageCreateInfo));
+    pipelineShaderStageCreateInfos[VERTEX_INDEX].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    pipelineShaderStageCreateInfos[VERTEX_INDEX].stage = VK_SHADER_STAGE_VERTEX_BIT;
+    pipelineShaderStageCreateInfos[VERTEX_INDEX].module = vertexShaderModule;
+    pipelineShaderStageCreateInfos[VERTEX_INDEX].pName = "main";
+    // pipelineShaderStageCreateInfos[VERTEX_INDEX].pSpecializationInfo = NULL; // This allows the specification of constraints
+
+    memset(&pipelineShaderStageCreateInfos[FRAGMENT_INDEX], 0, sizeof(VkPipelineShaderStageCreateInfo));
+    pipelineShaderStageCreateInfos[FRAGMENT_INDEX].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    pipelineShaderStageCreateInfos[FRAGMENT_INDEX].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+    pipelineShaderStageCreateInfos[FRAGMENT_INDEX].module = fragmentShaderModule;
+    pipelineShaderStageCreateInfos[FRAGMENT_INDEX].pName = "main";
+    // pipelineShaderStageCreateInfos[FRAGMENT_INDEX].pSpecializationInfo = NULL; // This allows the specification of constraints
+
     vkDestroyShaderModule(context.vk.device,   vertexShaderModule, NULL);
     vkDestroyShaderModule(context.vk.device, fragmentShaderModule, NULL);
+
     return 1;
 }
