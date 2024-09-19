@@ -20,6 +20,7 @@ struct Context {
         VkQueueFamilyProperties *pQueueFamilyProperties;
         VkSurfaceKHR surface;
         Uint32 queueFamilyPropertyCount;
+
         VkSurfaceFormatKHR surfaceFormat;
         VkPresentModeKHR presentMode;
         VkExtent2D swapExtent;
@@ -28,6 +29,7 @@ struct Context {
         Uint32 swapChainImageCount;
         VkImage *pSwapChainImages;
         VkImageView *pSwapChainImageViews;
+        VkFramebuffer *pSwapChainFramebuffers;
 
         VkRenderPass renderPass;
         VkPipelineLayout pipelineLayout;

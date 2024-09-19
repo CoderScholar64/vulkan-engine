@@ -18,9 +18,10 @@ static int findPhysicalDevice(const char * const* ppRequiredExtensions, Uint32 r
 static int allocateLogicalDevice(const char * const* ppRequiredExtensions, Uint32 requiredExtensionsAmount);
 static int allocateSwapChain();
 static int allocateSwapChainImageViews();
-static VkShaderModule allocateShaderModule(Uint8* data, size_t size);
 static int createRenderPass();
+static VkShaderModule allocateShaderModule(Uint8* data, size_t size);
 static int allocateGraphicsPipeline();
+static int allocateFrameBuffers();
 
 
 int v_init() {
@@ -64,6 +65,10 @@ int v_init() {
     if( returnCode < 0 )
         return returnCode;
 
+    returnCode = allocateFrameBuffers();
+    if( returnCode < 0 )
+        return returnCode;
+
     return 1;
 }
 
@@ -86,6 +91,14 @@ void v_deinit() {
         }
 
         free(context.vk.pSwapChainImageViews);
+    }
+
+    if(context.vk.pSwapChainFramebuffers != NULL) {
+        for(Uint32 i = context.vk.swapChainImageCount; i != 0; i--) {
+            vkDestroyFramebuffer(context.vk.device, context.vk.pSwapChainFramebuffers[i - 1], NULL);
+        }
+
+        free(context.vk.pSwapChainFramebuffers);
     }
 
     vkDestroyPipeline(context.vk.device, context.vk.graphicsPipeline, NULL);
@@ -912,5 +925,38 @@ static int allocateGraphicsPipeline() {
         return -27;
     }
 
+    return 1;
+}
+
+static int allocateFrameBuffers() {
+    VkResult result;
+    VkFramebufferCreateInfo framebufferCreateInfo;
+
+    context.vk.pSwapChainFramebuffers = calloc(context.vk.swapChainImageCount, sizeof(VkFramebuffer));
+
+    int numberOfFailures = 0;
+
+    for(Uint32 i = context.vk.swapChainImageCount; i != 0; i--) {
+        memset(&framebufferCreateInfo, 0, sizeof(framebufferCreateInfo));
+
+        framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        framebufferCreateInfo.renderPass = context.vk.renderPass;
+        framebufferCreateInfo.attachmentCount = 1;
+        framebufferCreateInfo.pAttachments = &context.vk.pSwapChainImageViews[i - 1];
+        framebufferCreateInfo.width  = context.vk.swapExtent.width;
+        framebufferCreateInfo.height = context.vk.swapExtent.height;
+        framebufferCreateInfo.layers = 1;
+
+        result = vkCreateFramebuffer(context.vk.device, &framebufferCreateInfo, NULL, &context.vk.pSwapChainFramebuffers[i - 1]);
+
+        if(result != VK_SUCCESS) {
+            numberOfFailures++;
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkCreateFramebuffer creation for index %i failed with result: %i", i - 1, result);
+        }
+    }
+
+    if(numberOfFailures != 0) {
+        return -28;
+    }
     return 1;
 }
