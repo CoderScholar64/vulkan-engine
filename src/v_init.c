@@ -36,6 +36,8 @@ static int allocateCommandPool();
 static int createCommandBuffer();
 static int recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 static int allocateSyncObjects();
+static int recreateSwapChain();
+static void cleanupSwapChain();
 
 
 int v_init() {
@@ -101,27 +103,10 @@ int v_init() {
 void v_deinit() {
     vkDeviceWaitIdle(context.vk.device);
 
+    cleanupSwapChain();
+
     if(context.vk.pQueueFamilyProperties != NULL)
         free(context.vk.pQueueFamilyProperties);
-
-    if(context.vk.pSwapChainImages != NULL)
-        free(context.vk.pSwapChainImages);
-
-    if(context.vk.pSwapChainImageViews != NULL) {
-        for(Uint32 i = context.vk.swapChainImageCount; i != 0; i--) {
-            vkDestroyImageView(context.vk.device, context.vk.pSwapChainImageViews[i - 1], NULL);
-        }
-
-        free(context.vk.pSwapChainImageViews);
-    }
-
-    if(context.vk.pSwapChainFramebuffers != NULL) {
-        for(Uint32 i = context.vk.swapChainImageCount; i != 0; i--) {
-            vkDestroyFramebuffer(context.vk.device, context.vk.pSwapChainFramebuffers[i - 1], NULL);
-        }
-
-        free(context.vk.pSwapChainFramebuffers);
-    }
 
     for(Uint32 i = MAX_FRAMES_IN_FLIGHT; i != 0; i--) {
         vkDestroySemaphore(context.vk.device, context.vk.frames[i - 1].imageAvailableSemaphore, NULL);
@@ -133,7 +118,6 @@ void v_deinit() {
     vkDestroyPipeline(context.vk.device, context.vk.graphicsPipeline, NULL);
     vkDestroyPipelineLayout(context.vk.device, context.vk.pipelineLayout, NULL);
     vkDestroyRenderPass(context.vk.device, context.vk.renderPass, NULL);
-    vkDestroySwapchainKHR(context.vk.device, context.vk.swapChain, NULL);
     vkDestroyDevice(context.vk.device, NULL);
     vkDestroySurfaceKHR(context.vk.instance, context.vk.surface, NULL);
     vkDestroyInstance(context.vk.instance, NULL);
@@ -144,6 +128,7 @@ int v_draw_frame() {
 
     VkResult result;
     Uint32 imageIndex;
+    int returnCode = 1;
 
     result = vkWaitForFences(context.vk.device, 1, &context.vk.frames[context.vk.currentFrame].inFlightFence, VK_TRUE, TIME_OUT_NS);
 
@@ -154,17 +139,26 @@ int v_draw_frame() {
         return -1; // Program had encountered a problem!
     }
 
-    // vkResultFences returns something, but ignoring it.
-    vkResetFences(context.vk.device, 1, &context.vk.frames[context.vk.currentFrame].inFlightFence);
-
     result = vkAcquireNextImageKHR(context.vk.device, context.vk.swapChain, TIME_OUT_NS, context.vk.frames[context.vk.currentFrame].imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
 
     if(result == VK_TIMEOUT)
         return 0; // Cancel drawing the frame then.
-    else if(result < VK_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_draw_frame: failed getting next image with code %i aborting!", result);
+    else if(result == VK_ERROR_OUT_OF_DATE_KHR) {
+        returnCode = recreateSwapChain();
+
+        // Cancel drawing the frame as well.
+        if(returnCode == 1)
+            return 0;
+
+        return returnCode;
+    }
+    else if(result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_draw_frame: failed vkAcquireNextImageKHR with code %i aborting!", result);
         return -2; // Program had encountered a problem!
     }
+
+    // vkResultFences returns something, but ignoring it.
+    vkResetFences(context.vk.device, 1, &context.vk.frames[context.vk.currentFrame].inFlightFence);
 
     vkResetCommandBuffer(context.vk.frames[context.vk.currentFrame].commandBuffer, 0);
 
@@ -206,7 +200,15 @@ int v_draw_frame() {
 
     presentInfo.pResults = NULL;
 
-    vkQueuePresentKHR(context.vk.presentationQueue, &presentInfo);
+    result = vkQueuePresentKHR(context.vk.presentationQueue, &presentInfo);
+
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+        returnCode = recreateSwapChain();
+    }
+    else if(result != VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_draw_frame: queue present failed %i aborting!", result);
+        return -4;
+    }
 
     context.vk.currentFrame = (context.vk.currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
@@ -1238,4 +1240,48 @@ static int allocateSyncObjects() {
     }
 
     return 1;
+}
+
+static int recreateSwapChain() {
+    vkDeviceWaitIdle(context.vk.device);
+
+    int returnCode;
+
+    cleanupSwapChain();
+
+    returnCode = allocateSwapChain();
+    if( returnCode < 0 )
+        return returnCode;
+
+    returnCode = allocateSwapChainImageViews();
+    if( returnCode < 0 )
+        return returnCode;
+
+    returnCode = allocateFrameBuffers();
+    if( returnCode < 0 )
+        return returnCode;
+    return 1;
+}
+
+static void cleanupSwapChain() {
+    if(context.vk.pSwapChainImages != NULL)
+        free(context.vk.pSwapChainImages);
+
+    if(context.vk.pSwapChainImageViews != NULL) {
+        for(Uint32 i = context.vk.swapChainImageCount; i != 0; i--) {
+            vkDestroyImageView(context.vk.device, context.vk.pSwapChainImageViews[i - 1], NULL);
+        }
+
+        free(context.vk.pSwapChainImageViews);
+    }
+
+    if(context.vk.pSwapChainFramebuffers != NULL) {
+        for(Uint32 i = context.vk.swapChainImageCount; i != 0; i--) {
+            vkDestroyFramebuffer(context.vk.device, context.vk.pSwapChainFramebuffers[i - 1], NULL);
+        }
+
+        free(context.vk.pSwapChainFramebuffers);
+    }
+
+    vkDestroySwapchainKHR(context.vk.device, context.vk.swapChain, NULL);
 }
