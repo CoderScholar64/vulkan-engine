@@ -25,6 +25,7 @@ static int allocateFrameBuffers();
 static int allocateCommandPool();
 static int createCommandBuffer();
 static int recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+static int allocateSyncObjects();
 
 
 int v_init() {
@@ -80,6 +81,10 @@ int v_init() {
     if( returnCode < 0 )
         return returnCode;
 
+    returnCode = allocateSyncObjects();
+    if( returnCode < 0 )
+        return returnCode;
+
     return 1;
 }
 
@@ -112,6 +117,10 @@ void v_deinit() {
         free(context.vk.pSwapChainFramebuffers);
     }
 
+    vkDestroySemaphore(context.vk.device, context.vk.imageAvailableSemaphore, NULL);
+    vkDestroySemaphore(context.vk.device, context.vk.renderFinishedSemaphore, NULL);
+    vkDestroyFence(    context.vk.device, context.vk.inFlightFence,           NULL);
+
     vkDestroyCommandPool(context.vk.device, context.vk.commandPool, NULL);
     vkDestroyPipeline(context.vk.device, context.vk.graphicsPipeline, NULL);
     vkDestroyPipelineLayout(context.vk.device, context.vk.pipelineLayout, NULL);
@@ -120,6 +129,10 @@ void v_deinit() {
     vkDestroyDevice(context.vk.device, NULL);
     vkDestroySurfaceKHR(context.vk.instance, context.vk.surface, NULL);
     vkDestroyInstance(context.vk.instance, NULL);
+}
+
+int v_draw_frame() {
+    return 1;
 }
 
 static VkQueueFamilyProperties* allocateQueueFamilyArray(VkPhysicalDevice device, Uint32 *pQueueFamilyPropertyCount) {
@@ -1070,6 +1083,37 @@ static int recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageInde
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkBeginCommandBuffer creation failed with result: %i", result);
         return -32;
+    }
+    return 1;
+}
+
+static int allocateSyncObjects() {
+    VkResult result;
+
+    VkSemaphoreCreateInfo semaphoreCreateInfo;
+    memset(&semaphoreCreateInfo, 0, sizeof(semaphoreCreateInfo));
+    semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+    VkFenceCreateInfo fenceCreateInfo;
+    memset(&fenceCreateInfo, 0, sizeof(fenceCreateInfo));
+    fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+
+    result = vkCreateSemaphore(context.vk.device, &semaphoreCreateInfo, NULL, &context.vk.imageAvailableSemaphore);
+    if(result != VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "imageAvailableSemaphore creation failed with result: %i", result);
+        return -33;
+    }
+
+    result = vkCreateSemaphore(context.vk.device, &semaphoreCreateInfo, NULL, &context.vk.renderFinishedSemaphore);
+    if(result != VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "renderFinishedSemaphore creation failed with result: %i", result);
+        return -34;
+    }
+
+    result = vkCreateFence(context.vk.device, &fenceCreateInfo, NULL, &context.vk.inFlightFence);
+    if(result != VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "inFlightFence creation failed with result: %i", result);
+        return -35;
     }
     return 1;
 }

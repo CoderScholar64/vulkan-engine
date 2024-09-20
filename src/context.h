@@ -38,6 +38,10 @@ struct Context {
         VkCommandPool commandPool;
         VkCommandBuffer commandBuffer;
 
+        VkSemaphore imageAvailableSemaphore;
+        VkSemaphore renderFinishedSemaphore;
+        VkFence inFlightFence;
+
         VkSurfaceCapabilitiesKHR surfaceCapabilities;
         VkSurfaceFormatKHR *pSurfaceFormat;
         Uint32 surfaceFormatCount;

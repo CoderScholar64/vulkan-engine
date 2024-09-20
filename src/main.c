@@ -14,6 +14,8 @@ void loop() {
         if (event.type == SDL_QUIT) {
             run = 0;
         }
+
+        v_draw_frame();
     }
 }
 
