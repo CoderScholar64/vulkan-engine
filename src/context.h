@@ -4,6 +4,8 @@
 #include "SDL.h"
 #include <vulkan/vulkan.h>
 
+#define MAX_FRAMES_IN_FLIGHT 2
+
 struct Context {
     char title[64];
     int x, y;
@@ -39,11 +41,14 @@ struct Context {
         VkPipeline graphicsPipeline;
 
         VkCommandPool commandPool;
-        VkCommandBuffer commandBuffer;
 
-        VkSemaphore imageAvailableSemaphore;
-        VkSemaphore renderFinishedSemaphore;
-        VkFence inFlightFence;
+        struct {
+            VkCommandBuffer commandBuffer;
+            VkSemaphore imageAvailableSemaphore;
+            VkSemaphore renderFinishedSemaphore;
+            VkFence inFlightFence;
+        } frames[MAX_FRAMES_IN_FLIGHT];
+        unsigned currentFrame;
     } vk;
 
 };

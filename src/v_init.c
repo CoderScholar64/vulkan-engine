@@ -123,9 +123,11 @@ void v_deinit() {
         free(context.vk.pSwapChainFramebuffers);
     }
 
-    vkDestroySemaphore(context.vk.device, context.vk.imageAvailableSemaphore, NULL);
-    vkDestroySemaphore(context.vk.device, context.vk.renderFinishedSemaphore, NULL);
-    vkDestroyFence(    context.vk.device, context.vk.inFlightFence,           NULL);
+    for(Uint32 i = MAX_FRAMES_IN_FLIGHT; i != 0; i--) {
+        vkDestroySemaphore(context.vk.device, context.vk.frames[i - 1].imageAvailableSemaphore, NULL);
+        vkDestroySemaphore(context.vk.device, context.vk.frames[i - 1].renderFinishedSemaphore, NULL);
+        vkDestroyFence(    context.vk.device, context.vk.frames[i - 1].inFlightFence,           NULL);
+    }
 
     vkDestroyCommandPool(context.vk.device, context.vk.commandPool, NULL);
     vkDestroyPipeline(context.vk.device, context.vk.graphicsPipeline, NULL);
@@ -143,7 +145,7 @@ int v_draw_frame() {
     VkResult result;
     Uint32 imageIndex;
 
-    result = vkWaitForFences(context.vk.device, 1, &context.vk.inFlightFence, VK_TRUE, TIME_OUT_NS);
+    result = vkWaitForFences(context.vk.device, 1, &context.vk.frames[context.vk.currentFrame].inFlightFence, VK_TRUE, TIME_OUT_NS);
 
     if(result == VK_TIMEOUT)
         return 0; // Cancel drawing the frame then.
@@ -153,9 +155,9 @@ int v_draw_frame() {
     }
 
     // vkResultFences returns something, but ignoring it.
-    vkResetFences(context.vk.device, 1, &context.vk.inFlightFence);
+    vkResetFences(context.vk.device, 1, &context.vk.frames[context.vk.currentFrame].inFlightFence);
 
-    result = vkAcquireNextImageKHR(context.vk.device, context.vk.swapChain, TIME_OUT_NS, context.vk.imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+    result = vkAcquireNextImageKHR(context.vk.device, context.vk.swapChain, TIME_OUT_NS, context.vk.frames[context.vk.currentFrame].imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
 
     if(result == VK_TIMEOUT)
         return 0; // Cancel drawing the frame then.
@@ -164,9 +166,9 @@ int v_draw_frame() {
         return -2; // Program had encountered a problem!
     }
 
-    vkResetCommandBuffer(context.vk.commandBuffer, 0);
+    vkResetCommandBuffer(context.vk.frames[context.vk.currentFrame].commandBuffer, 0);
 
-    recordCommandBuffer(context.vk.commandBuffer, imageIndex);
+    recordCommandBuffer(context.vk.frames[context.vk.currentFrame].commandBuffer, imageIndex);
 
     VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
 
@@ -175,16 +177,16 @@ int v_draw_frame() {
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
     submitInfo.waitSemaphoreCount = 1;
-    submitInfo.pWaitSemaphores = &context.vk.imageAvailableSemaphore;
+    submitInfo.pWaitSemaphores = &context.vk.frames[context.vk.currentFrame].imageAvailableSemaphore;
     submitInfo.pWaitDstStageMask = waitStages;
 
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &context.vk.commandBuffer;
+    submitInfo.pCommandBuffers = &context.vk.frames[context.vk.currentFrame].commandBuffer;
 
     submitInfo.signalSemaphoreCount = 1;
-    submitInfo.pSignalSemaphores = &context.vk.renderFinishedSemaphore;
+    submitInfo.pSignalSemaphores = &context.vk.frames[context.vk.currentFrame].renderFinishedSemaphore;
 
-    result = vkQueueSubmit(context.vk.graphicsQueue, 1, &submitInfo, context.vk.inFlightFence);
+    result = vkQueueSubmit(context.vk.graphicsQueue, 1, &submitInfo, context.vk.frames[context.vk.currentFrame].inFlightFence);
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_draw_frame: failed to submit to queue code %i aborting!", result);
@@ -196,7 +198,7 @@ int v_draw_frame() {
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 
     presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores    = &context.vk.renderFinishedSemaphore;
+    presentInfo.pWaitSemaphores    = &context.vk.frames[context.vk.currentFrame].renderFinishedSemaphore;
 
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains    = &context.vk.swapChain;
@@ -205,6 +207,8 @@ int v_draw_frame() {
     presentInfo.pResults = NULL;
 
     vkQueuePresentKHR(context.vk.presentationQueue, &presentInfo);
+
+    context.vk.currentFrame = (context.vk.currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
     return 1;
 }
@@ -1124,11 +1128,13 @@ static int createCommandBuffer() {
     commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     commandBufferAllocateInfo.commandBufferCount = 1;
 
-    result = vkAllocateCommandBuffers(context.vk.device, &commandBufferAllocateInfo, &context.vk.commandBuffer);
+    for(Uint32 i = MAX_FRAMES_IN_FLIGHT; i != 0; i--) {
+        result = vkAllocateCommandBuffers(context.vk.device, &commandBufferAllocateInfo, &context.vk.frames[i - 1].commandBuffer);
 
-    if(result != VK_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkAllocateCommandBuffers creation failed with result: %i", result);
-        return -30;
+        if(result != VK_SUCCESS) {
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkAllocateCommandBuffers at index %i creation failed with result: %i", i - 1, result);
+            return -30;
+        }
     }
     return 1;
 }
@@ -1211,22 +1217,25 @@ static int allocateSyncObjects() {
     fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    result = vkCreateSemaphore(context.vk.device, &semaphoreCreateInfo, NULL, &context.vk.imageAvailableSemaphore);
-    if(result != VK_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "imageAvailableSemaphore creation failed with result: %i", result);
-        return -33;
+    for(Uint32 i = MAX_FRAMES_IN_FLIGHT; i != 0; i--) {
+        result = vkCreateSemaphore(context.vk.device, &semaphoreCreateInfo, NULL, &context.vk.frames[i - 1].imageAvailableSemaphore);
+        if(result != VK_SUCCESS) {
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "imageAvailableSemaphore at index %i creation failed with result: %i", i - 1, result);
+            return -33;
+        }
+
+        result = vkCreateSemaphore(context.vk.device, &semaphoreCreateInfo, NULL, &context.vk.frames[i - 1].renderFinishedSemaphore);
+        if(result != VK_SUCCESS) {
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "renderFinishedSemaphore at index %i creation failed with result: %i", i - 1, result);
+            return -34;
+        }
+
+        result = vkCreateFence(context.vk.device, &fenceCreateInfo, NULL, &context.vk.frames[i - 1].inFlightFence);
+        if(result != VK_SUCCESS) {
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "inFlightFence at index %i creation failed with result: %i", i - 1, result);
+            return -35;
+        }
     }
 
-    result = vkCreateSemaphore(context.vk.device, &semaphoreCreateInfo, NULL, &context.vk.renderFinishedSemaphore);
-    if(result != VK_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "renderFinishedSemaphore creation failed with result: %i", result);
-        return -34;
-    }
-
-    result = vkCreateFence(context.vk.device, &fenceCreateInfo, NULL, &context.vk.inFlightFence);
-    if(result != VK_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "inFlightFence creation failed with result: %i", result);
-        return -35;
-    }
     return 1;
 }
