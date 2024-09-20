@@ -35,6 +35,9 @@ struct Context {
         VkPipelineLayout pipelineLayout;
         VkPipeline graphicsPipeline;
 
+        VkCommandPool commandPool;
+        VkCommandBuffer commandBuffer;
+
         VkSurfaceCapabilitiesKHR surfaceCapabilities;
         VkSurfaceFormatKHR *pSurfaceFormat;
         Uint32 surfaceFormatCount;

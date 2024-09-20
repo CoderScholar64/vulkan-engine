@@ -22,6 +22,8 @@ static int createRenderPass();
 static VkShaderModule allocateShaderModule(Uint8* data, size_t size);
 static int allocateGraphicsPipeline();
 static int allocateFrameBuffers();
+static int allocateCommandPool();
+static int createCommandBuffer();
 
 
 int v_init() {
@@ -69,6 +71,10 @@ int v_init() {
     if( returnCode < 0 )
         return returnCode;
 
+    returnCode = allocateCommandPool();
+    if( returnCode < 0 )
+        return returnCode;
+
     return 1;
 }
 
@@ -101,6 +107,7 @@ void v_deinit() {
         free(context.vk.pSwapChainFramebuffers);
     }
 
+    vkDestroyCommandPool(context.vk.device, context.vk.commandPool, NULL);
     vkDestroyPipeline(context.vk.device, context.vk.graphicsPipeline, NULL);
     vkDestroyPipelineLayout(context.vk.device, context.vk.pipelineLayout, NULL);
     vkDestroyRenderPass(context.vk.device, context.vk.renderPass, NULL);
@@ -957,6 +964,24 @@ static int allocateFrameBuffers() {
 
     if(numberOfFailures != 0) {
         return -28;
+    }
+    return 1;
+}
+
+static int allocateCommandPool() {
+    VkResult result;
+
+    VkCommandPoolCreateInfo commandPoolCreateInfo;
+    memset(&commandPoolCreateInfo, 0, sizeof(commandPoolCreateInfo));
+    commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    commandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    commandPoolCreateInfo.queueFamilyIndex = context.vk.graphicsQueueFamilyIndex;
+
+    result = vkCreateCommandPool(context.vk.device, &commandPoolCreateInfo, NULL, &context.vk.commandPool);
+
+    if(result != VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkCommandPool creation failed with result: %i", result);
+        return -29;
     }
     return 1;
 }
