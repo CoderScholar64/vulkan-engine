@@ -300,11 +300,35 @@ static int querySwapChainCapabilities(VkPhysicalDevice physicalDevice, VkSurface
         return -3;
     }
 
-    localSwapChainCapabilities.pSurfaceFormat = malloc(localSwapChainCapabilities.surfaceFormatCount * sizeof(VkSurfaceFormatKHR));
+    result = vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &localSwapChainCapabilities.presentModeCount, NULL);
+
+    if(result < VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkGetPhysicalDeviceSurfacePresentModesKHR for count had failed with %i", result);
+
+        free(localSwapChainCapabilities.pSurfaceFormat);
+
+        return -4;
+    }
+
+    localSwapChainCapabilities.pSurfaceFormat = malloc(
+        localSwapChainCapabilities.surfaceFormatCount * sizeof(VkSurfaceFormatKHR) +
+        localSwapChainCapabilities.presentModeCount *sizeof(VkPresentModeKHR));
 
     if(localSwapChainCapabilities.pSurfaceFormat == NULL) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "pSurfaceFormat did not allocate!");
-        return -4;
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "memory did not allocate!");
+        return -5;
+    }
+
+    localSwapChainCapabilities.pPresentMode = ((void*)&localSwapChainCapabilities.pSurfaceFormat[localSwapChainCapabilities.surfaceFormatCount]);
+
+    result = vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &localSwapChainCapabilities.presentModeCount, localSwapChainCapabilities.pPresentMode);
+
+    if(result != VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkGetPhysicalDeviceSurfacePresentModesKHR for allocation had failed with %i", result);
+
+        free(localSwapChainCapabilities.pSurfaceFormat);
+
+        return -6;
     }
 
     result = vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &localSwapChainCapabilities.surfaceFormatCount, localSwapChainCapabilities.pSurfaceFormat);
@@ -314,39 +338,13 @@ static int querySwapChainCapabilities(VkPhysicalDevice physicalDevice, VkSurface
 
         free(localSwapChainCapabilities.pSurfaceFormat);
 
-        return -4;
-    }
-
-    result = vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &localSwapChainCapabilities.presentModeCount, NULL);
-
-    if(result < VK_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkGetPhysicalDeviceSurfacePresentModesKHR for count had failed with %i", result);
-
-        free(localSwapChainCapabilities.pSurfaceFormat);
-
-        return -5;
-    }
-
-    localSwapChainCapabilities.pPresentMode = malloc(localSwapChainCapabilities.presentModeCount * sizeof(VkPresentModeKHR));
-
-    result = vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &localSwapChainCapabilities.presentModeCount, localSwapChainCapabilities.pPresentMode);
-
-    if(result != VK_SUCCESS || localSwapChainCapabilities.pPresentMode == NULL) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkGetPhysicalDeviceSurfacePresentModesKHR for allocation had failed with %i", result);
-
-        free(localSwapChainCapabilities.pSurfaceFormat);
-        if(localSwapChainCapabilities.pPresentMode == NULL)
-            free(localSwapChainCapabilities.pPresentMode);
-
-        return -6;
+        return -7;
     }
 
     if(localSwapChainCapabilities.surfaceFormatCount != 0 && localSwapChainCapabilities.presentModeCount != 0) {
 
-        if(pSwapChainCapabilities == NULL) {
+        if(pSwapChainCapabilities == NULL)
             free(localSwapChainCapabilities.pSurfaceFormat);
-            free(localSwapChainCapabilities.pPresentMode);
-        }
         else
             *pSwapChainCapabilities = localSwapChainCapabilities;
 
@@ -354,7 +352,6 @@ static int querySwapChainCapabilities(VkPhysicalDevice physicalDevice, VkSurface
     }
     else {
         free(localSwapChainCapabilities.pSurfaceFormat);
-        free(localSwapChainCapabilities.pPresentMode);
 
         return 0;
     }
@@ -718,7 +715,6 @@ static int allocateSwapChain() {
     swapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
 
     free(swapChainCapabilities.pSurfaceFormat);
-    free(swapChainCapabilities.pPresentMode);
 
     VkResult result = vkCreateSwapchainKHR(context.vk.device, &swapchainCreateInfo, NULL, &context.vk.swapChain);
 
