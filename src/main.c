@@ -8,16 +8,23 @@ struct Context context = {"Hello World", 0, 0, 1920, 1080, SDL_WINDOW_MAXIMIZED 
 void loop() {
     SDL_Event event;
     int run = 1;
+    int isWindowMinimized = 0;
 
     while(run) {
         while(SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) {
+            if(event.type == SDL_QUIT) {
                 run = 0;
             }
+            if(event.window.event == SDL_WINDOWEVENT_MINIMIZED)
+                isWindowMinimized = 1;
+            if(event.window.event == SDL_WINDOWEVENT_RESTORED)
+                isWindowMinimized = 0;
         }
 
-        if(v_draw_frame() < 0)
-            return;
+        if(!isWindowMinimized) {
+            if(v_draw_frame() < 0)
+                return;
+        }
     }
 }
 
