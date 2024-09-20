@@ -202,7 +202,8 @@ int v_draw_frame() {
 
     result = vkQueuePresentKHR(context.vk.presentationQueue, &presentInfo);
 
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || context.forceSwapChainRegen == 1) {
+        context.forceSwapChainRegen = 0;
         returnCode = recreateSwapChain();
     }
     else if(result != VK_SUCCESS) {

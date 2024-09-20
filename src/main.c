@@ -3,7 +3,8 @@
 
 #include "SDL.h"
 
-struct Context context = {"Hello World", 0, 0, 1920, 1080, SDL_WINDOW_MAXIMIZED | SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN};
+
+struct Context context = {"Hello World", 0, 0, 1920, 1080, SDL_WINDOW_MAXIMIZED | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN, 0};
 
 void loop() {
     SDL_Event event;
@@ -15,10 +16,14 @@ void loop() {
             if(event.type == SDL_QUIT) {
                 run = 0;
             }
-            if(event.window.event == SDL_WINDOWEVENT_MINIMIZED)
-                isWindowMinimized = 1;
-            if(event.window.event == SDL_WINDOWEVENT_RESTORED)
-                isWindowMinimized = 0;
+            if(event.type == SDL_WINDOWEVENT) {
+                if(event.window.event == SDL_WINDOWEVENT_MINIMIZED)
+                    isWindowMinimized = 1;
+                if(event.window.event == SDL_WINDOWEVENT_RESTORED)
+                    isWindowMinimized = 0;
+                if(event.window.event == SDL_WINDOWEVENT_RESIZED)
+                    context.forceSwapChainRegen = 1;
+            }
         }
 
         if(!isWindowMinimized) {

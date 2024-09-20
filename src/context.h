@@ -12,6 +12,7 @@ struct Context {
     int w, h;
     Uint32 flags;
     SDL_Window *pWindow;
+    int forceSwapChainRegen;
 
     struct {
         VkDevice device;
