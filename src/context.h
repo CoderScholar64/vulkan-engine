@@ -14,12 +14,15 @@ struct Context {
     struct {
         VkDevice device;
         VkInstance instance;
-        Uint32 graphicsQueueFamilyIndex;
-        Uint32 presentationQueueFamilyIndex;
         VkPhysicalDevice physicalDevice;
         VkQueueFamilyProperties *pQueueFamilyProperties;
         VkSurfaceKHR surface;
         Uint32 queueFamilyPropertyCount;
+
+        Uint32  graphicsQueueFamilyIndex;
+        VkQueue graphicsQueue;
+        Uint32  presentationQueueFamilyIndex;
+        VkQueue presentationQueue;
 
         VkSurfaceFormatKHR surfaceFormat;
         VkPresentModeKHR presentMode;

@@ -89,6 +89,8 @@ int v_init() {
 }
 
 void v_deinit() {
+    vkDeviceWaitIdle(context.vk.device);
+
     if(context.vk.pSurfaceFormat != NULL)
         free(context.vk.pSurfaceFormat);
 
@@ -132,7 +134,12 @@ void v_deinit() {
 }
 
 int v_draw_frame() {
-    VkResult result = vkWaitForFences(context.vk.device, 1, &context.vk.inFlightFence, VK_TRUE, 25000000);
+    const Uint64 TIME_OUT_NS = 25000000;
+
+    VkResult result;
+    Uint32 imageIndex;
+
+    result = vkWaitForFences(context.vk.device, 1, &context.vk.inFlightFence, VK_TRUE, TIME_OUT_NS);
 
     if(result == VK_TIMEOUT)
         return 0; // Cancel drawing the frame then.
@@ -140,6 +147,60 @@ int v_draw_frame() {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_draw_frame: in flight fence had failed with %i aborting!", result);
         return -1; // Program had encountered a problem!
     }
+
+    // vkResultFences returns something, but ignoring it.
+    vkResetFences(context.vk.device, 1, &context.vk.inFlightFence);
+
+    result = vkAcquireNextImageKHR(context.vk.device, context.vk.swapChain, TIME_OUT_NS, context.vk.imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+
+    if(result == VK_TIMEOUT)
+        return 0; // Cancel drawing the frame then.
+    else if(result < VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_draw_frame: failed getting next image with code %i aborting!", result);
+        return -2; // Program had encountered a problem!
+    }
+
+    vkResetCommandBuffer(context.vk.commandBuffer, 0);
+
+    recordCommandBuffer(context.vk.commandBuffer, imageIndex);
+
+    VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+
+    VkSubmitInfo submitInfo;
+    memset(&submitInfo, 0, sizeof(submitInfo));
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+    submitInfo.waitSemaphoreCount = 1;
+    submitInfo.pWaitSemaphores = &context.vk.imageAvailableSemaphore;
+    submitInfo.pWaitDstStageMask = waitStages;
+
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &context.vk.commandBuffer;
+
+    submitInfo.signalSemaphoreCount = 1;
+    submitInfo.pSignalSemaphores = &context.vk.renderFinishedSemaphore;
+
+    result = vkQueueSubmit(context.vk.graphicsQueue, 1, &submitInfo, context.vk.inFlightFence);
+
+    if(result != VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_draw_frame: failed to submit to queue code %i aborting!", result);
+        return -3; // Program had encountered a problem!
+    }
+
+    VkPresentInfoKHR presentInfo;
+    memset(&presentInfo, 0, sizeof(presentInfo));
+    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+
+    presentInfo.waitSemaphoreCount = 1;
+    presentInfo.pWaitSemaphores    = &context.vk.renderFinishedSemaphore;
+
+    presentInfo.swapchainCount = 1;
+    presentInfo.pSwapchains    = &context.vk.swapChain;
+    presentInfo.pImageIndices  = &imageIndex;
+
+    presentInfo.pResults = NULL;
+
+    vkQueuePresentKHR(context.vk.presentationQueue, &presentInfo);
 
     return 1;
 }
@@ -505,7 +566,8 @@ static int allocateLogicalDevice(const char * const* ppRequiredExtensions, Uint3
         return -15;
     }
 
-    //vkGetDeviceQueue(context.vk.device, deviceQueueCreateInfos[GRAPHICS_FAMILY_INDEX].queueFamilyIndex, 0, &context.vk.graphicsQueue);
+    vkGetDeviceQueue(context.vk.device, deviceQueueCreateInfos[GRAPHICS_FAMILY_INDEX].queueFamilyIndex, 0, &context.vk.graphicsQueue);
+    vkGetDeviceQueue(context.vk.device, deviceQueueCreateInfos[ PRESENT_FAMILY_INDEX].queueFamilyIndex, 0, &context.vk.presentationQueue);
 
     context.vk.graphicsQueueFamilyIndex     = deviceQueueCreateInfos[GRAPHICS_FAMILY_INDEX].queueFamilyIndex;
     context.vk.presentationQueueFamilyIndex = deviceQueueCreateInfos[ PRESENT_FAMILY_INDEX].queueFamilyIndex;
@@ -713,6 +775,15 @@ static int createRenderPass() {
     subpassDescription.colorAttachmentCount = 1;
     subpassDescription.pColorAttachments = &colorAttachmentReference;
 
+    VkSubpassDependency subpassDependency;
+    memset(&subpassDependency, 0, sizeof(subpassDependency));
+    subpassDependency.srcSubpass    = VK_SUBPASS_EXTERNAL;
+    subpassDependency.dstSubpass    = 0;
+    subpassDependency.srcStageMask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    subpassDependency.srcAccessMask = 0;
+    subpassDependency.dstStageMask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    subpassDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
     VkRenderPassCreateInfo renderPassCreateInfo;
     memset(&renderPassCreateInfo, 0, sizeof(renderPassCreateInfo));
     renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -720,6 +791,8 @@ static int createRenderPass() {
     renderPassCreateInfo.pAttachments = &colorAttachmentDescription;
     renderPassCreateInfo.subpassCount = 1;
     renderPassCreateInfo.pSubpasses = &subpassDescription;
+    renderPassCreateInfo.dependencyCount = 1;
+    renderPassCreateInfo.pDependencies = &subpassDependency;
 
     VkResult result = vkCreateRenderPass(context.vk.device, &renderPassCreateInfo, NULL, &context.vk.renderPass);
 
@@ -1106,6 +1179,7 @@ static int allocateSyncObjects() {
     VkFenceCreateInfo fenceCreateInfo;
     memset(&fenceCreateInfo, 0, sizeof(fenceCreateInfo));
     fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
     result = vkCreateSemaphore(context.vk.device, &semaphoreCreateInfo, NULL, &context.vk.imageAvailableSemaphore);
     if(result != VK_SUCCESS) {
