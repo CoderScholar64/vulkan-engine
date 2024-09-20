@@ -24,6 +24,7 @@ static int allocateGraphicsPipeline();
 static int allocateFrameBuffers();
 static int allocateCommandPool();
 static int createCommandBuffer();
+static int recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
 
 int v_init() {
@@ -1005,6 +1006,70 @@ static int createCommandBuffer() {
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkAllocateCommandBuffers creation failed with result: %i", result);
         return -30;
+    }
+    return 1;
+}
+
+static int recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
+    VkResult result;
+
+    VkCommandBufferBeginInfo commandBufferBeginInfo;
+    memset(&commandBufferBeginInfo, 0, sizeof(commandBufferBeginInfo));
+    commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    commandBufferBeginInfo.flags = 0; // OPTIONAL
+    commandBufferBeginInfo.pInheritanceInfo = NULL; // OPTIONAL
+
+    result = vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
+
+    if(result != VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkBeginCommandBuffer creation failed with result: %i", result);
+        return -31;
+    }
+
+    VkRenderPassBeginInfo renderPassBeginInfo;
+    memset(&renderPassBeginInfo, 0, sizeof(renderPassBeginInfo));
+    renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassBeginInfo.renderPass = context.vk.renderPass;
+    renderPassBeginInfo.framebuffer = context.vk.pSwapChainFramebuffers[imageIndex];
+
+    renderPassBeginInfo.renderArea.offset.x = 0;
+    renderPassBeginInfo.renderArea.offset.y = 0;
+    renderPassBeginInfo.renderArea.extent = context.vk.swapExtent;
+
+    VkClearValue clearColor;
+    clearColor.color.float32[0] = 0.0f;
+    clearColor.color.float32[1] = 0.0f;
+    clearColor.color.float32[2] = 0.0f;
+    clearColor.color.float32[3] = 1.0f;
+
+    renderPassBeginInfo.clearValueCount = 1;
+    renderPassBeginInfo.pClearValues = &clearColor;
+
+    vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, context.vk.graphicsPipeline);
+
+    VkViewport viewport;
+    viewport.x = 0.0f;
+    viewport.y = 0.0f;
+    viewport.width  = (float)context.vk.swapExtent.width;
+    viewport.height = (float)context.vk.swapExtent.height;
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 0.0f;
+    vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+    VkRect2D scissor;
+    scissor.offset.x = 0;
+    scissor.offset.y = 0;
+    scissor.extent = context.vk.swapExtent;
+    vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+    vkCmdEndRenderPass(commandBuffer);
+
+    result = vkEndCommandBuffer(commandBuffer);
+    if(result != VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkBeginCommandBuffer creation failed with result: %i", result);
+        return -32;
     }
     return 1;
 }
