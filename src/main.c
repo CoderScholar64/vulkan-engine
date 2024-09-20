@@ -10,9 +10,10 @@ void loop() {
     int run = 1;
 
     while(run) {
-        SDL_PollEvent(&event);
-        if (event.type == SDL_QUIT) {
-            run = 0;
+        while(SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT) {
+                run = 0;
+            }
         }
 
         if(v_draw_frame() < 0)
