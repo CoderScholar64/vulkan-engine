@@ -44,12 +44,6 @@ struct Context {
         VkSemaphore imageAvailableSemaphore;
         VkSemaphore renderFinishedSemaphore;
         VkFence inFlightFence;
-
-        VkSurfaceCapabilitiesKHR surfaceCapabilities;
-        VkSurfaceFormatKHR *pSurfaceFormat;
-        Uint32 surfaceFormatCount;
-        VkPresentModeKHR *pPresentMode;
-        Uint32 presentModeCount;
     } vk;
 
 };
