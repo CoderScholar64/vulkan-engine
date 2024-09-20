@@ -132,6 +132,15 @@ void v_deinit() {
 }
 
 int v_draw_frame() {
+    VkResult result = vkWaitForFences(context.vk.device, 1, &context.vk.inFlightFence, VK_TRUE, 25000000);
+
+    if(result == VK_TIMEOUT)
+        return 0; // Cancel drawing the frame then.
+    else if(result < VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_draw_frame: in flight fence had failed with %i aborting!", result);
+        return -1; // Program had encountered a problem!
+    }
+
     return 1;
 }
 

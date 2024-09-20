@@ -15,7 +15,8 @@ void loop() {
             run = 0;
         }
 
-        v_draw_frame();
+        if(v_draw_frame() < 0)
+            return;
     }
 }
 
