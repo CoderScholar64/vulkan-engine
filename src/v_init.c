@@ -1159,6 +1159,8 @@ static int recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageInde
     scissor.extent = context.vk.swapExtent;
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
+    vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+
     vkCmdEndRenderPass(commandBuffer);
 
     result = vkEndCommandBuffer(commandBuffer);
