@@ -75,6 +75,10 @@ int v_init() {
     if( returnCode < 0 )
         return returnCode;
 
+    returnCode = createCommandBuffer();
+    if( returnCode < 0 )
+        return returnCode;
+
     return 1;
 }
 
@@ -982,6 +986,25 @@ static int allocateCommandPool() {
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkCommandPool creation failed with result: %i", result);
         return -29;
+    }
+    return 1;
+}
+
+static int createCommandBuffer() {
+    VkResult result;
+
+    VkCommandBufferAllocateInfo commandBufferAllocateInfo;
+    memset(&commandBufferAllocateInfo, 0, sizeof(commandBufferAllocateInfo));
+    commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    commandBufferAllocateInfo.commandPool = context.vk.commandPool;
+    commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    commandBufferAllocateInfo.commandBufferCount = 1;
+
+    result = vkAllocateCommandBuffers(context.vk.device, &commandBufferAllocateInfo, &context.vk.commandBuffer);
+
+    if(result != VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkAllocateCommandBuffers creation failed with result: %i", result);
+        return -30;
     }
     return 1;
 }
