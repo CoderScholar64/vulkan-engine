@@ -33,9 +33,11 @@ struct Context {
 
         VkSwapchainKHR swapChain;
         Uint32 swapChainImageCount;
-        VkImage *pSwapChainImages;
-        VkImageView *pSwapChainImageViews;
-        VkFramebuffer *pSwapChainFramebuffers;
+        struct {
+            VkImage       image;
+            VkImageView   imageView;
+            VkFramebuffer framebuffer;
+        } *pSwapChainFrames;
 
         VkRenderPass renderPass;
         VkPipelineLayout pipelineLayout;

@@ -115,7 +115,7 @@ int v_record_command_buffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) 
     memset(&renderPassBeginInfo, 0, sizeof(renderPassBeginInfo));
     renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     renderPassBeginInfo.renderPass = context.vk.renderPass;
-    renderPassBeginInfo.framebuffer = context.vk.pSwapChainFramebuffers[imageIndex];
+    renderPassBeginInfo.framebuffer = context.vk.pSwapChainFrames[imageIndex].framebuffer;
 
     renderPassBeginInfo.renderArea.offset.x = 0;
     renderPassBeginInfo.renderArea.offset.y = 0;

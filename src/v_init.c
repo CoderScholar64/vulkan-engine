@@ -696,13 +696,23 @@ static int allocateSwapChain() {
         return -18;
     }
 
-    context.vk.pSwapChainImages = malloc(sizeof(VkImage) * context.vk.swapChainImageCount);
+    context.vk.pSwapChainFrames = calloc(context.vk.swapChainImageCount, sizeof(context.vk.pSwapChainFrames[0]));
 
-    result = vkGetSwapchainImagesKHR(context.vk.device, context.vk.swapChain, &context.vk.swapChainImageCount, context.vk.pSwapChainImages);
+    VkImage swapChainImages[context.vk.swapChainImageCount];
 
-    if(result != VK_SUCCESS || context.vk.pSwapChainImages == NULL) {
+    result = vkGetSwapchainImagesKHR(context.vk.device, context.vk.swapChain, &context.vk.swapChainImageCount, swapChainImages);
+
+    if(result != VK_SUCCESS || context.vk.pSwapChainFrames == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to vkGetSwapchainImagesKHR for allocation returned %i", result);
+
+        if(context.vk.pSwapChainFrames != NULL)
+            free(context.vk.pSwapChainFrames);
+
         return -19;
+    }
+
+    for(Uint32 i = context.vk.swapChainImageCount; i != 0; i--) {
+        context.vk.pSwapChainFrames[i - 1].image = swapChainImages[i - 1];
     }
 
     return 1;
@@ -712,13 +722,10 @@ static int allocateSwapChainImageViews() {
     VkImageViewCreateInfo imageViewCreateInfo;
     VkResult result;
 
-    context.vk.pSwapChainImageViews = malloc(sizeof(VkImageView) * context.vk.swapChainImageCount);
-    memset(context.vk.pSwapChainImageViews, 0, sizeof(VkImageView) * context.vk.swapChainImageCount);
-
     for(Uint32 i = 0; i < context.vk.swapChainImageCount; i++) {
         memset(&imageViewCreateInfo, 0, sizeof(imageViewCreateInfo));
         imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        imageViewCreateInfo.image = context.vk.pSwapChainImages[i];
+        imageViewCreateInfo.image = context.vk.pSwapChainFrames[i].image;
 
         imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
         imageViewCreateInfo.format = context.vk.surfaceFormat.format;
@@ -734,7 +741,7 @@ static int allocateSwapChainImageViews() {
         imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
         imageViewCreateInfo.subresourceRange.layerCount = 1;
 
-        result = vkCreateImageView(context.vk.device, &imageViewCreateInfo, NULL, &context.vk.pSwapChainImageViews[i]);
+        result = vkCreateImageView(context.vk.device, &imageViewCreateInfo, NULL, &context.vk.pSwapChainFrames[i].imageView);
 
         if(result != VK_SUCCESS) {
             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to vkCreateImageView at index %i for allocate returned %i", i, result);
@@ -1033,8 +1040,6 @@ static int allocateFrameBuffers() {
     VkResult result;
     VkFramebufferCreateInfo framebufferCreateInfo;
 
-    context.vk.pSwapChainFramebuffers = calloc(context.vk.swapChainImageCount, sizeof(VkFramebuffer));
-
     int numberOfFailures = 0;
 
     for(Uint32 i = context.vk.swapChainImageCount; i != 0; i--) {
@@ -1043,12 +1048,12 @@ static int allocateFrameBuffers() {
         framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
         framebufferCreateInfo.renderPass = context.vk.renderPass;
         framebufferCreateInfo.attachmentCount = 1;
-        framebufferCreateInfo.pAttachments = &context.vk.pSwapChainImageViews[i - 1];
+        framebufferCreateInfo.pAttachments = &context.vk.pSwapChainFrames[i - 1].imageView;
         framebufferCreateInfo.width  = context.vk.swapExtent.width;
         framebufferCreateInfo.height = context.vk.swapExtent.height;
         framebufferCreateInfo.layers = 1;
 
-        result = vkCreateFramebuffer(context.vk.device, &framebufferCreateInfo, NULL, &context.vk.pSwapChainFramebuffers[i - 1]);
+        result = vkCreateFramebuffer(context.vk.device, &framebufferCreateInfo, NULL, &context.vk.pSwapChainFrames[i - 1].framebuffer);
 
         if(result != VK_SUCCESS) {
             numberOfFailures++;
@@ -1102,24 +1107,14 @@ static int createCommandBuffer() {
 }
 
 static void cleanupSwapChain() {
-    if(context.vk.pSwapChainImages != NULL)
-        free(context.vk.pSwapChainImages);
-
-    if(context.vk.pSwapChainImageViews != NULL) {
-        for(Uint32 i = context.vk.swapChainImageCount; i != 0; i--) {
-            vkDestroyImageView(context.vk.device, context.vk.pSwapChainImageViews[i - 1], NULL);
-        }
-
-        free(context.vk.pSwapChainImageViews);
+    for(Uint32 i = context.vk.swapChainImageCount; i != 0; i--) {
+        vkDestroyImageView(  context.vk.device, context.vk.pSwapChainFrames[i - 1].imageView,   NULL);
+        vkDestroyFramebuffer(context.vk.device, context.vk.pSwapChainFrames[i - 1].framebuffer, NULL);
     }
 
-    if(context.vk.pSwapChainFramebuffers != NULL) {
-        for(Uint32 i = context.vk.swapChainImageCount; i != 0; i--) {
-            vkDestroyFramebuffer(context.vk.device, context.vk.pSwapChainFramebuffers[i - 1], NULL);
-        }
-
-        free(context.vk.pSwapChainFramebuffers);
-    }
+    if(context.vk.pSwapChainFrames != NULL)
+        free(context.vk.pSwapChainFrames);
+    context.vk.pSwapChainFrames = NULL;
 
     vkDestroySwapchainKHR(context.vk.device, context.vk.swapChain, NULL);
 }
