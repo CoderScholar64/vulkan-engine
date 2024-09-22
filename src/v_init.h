@@ -5,6 +5,6 @@ int v_init();
 
 void v_deinit();
 
-int v_draw_frame();
+int v_recreate_swap_chain();
 
 #endif // V_INIT_29

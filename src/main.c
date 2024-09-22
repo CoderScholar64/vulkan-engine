@@ -1,5 +1,6 @@
 #include "context.h"
 #include "v_init.h"
+#include "v_render.h"
 
 #include "SDL.h"
 
@@ -13,16 +14,27 @@ void loop() {
 
     while(run) {
         while(SDL_PollEvent(&event)) {
-            if(event.type == SDL_QUIT) {
+            switch(event.type) {
+            case SDL_QUIT:
                 run = 0;
-            }
-            if(event.type == SDL_WINDOWEVENT) {
-                if(event.window.event == SDL_WINDOWEVENT_MINIMIZED)
+                break;
+            case SDL_WINDOWEVENT:
+                switch(event.window.event) {
+                case SDL_WINDOWEVENT_MINIMIZED:
                     isWindowMinimized = 1;
-                if(event.window.event == SDL_WINDOWEVENT_RESTORED)
+                    break;
+                case SDL_WINDOWEVENT_RESTORED:
                     isWindowMinimized = 0;
-                if(event.window.event == SDL_WINDOWEVENT_RESIZED)
+                    break;
+                case SDL_WINDOWEVENT_RESIZED:
                     context.forceSwapChainRegen = 1;
+                    break;
+                default:
+                    break;
+                }
+                break;
+            default:
+                break;
             }
         }
 
