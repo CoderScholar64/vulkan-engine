@@ -254,25 +254,23 @@ static int querySwapChainCapabilities(VkPhysicalDevice physicalDevice, VkSurface
 
     VkResult result;
 
-    VkSurfaceCapabilitiesKHR surfaceCapabilities;
-    Uint32 surfaceFormatCount = 0;
-    Uint32 presentModeCount = 0;
+    SwapChainCapabilities swapChainCapabilities;
 
-    result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &surfaceCapabilities);
+    result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &swapChainCapabilities.surfaceCapabilities);
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkGetPhysicalDeviceSurfaceCapabilitiesKHR had failed with %i", result);
         return -2;
     }
 
-    result = vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &surfaceFormatCount, NULL);
+    result = vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &swapChainCapabilities.surfaceFormatCount, NULL);
 
     if(result < VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkGetPhysicalDeviceSurfaceFormatsKHR for count had failed with %i", result);
         return -3;
     }
 
-    result = vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, NULL);
+    result = vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &swapChainCapabilities.presentModeCount, NULL);
 
     if(result < VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkGetPhysicalDeviceSurfacePresentModesKHR for count had failed with %i", result);
@@ -281,19 +279,17 @@ static int querySwapChainCapabilities(VkPhysicalDevice physicalDevice, VkSurface
 
     SwapChainCapabilities *pSwapChainCapabilities = malloc(
         sizeof(SwapChainCapabilities) +
-        surfaceFormatCount * sizeof(VkSurfaceFormatKHR) +
-        presentModeCount   * sizeof(VkPresentModeKHR));
+        swapChainCapabilities.surfaceFormatCount * sizeof(VkSurfaceFormatKHR) +
+        swapChainCapabilities.presentModeCount   * sizeof(VkPresentModeKHR));
 
     if(pSwapChainCapabilities == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Cannot allocate SwapChainCapabilities!");
         return -5;
     }
 
-    pSwapChainCapabilities->surfaceCapabilities = surfaceCapabilities;
-    pSwapChainCapabilities->surfaceFormatCount  = surfaceFormatCount;
-    pSwapChainCapabilities->presentModeCount    = presentModeCount;
-    pSwapChainCapabilities->pSurfaceFormat      = ((void*)pSwapChainCapabilities) + sizeof(SwapChainCapabilities);
-    pSwapChainCapabilities->pPresentMode        = ((void*)&pSwapChainCapabilities->pSurfaceFormat[surfaceFormatCount]);
+    *pSwapChainCapabilities = swapChainCapabilities;
+    pSwapChainCapabilities->pSurfaceFormat = ((void*)pSwapChainCapabilities) + sizeof(SwapChainCapabilities);
+    pSwapChainCapabilities->pPresentMode   = ((void*)&pSwapChainCapabilities->pSurfaceFormat[swapChainCapabilities.surfaceFormatCount]);
 
     assert(pSwapChainCapabilities->pSurfaceFormat != NULL);
     assert(pSwapChainCapabilities->pPresentMode   != NULL);
