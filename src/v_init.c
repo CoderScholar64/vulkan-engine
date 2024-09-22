@@ -1,14 +1,15 @@
 #include "v_init.h"
 
 #include "context.h"
+#include "u_read.h"
+
+#include <string.h>
 
 #include <vulkan/vulkan.h>
 #include "SDL_vulkan.h"
 #include "SDL.h"
-#include <string.h>
-#include "u_math.h"
-#include "u_read.h"
 
+#include "raymath.h"
 
 typedef struct SwapChainCapabilities {
     VkSurfaceCapabilitiesKHR surfaceCapabilities;
@@ -681,8 +682,8 @@ static int allocateSwapChain() {
 
         SDL_Vulkan_GetDrawableSize(context.pWindow, &width, &height);
 
-        context.vk.swapExtent.width  = MIN(swapChainCapabilities.surfaceCapabilities.maxImageExtent.width,  MAX(swapChainCapabilities.surfaceCapabilities.minImageExtent.width,  (Uint32)width));
-        context.vk.swapExtent.height = MIN(swapChainCapabilities.surfaceCapabilities.maxImageExtent.height, MAX(swapChainCapabilities.surfaceCapabilities.minImageExtent.height, (Uint32)height));
+        context.vk.swapExtent.width  = (Uint32)Clamp( width, swapChainCapabilities.surfaceCapabilities.minImageExtent.width,  swapChainCapabilities.surfaceCapabilities.maxImageExtent.width);
+        context.vk.swapExtent.height = (Uint32)Clamp(height, swapChainCapabilities.surfaceCapabilities.minImageExtent.height, swapChainCapabilities.surfaceCapabilities.maxImageExtent.height);
     }
 
     Uint32 imageCount = swapChainCapabilities.surfaceCapabilities.minImageCount + 1;
