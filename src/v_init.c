@@ -20,6 +20,16 @@ typedef struct {
     Uint32 presentModeCount;
 } SwapChainCapabilities;
 
+typedef struct {
+    Vector2 pos;
+    Vector3 color;
+} Vertex;
+
+Vertex vertices[3] = {
+    {{ 0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+    {{ 0.5f,  0.5f}, {0.0f, 1.0f, 0.0f}},
+    {{-0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}}
+};
 
 static VkQueueFamilyProperties* allocateQueueFamilyArray(VkPhysicalDevice device, Uint32 *pQueueFamilyPropertyCount);
 static VkLayerProperties* allocateLayerPropertiesArray(Uint32 *pPropertyCount);
