@@ -32,7 +32,7 @@ struct Context {
         VkExtent2D swapExtent;
 
         VkSwapchainKHR swapChain;
-        Uint32 swapChainImageCount;
+        Uint32 swapChainFrameCount;
         struct {
             VkImage       image;
             VkImageView   imageView;

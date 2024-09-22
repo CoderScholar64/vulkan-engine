@@ -689,18 +689,18 @@ static int allocateSwapChain() {
         return -17;
     }
 
-    result = vkGetSwapchainImagesKHR(context.vk.device, context.vk.swapChain, &context.vk.swapChainImageCount, NULL);
+    result = vkGetSwapchainImagesKHR(context.vk.device, context.vk.swapChain, &context.vk.swapChainFrameCount, NULL);
 
     if(result < VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to vkGetSwapchainImagesKHR for count returned %i", result);
         return -18;
     }
 
-    context.vk.pSwapChainFrames = calloc(context.vk.swapChainImageCount, sizeof(context.vk.pSwapChainFrames[0]));
+    context.vk.pSwapChainFrames = calloc(context.vk.swapChainFrameCount, sizeof(context.vk.pSwapChainFrames[0]));
 
-    VkImage swapChainImages[context.vk.swapChainImageCount];
+    VkImage swapChainImages[context.vk.swapChainFrameCount];
 
-    result = vkGetSwapchainImagesKHR(context.vk.device, context.vk.swapChain, &context.vk.swapChainImageCount, swapChainImages);
+    result = vkGetSwapchainImagesKHR(context.vk.device, context.vk.swapChain, &context.vk.swapChainFrameCount, swapChainImages);
 
     if(result != VK_SUCCESS || context.vk.pSwapChainFrames == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to vkGetSwapchainImagesKHR for allocation returned %i", result);
@@ -711,7 +711,7 @@ static int allocateSwapChain() {
         return -19;
     }
 
-    for(Uint32 i = context.vk.swapChainImageCount; i != 0; i--) {
+    for(Uint32 i = context.vk.swapChainFrameCount; i != 0; i--) {
         context.vk.pSwapChainFrames[i - 1].image = swapChainImages[i - 1];
     }
 
@@ -722,7 +722,7 @@ static int allocateSwapChainImageViews() {
     VkImageViewCreateInfo imageViewCreateInfo;
     VkResult result;
 
-    for(Uint32 i = 0; i < context.vk.swapChainImageCount; i++) {
+    for(Uint32 i = 0; i < context.vk.swapChainFrameCount; i++) {
         memset(&imageViewCreateInfo, 0, sizeof(imageViewCreateInfo));
         imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
         imageViewCreateInfo.image = context.vk.pSwapChainFrames[i].image;
@@ -1042,7 +1042,7 @@ static int allocateFrameBuffers() {
 
     int numberOfFailures = 0;
 
-    for(Uint32 i = context.vk.swapChainImageCount; i != 0; i--) {
+    for(Uint32 i = context.vk.swapChainFrameCount; i != 0; i--) {
         memset(&framebufferCreateInfo, 0, sizeof(framebufferCreateInfo));
 
         framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -1107,7 +1107,7 @@ static int createCommandBuffer() {
 }
 
 static void cleanupSwapChain() {
-    for(Uint32 i = context.vk.swapChainImageCount; i != 0; i--) {
+    for(Uint32 i = context.vk.swapChainFrameCount; i != 0; i--) {
         vkDestroyImageView(  context.vk.device, context.vk.pSwapChainFrames[i - 1].imageView,   NULL);
         vkDestroyFramebuffer(context.vk.device, context.vk.pSwapChainFrames[i - 1].framebuffer, NULL);
     }
