@@ -4,6 +4,7 @@
 #include "u_read.h"
 
 #include <string.h>
+#include <assert.h>
 
 #include <vulkan/vulkan.h>
 #include "SDL_vulkan.h"
@@ -11,7 +12,7 @@
 
 #include "raymath.h"
 
-typedef struct SwapChainCapabilities {
+typedef struct {
     VkSurfaceCapabilitiesKHR surfaceCapabilities;
     VkSurfaceFormatKHR *pSurfaceFormat;
     Uint32 surfaceFormatCount;
@@ -23,7 +24,7 @@ typedef struct SwapChainCapabilities {
 static VkQueueFamilyProperties* allocateQueueFamilyArray(VkPhysicalDevice device, Uint32 *pQueueFamilyPropertyCount);
 static VkLayerProperties* allocateLayerPropertiesArray(Uint32 *pPropertyCount);
 static int hasRequiredExtensions(VkPhysicalDevice physicalDevice, const char * const* ppRequiredExtension, Uint32 requiredExtensionCount);
-static int querySwapChainCapabilities(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, SwapChainCapabilities *swapChainCapabilities);
+static int querySwapChainCapabilities(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, SwapChainCapabilities **ppSwapChainCapabilities);
 static int initInstance();
 static int findPhysicalDevice(const char * const* ppRequiredExtensions, Uint32 requiredExtensionsAmount);
 static int allocateLogicalDevice(const char * const* ppRequiredExtensions, Uint32 requiredExtensionsAmount);
@@ -248,82 +249,75 @@ static int hasRequiredExtensions(VkPhysicalDevice physicalDevice, const char * c
     return everythingFound;
 }
 
-static int querySwapChainCapabilities(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, SwapChainCapabilities *pSwapChainCapabilities) {
+static int querySwapChainCapabilities(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, SwapChainCapabilities **ppSwapChainCapabilities) {
+    assert(ppSwapChainCapabilities != NULL);
+
     VkResult result;
 
-    SwapChainCapabilities localSwapChainCapabilities;
-    memset(&localSwapChainCapabilities, 0, sizeof(localSwapChainCapabilities));
+    VkSurfaceCapabilitiesKHR surfaceCapabilities;
+    Uint32 surfaceFormatCount = 0;
+    Uint32 presentModeCount = 0;
 
-    if(pSwapChainCapabilities != NULL)
-        *pSwapChainCapabilities = localSwapChainCapabilities;
-
-    result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &localSwapChainCapabilities.surfaceCapabilities);
+    result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &surfaceCapabilities);
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkGetPhysicalDeviceSurfaceCapabilitiesKHR had failed with %i", result);
         return -2;
     }
 
-    result = vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &localSwapChainCapabilities.surfaceFormatCount, NULL);
+    result = vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &surfaceFormatCount, NULL);
 
     if(result < VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkGetPhysicalDeviceSurfaceFormatsKHR for count had failed with %i", result);
         return -3;
     }
 
-    result = vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &localSwapChainCapabilities.presentModeCount, NULL);
+    result = vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, NULL);
 
     if(result < VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkGetPhysicalDeviceSurfacePresentModesKHR for count had failed with %i", result);
-
-        free(localSwapChainCapabilities.pSurfaceFormat);
-
         return -4;
     }
 
-    localSwapChainCapabilities.pSurfaceFormat = malloc(
-        localSwapChainCapabilities.surfaceFormatCount * sizeof(VkSurfaceFormatKHR) +
-        localSwapChainCapabilities.presentModeCount *sizeof(VkPresentModeKHR));
+    SwapChainCapabilities *pSwapChainCapabilities = malloc(
+        sizeof(SwapChainCapabilities) +
+        surfaceFormatCount * sizeof(VkSurfaceFormatKHR) +
+        presentModeCount   * sizeof(VkPresentModeKHR));
 
-    if(localSwapChainCapabilities.pSurfaceFormat == NULL) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "memory did not allocate!");
+    if(pSwapChainCapabilities == NULL) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Cannot allocate SwapChainCapabilities!");
         return -5;
     }
 
-    localSwapChainCapabilities.pPresentMode = ((void*)&localSwapChainCapabilities.pSurfaceFormat[localSwapChainCapabilities.surfaceFormatCount]);
+    pSwapChainCapabilities->surfaceCapabilities = surfaceCapabilities;
+    pSwapChainCapabilities->surfaceFormatCount  = surfaceFormatCount;
+    pSwapChainCapabilities->presentModeCount    = presentModeCount;
+    pSwapChainCapabilities->pSurfaceFormat      = ((void*)pSwapChainCapabilities) + sizeof(SwapChainCapabilities);
+    pSwapChainCapabilities->pPresentMode        = ((void*)&pSwapChainCapabilities->pSurfaceFormat[surfaceFormatCount]);
 
-    result = vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &localSwapChainCapabilities.presentModeCount, localSwapChainCapabilities.pPresentMode);
+    assert(pSwapChainCapabilities->pSurfaceFormat != NULL);
+    assert(pSwapChainCapabilities->pPresentMode   != NULL);
+
+    *ppSwapChainCapabilities = pSwapChainCapabilities;
+
+    result = vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &pSwapChainCapabilities->presentModeCount, pSwapChainCapabilities->pPresentMode);
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkGetPhysicalDeviceSurfacePresentModesKHR for allocation had failed with %i", result);
-
-        free(localSwapChainCapabilities.pSurfaceFormat);
-
         return -6;
     }
 
-    result = vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &localSwapChainCapabilities.surfaceFormatCount, localSwapChainCapabilities.pSurfaceFormat);
+    result = vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &pSwapChainCapabilities->surfaceFormatCount, pSwapChainCapabilities->pSurfaceFormat);
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkGetPhysicalDeviceSurfaceFormatsKHR for allocation had failed with %i", result);
-
-        free(localSwapChainCapabilities.pSurfaceFormat);
-
         return -7;
     }
 
-    if(localSwapChainCapabilities.surfaceFormatCount != 0 && localSwapChainCapabilities.presentModeCount != 0) {
-
-        if(pSwapChainCapabilities == NULL)
-            free(localSwapChainCapabilities.pSurfaceFormat);
-        else
-            *pSwapChainCapabilities = localSwapChainCapabilities;
-
+    if(pSwapChainCapabilities->surfaceFormatCount != 0 && pSwapChainCapabilities->presentModeCount != 0) {
         return 1;
     }
     else {
-        free(localSwapChainCapabilities.pSurfaceFormat);
-
         return 0;
     }
 }
@@ -458,8 +452,13 @@ static int findPhysicalDevice(const char * const* ppRequiredExtensions, Uint32 r
 
             // Check for required extensions
             if(hasRequiredExtensions(pPhysicalDevices[i - 1], ppRequiredExtensions, requiredExtensionsAmount)) {
-                if(querySwapChainCapabilities(pPhysicalDevices[i - 1], context.vk.surface, NULL))
+                SwapChainCapabilities *pSwapChainCapabilities = NULL;
+
+                if(querySwapChainCapabilities(pPhysicalDevices[i - 1], context.vk.surface, &pSwapChainCapabilities))
                     requiredParameters |= 4;
+
+                if(pSwapChainCapabilities != NULL)
+                    free(pSwapChainCapabilities);
             }
 
 
@@ -572,11 +571,11 @@ static int allocateLogicalDevice(const char * const* ppRequiredExtensions, Uint3
 }
 
 static int allocateSwapChain() {
-    SwapChainCapabilities swapChainCapabilities;
+    SwapChainCapabilities *pSwapChainCapabilities;
     int foundPriority;
     int currentPriority;
 
-    int updateResult = querySwapChainCapabilities(context.vk.physicalDevice, context.vk.surface, &swapChainCapabilities);
+    int updateResult = querySwapChainCapabilities(context.vk.physicalDevice, context.vk.surface, &pSwapChainCapabilities);
 
     if(updateResult < 0) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to update swap chain capabilities %i", updateResult);
@@ -587,24 +586,24 @@ static int allocateSwapChain() {
     const VkFormat format[] = {VK_FORMAT_B8G8R8A8_SRGB, VK_FORMAT_R8G8B8A8_SRGB, VK_FORMAT_B8G8R8_SRGB, VK_FORMAT_R8G8B8_SRGB};
     const unsigned FORMAT_AMOUNT = sizeof(format) / sizeof(VkFormat);
 
-    context.vk.surfaceFormat = swapChainCapabilities.pSurfaceFormat[0];
+    context.vk.surfaceFormat = pSwapChainCapabilities->pSurfaceFormat[0];
 
     foundPriority = FORMAT_AMOUNT;
     currentPriority = FORMAT_AMOUNT;
 
-    for(Uint32 f = swapChainCapabilities.surfaceFormatCount; f != 0; f--) {
-        if(swapChainCapabilities.pSurfaceFormat[f - 1].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+    for(Uint32 f = pSwapChainCapabilities->surfaceFormatCount; f != 0; f--) {
+        if(pSwapChainCapabilities->pSurfaceFormat[f - 1].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
             currentPriority = FORMAT_AMOUNT;
 
             for(Uint32 p = FORMAT_AMOUNT; p != 0; p--) {
-                if(format[p - 1] == swapChainCapabilities.pSurfaceFormat[f - 1].format) {
+                if(format[p - 1] == pSwapChainCapabilities->pSurfaceFormat[f - 1].format) {
                     currentPriority = p - 1;
                     break;
                 }
             }
 
             if(foundPriority > currentPriority) {
-                context.vk.surfaceFormat = swapChainCapabilities.pSurfaceFormat[f - 1];
+                context.vk.surfaceFormat = pSwapChainCapabilities->pSurfaceFormat[f - 1];
                 foundPriority = currentPriority;
             }
         }
@@ -614,23 +613,23 @@ static int allocateSwapChain() {
     const VkPresentModeKHR presentModes[] = {VK_PRESENT_MODE_MAILBOX_KHR, VK_PRESENT_MODE_FIFO_KHR, VK_PRESENT_MODE_FIFO_RELAXED_KHR, VK_PRESENT_MODE_IMMEDIATE_KHR};
     const unsigned PRESENT_MODE_AMOUNT = sizeof(presentModes) / sizeof(VkPresentModeKHR);
 
-    context.vk.presentMode = swapChainCapabilities.pPresentMode[0];
+    context.vk.presentMode = pSwapChainCapabilities->pPresentMode[0];
 
     foundPriority = PRESENT_MODE_AMOUNT;
     currentPriority = PRESENT_MODE_AMOUNT;
 
-    for(Uint32 f = swapChainCapabilities.presentModeCount; f != 0; f--) {
+    for(Uint32 f = pSwapChainCapabilities->presentModeCount; f != 0; f--) {
         currentPriority = PRESENT_MODE_AMOUNT;
 
         for(Uint32 p = PRESENT_MODE_AMOUNT; p != 0; p--) {
-            if(presentModes[p - 1] == swapChainCapabilities.pPresentMode[f - 1]) {
+            if(presentModes[p - 1] == pSwapChainCapabilities->pPresentMode[f - 1]) {
                 currentPriority = p - 1;
                 break;
             }
         }
 
         if(foundPriority > currentPriority) {
-            context.vk.presentMode = swapChainCapabilities.pPresentMode[f - 1];
+            context.vk.presentMode = pSwapChainCapabilities->pPresentMode[f - 1];
             foundPriority = currentPriority;
         }
     }
@@ -638,21 +637,21 @@ static int allocateSwapChain() {
     // Find VkExtent2D
     const Uint32 MAX_U32 = (Uint32) - 1;
 
-    if(swapChainCapabilities.surfaceCapabilities.currentExtent.width != MAX_U32)
-        context.vk.swapExtent = swapChainCapabilities.surfaceCapabilities.currentExtent;
+    if(pSwapChainCapabilities->surfaceCapabilities.currentExtent.width != MAX_U32)
+        context.vk.swapExtent = pSwapChainCapabilities->surfaceCapabilities.currentExtent;
     else {
         int width, height;
 
         SDL_Vulkan_GetDrawableSize(context.pWindow, &width, &height);
 
-        context.vk.swapExtent.width  = (Uint32)Clamp( width, swapChainCapabilities.surfaceCapabilities.minImageExtent.width,  swapChainCapabilities.surfaceCapabilities.maxImageExtent.width);
-        context.vk.swapExtent.height = (Uint32)Clamp(height, swapChainCapabilities.surfaceCapabilities.minImageExtent.height, swapChainCapabilities.surfaceCapabilities.maxImageExtent.height);
+        context.vk.swapExtent.width  = (Uint32)Clamp( width, pSwapChainCapabilities->surfaceCapabilities.minImageExtent.width,  pSwapChainCapabilities->surfaceCapabilities.maxImageExtent.width);
+        context.vk.swapExtent.height = (Uint32)Clamp(height, pSwapChainCapabilities->surfaceCapabilities.minImageExtent.height, pSwapChainCapabilities->surfaceCapabilities.maxImageExtent.height);
     }
 
-    Uint32 imageCount = swapChainCapabilities.surfaceCapabilities.minImageCount + 1;
+    Uint32 imageCount = pSwapChainCapabilities->surfaceCapabilities.minImageCount + 1;
 
-    if(swapChainCapabilities.surfaceCapabilities.maxImageCount != 0 && imageCount > swapChainCapabilities.surfaceCapabilities.maxImageCount)
-        imageCount = swapChainCapabilities.surfaceCapabilities.maxImageCount;
+    if(pSwapChainCapabilities->surfaceCapabilities.maxImageCount != 0 && imageCount > pSwapChainCapabilities->surfaceCapabilities.maxImageCount)
+        imageCount = pSwapChainCapabilities->surfaceCapabilities.maxImageCount;
 
     VkSwapchainCreateInfoKHR swapchainCreateInfo;
     memset(&swapchainCreateInfo, 0, sizeof(swapchainCreateInfo));
@@ -679,13 +678,13 @@ static int allocateSwapChain() {
         swapchainCreateInfo.pQueueFamilyIndices = familyIndex;
     }
 
-    swapchainCreateInfo.preTransform = swapChainCapabilities.surfaceCapabilities.currentTransform;
+    swapchainCreateInfo.preTransform = pSwapChainCapabilities->surfaceCapabilities.currentTransform;
     swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     swapchainCreateInfo.presentMode = context.vk.presentMode;
     swapchainCreateInfo.clipped = VK_TRUE;
     swapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
 
-    free(swapChainCapabilities.pSurfaceFormat);
+    free(pSwapChainCapabilities);
 
     VkResult result = vkCreateSwapchainKHR(context.vk.device, &swapchainCreateInfo, NULL, &context.vk.swapChain);
 
