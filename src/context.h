@@ -43,6 +43,8 @@ struct Context {
         VkPipelineLayout pipelineLayout;
         VkPipeline graphicsPipeline;
 
+        VkBuffer vertexBuffer;
+        VkDeviceMemory vertexBufferMemory;
         VkCommandPool commandPool;
 
         struct {

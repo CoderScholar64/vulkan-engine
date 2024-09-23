@@ -149,6 +149,10 @@ int v_record_command_buffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) 
     scissor.extent = context.vk.swapExtent;
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
+    VkBuffer vertexBuffers[] = {context.vk.vertexBuffer};
+    VkDeviceSize offsets[] = {0};
+    vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+
     vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 
     vkCmdEndRenderPass(commandBuffer);
