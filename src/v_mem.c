@@ -61,11 +61,22 @@ VEngineResult v_alloc_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemo
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkAllocateMemory failed with result: %i", result);
+
         vkDestroyBuffer(context.vk.device, *pBuffer, NULL);
+
         RETURN_RESULT_CODE(VE_ALLOC_MEMORY_V_BUFFER_FAILURE, 2)
     }
 
-    vkBindBufferMemory(context.vk.device, *pBuffer, *pBufferMemory, 0);
+    result = vkBindBufferMemory(context.vk.device, *pBuffer, *pBufferMemory, 0);
+
+    if(result != VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkBindBufferMemory failed with result: %i", result);
+
+        vkDestroyBuffer(context.vk.device, *pBuffer, NULL);
+        vkFreeMemory(context.vk.device, *pBufferMemory, NULL);
+
+        RETURN_RESULT_CODE(VE_ALLOC_MEMORY_V_BUFFER_FAILURE, 3)
+    }
 
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
