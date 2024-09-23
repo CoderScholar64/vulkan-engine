@@ -61,6 +61,7 @@ VEngineResult v_alloc_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemo
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkAllocateMemory failed with result: %i", result);
+        vkDestroyBuffer(context.vk.device, *pBuffer, NULL);
         RETURN_RESULT_CODE(VE_ALLOC_MEMORY_V_BUFFER_FAILURE, 2)
     }
 
@@ -70,9 +71,10 @@ VEngineResult v_alloc_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemo
 }
 
 VEngineResult v_alloc_vertex_buffer() {
+    VEngineResult buffer_result;
     VkResult result;
 
-    VEngineResult buffer_result = v_alloc_buffer(
+    buffer_result = v_alloc_buffer(
                 sizeof(vertices),
                 VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -85,7 +87,7 @@ VEngineResult v_alloc_vertex_buffer() {
 
     void* data;
     vkMapMemory(context.vk.device, context.vk.vertexBufferMemory, 0, sizeof(vertices), 0, &data);
-    memcpy(data, &vertices, (size_t) sizeof(vertices));
+    memcpy(data, &vertices, sizeof(vertices));
     vkUnmapMemory(context.vk.device, context.vk.vertexBufferMemory);
 
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
