@@ -16,4 +16,4 @@ m_dep = cc.find_library('m', required : false)
 
 raylib_path = include_directories('subprojects/Raylib')
 
-executable('vulkan-test', ['src/main.c', 'src/v_init.c', 'src/v_render.c', 'src/u_read.c', 'src/raymath.c'], dependencies: [sdl2_dep, sdl2_main_dep, vulkan_dep, m_dep], include_directories: raylib_path)
+executable('vulkan-test', ['src/main.c', 'src/v_init.c', 'src/v_render.c', 'src/v_mem.c', 'src/u_read.c', 'src/raymath.c'], dependencies: [sdl2_dep, sdl2_main_dep, vulkan_dep, m_dep], include_directories: raylib_path)
