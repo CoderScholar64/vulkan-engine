@@ -24,13 +24,13 @@ VEngineResult v_draw_frame() {
     result = vkAcquireNextImageKHR(context.vk.device, context.vk.swapChain, TIME_OUT_NS, context.vk.frames[context.vk.currentFrame].imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
 
     if(result == VK_TIMEOUT)
-        RETURN_RESULT_CODE(VE_TIME_OUT, 0) // Cancel drawing the frame then.
+        RETURN_RESULT_CODE(VE_TIME_OUT, 1) // Cancel drawing the frame then.
     else if(result == VK_ERROR_OUT_OF_DATE_KHR) {
         returnCode = v_recreate_swap_chain();
 
         // Cancel drawing the frame as well.
         if(returnCode.type == VE_SUCCESS)
-            RETURN_RESULT_CODE(VE_TIME_OUT, 1)
+            RETURN_RESULT_CODE(VE_TIME_OUT, 2)
 
         return returnCode;
     }
