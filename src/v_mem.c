@@ -48,7 +48,7 @@ VEngineResult v_alloc_vertex_buffer() {
     memset(&memoryAllocateInfo, 0, sizeof(memoryAllocateInfo));
     memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     memoryAllocateInfo.allocationSize = memRequirements.size;
-    memoryAllocateInfo.memoryTypeIndex = v_find_memory_type(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    memoryAllocateInfo.memoryTypeIndex = v_find_memory_type_index(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
     if(memoryAllocateInfo.memoryTypeIndex == 0) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Memory type not found");
@@ -74,7 +74,7 @@ VEngineResult v_alloc_vertex_buffer() {
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-Uint32 v_find_memory_type(Uint32 typeFilter, VkMemoryPropertyFlags properties) {
+Uint32 v_find_memory_type_index(Uint32 typeFilter, VkMemoryPropertyFlags properties) {
     VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties;
     vkGetPhysicalDeviceMemoryProperties(context.vk.physicalDevice, &physicalDeviceMemoryProperties);
 
