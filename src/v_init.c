@@ -4,13 +4,13 @@
 #include "u_read.h"
 #include "v_mem.h"
 
-#include <string.h>
 #include <assert.h>
+#include <string.h>
 
-#include <vulkan/vulkan.h>
+#include "raymath.h"
 #include "SDL_vulkan.h"
 #include "SDL.h"
-#include "raymath.h"
+#include <vulkan/vulkan.h>
 
 typedef struct {
     VkSurfaceCapabilitiesKHR surfaceCapabilities;

@@ -10,7 +10,7 @@ typedef struct {
     Vector3 color;
 } Vertex;
 
-extern const Vertex vertices[3];
+extern const Vertex vertices[6];
 
 extern const VkVertexInputBindingDescription vertexBindingDescription;
 extern const VkVertexInputAttributeDescription vertexInputAttributeDescriptions[2];

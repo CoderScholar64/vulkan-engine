@@ -1,6 +1,7 @@
 #include "v_render.h"
 
 #include "context.h"
+#include "v_mem.h"
 
 int v_draw_frame() {
     const Uint64 TIME_OUT_NS = 25000000;
@@ -153,7 +154,7 @@ int v_record_command_buffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) 
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-    vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+    vkCmdDraw(commandBuffer, sizeof(vertices) / sizeof(vertices[0]), 1, 0, 0);
 
     vkCmdEndRenderPass(commandBuffer);
 
