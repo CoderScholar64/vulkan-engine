@@ -3,6 +3,7 @@
 #include "context.h"
 #include "u_read.h"
 #include "v_mem.h"
+#include "v_results.h"
 
 #include <assert.h>
 #include <string.h>
@@ -23,84 +24,85 @@ typedef struct {
 static VkQueueFamilyProperties* allocateQueueFamilyArray(VkPhysicalDevice device, Uint32 *pQueueFamilyPropertyCount);
 static VkLayerProperties* allocateLayerPropertiesArray(Uint32 *pPropertyCount);
 static int hasRequiredExtensions(VkPhysicalDevice physicalDevice, const char * const* ppRequiredExtension, Uint32 requiredExtensionCount);
-static int querySwapChainCapabilities(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, SwapChainCapabilities **ppSwapChainCapabilities);
-static int initInstance();
-static int findPhysicalDevice(const char * const* ppRequiredExtensions, Uint32 requiredExtensionsAmount);
-static int allocateLogicalDevice(const char * const* ppRequiredExtensions, Uint32 requiredExtensionsAmount);
-static int allocateSwapChain();
-static int allocateSwapChainImageViews();
-static int createRenderPass();
+static VEngineResult querySwapChainCapabilities(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, SwapChainCapabilities **ppSwapChainCapabilities);
+static VEngineResult initInstance();
+static VEngineResult findPhysicalDevice(const char * const* ppRequiredExtensions, Uint32 requiredExtensionsAmount);
+static VEngineResult allocateLogicalDevice(const char * const* ppRequiredExtensions, Uint32 requiredExtensionsAmount);
+static VEngineResult allocateSwapChain();
+static VEngineResult allocateSwapChainImageViews();
+static VEngineResult createRenderPass();
 static VkShaderModule allocateShaderModule(Uint8* data, size_t size);
-static int allocateGraphicsPipeline();
-static int allocateFrameBuffers();
-static int allocateCommandPool();
-static int createCommandBuffer();
-static int allocateSyncObjects();
+static VEngineResult allocateGraphicsPipeline();
+static VEngineResult allocateFrameBuffers();
+static VEngineResult allocateCommandPool();
+static VEngineResult createCommandBuffer();
+static VEngineResult allocateSyncObjects();
 static void cleanupSwapChain();
 
 
-int v_init() {
+VEngineResult v_init() {
     // Clear the entire vulkan context.
     memset(&context.vk, 0, sizeof(context.vk));
 
-    int returnCode;
+    VEngineResult returnCode;
 
     returnCode = initInstance();
-    if( returnCode < 0 )
+    if( returnCode.type < 0 )
         return returnCode;
 
     if(SDL_Vulkan_CreateSurface(context.pWindow, context.vk.instance, &context.vk.surface) != SDL_TRUE) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to create rendering device returned %s", SDL_GetError());
-        returnCode = -1;
+        returnCode.type  = -1;
+        returnCode.point =  0;
     }
 
     const char *const requiredExtensions[] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
     returnCode = findPhysicalDevice(requiredExtensions, 1);
-    if( returnCode < 0 )
+    if( returnCode.type < 0 )
         return returnCode;
 
     returnCode = allocateLogicalDevice(requiredExtensions, 1);
-    if( returnCode < 0 )
+    if( returnCode.type < 0 )
         return returnCode;
 
     returnCode = allocateSwapChain();
-    if( returnCode < 0 )
+    if( returnCode.type < 0 )
         return returnCode;
 
     returnCode = allocateSwapChainImageViews();
-    if( returnCode < 0 )
+    if( returnCode.type < 0 )
         return returnCode;
 
     returnCode = createRenderPass();
-    if( returnCode < 0 )
+    if( returnCode.type < 0 )
         return returnCode;
 
     returnCode = allocateGraphicsPipeline();
-    if( returnCode < 0 )
+    if( returnCode.type < 0 )
         return returnCode;
 
     returnCode = allocateFrameBuffers();
-    if( returnCode < 0 )
+    if( returnCode.type < 0 )
         return returnCode;
 
     returnCode = allocateCommandPool();
-    if( returnCode < 0 )
+    if( returnCode.type < 0 )
         return returnCode;
 
     returnCode = createCommandBuffer();
-    if( returnCode < 0 )
+    if( returnCode.type < 0 )
         return returnCode;
 
     returnCode = allocateSyncObjects();
-    if( returnCode < 0 )
+    if( returnCode.type < 0 )
         return returnCode;
 
     returnCode = v_alloc_vertex_buffer();
-    if( returnCode < 0 )
+    if( returnCode.type < 0 )
         return returnCode;
 
-    return 1;
+    RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
 void v_deinit() {
@@ -128,63 +130,26 @@ void v_deinit() {
     vkDestroyInstance(context.vk.instance, NULL);
 }
 
-int v_recreate_swap_chain() {
-    vkDeviceWaitIdle(context.vk.device);
+VEngineResult v_recreate_swap_chain() {
+    VEngineResult returnCode;
 
-    int returnCode;
+    vkDeviceWaitIdle(context.vk.device);
 
     cleanupSwapChain();
 
     returnCode = allocateSwapChain();
-    if( returnCode < 0 )
+    if( returnCode.type < 0 )
         return returnCode;
 
     returnCode = allocateSwapChainImageViews();
-    if( returnCode < 0 )
+    if( returnCode.type < 0 )
         return returnCode;
 
     returnCode = allocateFrameBuffers();
-    if( returnCode < 0 )
+    if( returnCode.type < 0 )
         return returnCode;
-    return 1;
+    RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
-
-
-static int allocateSyncObjects() {
-    VkResult result;
-
-    VkSemaphoreCreateInfo semaphoreCreateInfo;
-    memset(&semaphoreCreateInfo, 0, sizeof(semaphoreCreateInfo));
-    semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-    VkFenceCreateInfo fenceCreateInfo;
-    memset(&fenceCreateInfo, 0, sizeof(fenceCreateInfo));
-    fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-    fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-
-    for(Uint32 i = MAX_FRAMES_IN_FLIGHT; i != 0; i--) {
-        result = vkCreateSemaphore(context.vk.device, &semaphoreCreateInfo, NULL, &context.vk.frames[i - 1].imageAvailableSemaphore);
-        if(result != VK_SUCCESS) {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "imageAvailableSemaphore at index %i creation failed with result: %i", i - 1, result);
-            return -33;
-        }
-
-        result = vkCreateSemaphore(context.vk.device, &semaphoreCreateInfo, NULL, &context.vk.frames[i - 1].renderFinishedSemaphore);
-        if(result != VK_SUCCESS) {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "renderFinishedSemaphore at index %i creation failed with result: %i", i - 1, result);
-            return -34;
-        }
-
-        result = vkCreateFence(context.vk.device, &fenceCreateInfo, NULL, &context.vk.frames[i - 1].inFlightFence);
-        if(result != VK_SUCCESS) {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "inFlightFence at index %i creation failed with result: %i", i - 1, result);
-            return -35;
-        }
-    }
-
-    return 1;
-}
-
 
 static VkQueueFamilyProperties* allocateQueueFamilyArray(VkPhysicalDevice device, Uint32 *pQueueFamilyPropertyCount) {
     *pQueueFamilyPropertyCount = 0;
@@ -231,7 +196,7 @@ static int hasRequiredExtensions(VkPhysicalDevice physicalDevice, const char * c
         vkEnumerateDeviceExtensionProperties(physicalDevice, NULL, &extensionCount, pExtensionProperties);
     }
     else {
-        return -1;
+        return -1; // Cannot check requiredExtensions.
     }
 
     for(Uint32 r = 0; r < requiredExtensionCount; r++) {
@@ -254,7 +219,7 @@ static int hasRequiredExtensions(VkPhysicalDevice physicalDevice, const char * c
     return everythingFound;
 }
 
-static int querySwapChainCapabilities(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, SwapChainCapabilities **ppSwapChainCapabilities) {
+static VEngineResult querySwapChainCapabilities(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, SwapChainCapabilities **ppSwapChainCapabilities) {
     assert(ppSwapChainCapabilities != NULL);
 
     VkResult result;
@@ -265,21 +230,21 @@ static int querySwapChainCapabilities(VkPhysicalDevice physicalDevice, VkSurface
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkGetPhysicalDeviceSurfaceCapabilitiesKHR had failed with %i", result);
-        return -2;
+        RETURN_RESULT_CODE(VE_QUERY_SWAP_CHAIN_FAILURE, 0)
     }
 
     result = vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &swapChainCapabilities.surfaceFormatCount, NULL);
 
     if(result < VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkGetPhysicalDeviceSurfaceFormatsKHR for count had failed with %i", result);
-        return -3;
+        RETURN_RESULT_CODE(VE_QUERY_SWAP_CHAIN_FAILURE, 1)
     }
 
     result = vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &swapChainCapabilities.presentModeCount, NULL);
 
     if(result < VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkGetPhysicalDeviceSurfacePresentModesKHR for count had failed with %i", result);
-        return -4;
+        RETURN_RESULT_CODE(VE_QUERY_SWAP_CHAIN_FAILURE, 2)
     }
 
     SwapChainCapabilities *pSwapChainCapabilities = malloc(
@@ -289,7 +254,7 @@ static int querySwapChainCapabilities(VkPhysicalDevice physicalDevice, VkSurface
 
     if(pSwapChainCapabilities == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Cannot allocate SwapChainCapabilities!");
-        return -5;
+        RETURN_RESULT_CODE(VE_QUERY_SWAP_CHAIN_FAILURE, 3)
     }
 
     *pSwapChainCapabilities = swapChainCapabilities;
@@ -305,25 +270,25 @@ static int querySwapChainCapabilities(VkPhysicalDevice physicalDevice, VkSurface
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkGetPhysicalDeviceSurfacePresentModesKHR for allocation had failed with %i", result);
-        return -6;
+        RETURN_RESULT_CODE(VE_QUERY_SWAP_CHAIN_FAILURE, 4)
     }
 
     result = vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &pSwapChainCapabilities->surfaceFormatCount, pSwapChainCapabilities->pSurfaceFormat);
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkGetPhysicalDeviceSurfaceFormatsKHR for allocation had failed with %i", result);
-        return -7;
+        RETURN_RESULT_CODE(VE_QUERY_SWAP_CHAIN_FAILURE, 5)
     }
 
     if(pSwapChainCapabilities->surfaceFormatCount != 0 && pSwapChainCapabilities->presentModeCount != 0) {
-        return 1;
+        RETURN_RESULT_CODE(VE_SUCCESS, 0)
     }
     else {
-        return 0;
+        RETURN_RESULT_CODE(VE_NOT_COMPATIBLE, 0)
     }
 }
 
-static int initInstance() {
+static VEngineResult initInstance() {
     VkApplicationInfo applicationInfo;
     memset(&applicationInfo, 0, sizeof(applicationInfo));
     applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -338,14 +303,14 @@ static int initInstance() {
     const char **ppExtensionNames = NULL;
     if(!SDL_Vulkan_GetInstanceExtensions(context.pWindow, &extensionCount, ppExtensionNames)) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Getting number of extensions had failed with %s", SDL_GetError());
-        return -7;
+        RETURN_RESULT_CODE(VE_INIT_INSTANCE_FAILURE, 0)
     }
     if(extensionCount != 0)
         ppExtensionNames = malloc(sizeof(char*) * extensionCount);
     if(!SDL_Vulkan_GetInstanceExtensions(context.pWindow, &extensionCount, ppExtensionNames)) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Getting names of extensions had failed with %s", SDL_GetError());
         free(ppExtensionNames);
-        return -8;
+        RETURN_RESULT_CODE(VE_INIT_INSTANCE_FAILURE, 1)
     }
 
     for(unsigned int i = 0; i < extensionCount; i++) {
@@ -387,39 +352,38 @@ static int initInstance() {
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkCreateInstance returned %i", result);
-        return -9;
+        RETURN_RESULT_CODE(VE_INIT_INSTANCE_FAILURE, 2)
     }
-
-    return 1;
+    RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-static int findPhysicalDevice(const char * const* ppRequiredExtensions, Uint32 requiredExtensionsAmount) {
+static VEngineResult findPhysicalDevice(const char * const* ppRequiredExtensions, Uint32 requiredExtensionsAmount) {
     Uint32 physicalDevicesCount = 0;
     VkPhysicalDevice *pPhysicalDevices = NULL;
 
     VkResult result = vkEnumeratePhysicalDevices(context.vk.instance, &physicalDevicesCount, NULL);
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkEnumeratePhysicalDevices for amount returned %i", result);
-        return -10;
+        RETURN_RESULT_CODE(VE_FIND_PHYSICAL_DEVICE_FAILURE, 0)
     }
 
     if(physicalDevicesCount != 0)
         pPhysicalDevices = malloc(sizeof(VkPhysicalDevice) * physicalDevicesCount);
     else {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "There are not any rendering device available!");
-        return -11;
+        RETURN_RESULT_CODE(VE_FIND_PHYSICAL_DEVICE_FAILURE, 1)
     }
 
     if(pPhysicalDevices == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "pPhysicalDevices failed to allocate %i names!", physicalDevicesCount);
-        return -12;
+        RETURN_RESULT_CODE(VE_FIND_PHYSICAL_DEVICE_FAILURE, 2)
     }
 
     result = vkEnumeratePhysicalDevices(context.vk.instance, &physicalDevicesCount, pPhysicalDevices);
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkEnumeratePhysicalDevices for devices returned %i", result);
         free(pPhysicalDevices);
-        return -13;
+        RETURN_RESULT_CODE(VE_FIND_PHYSICAL_DEVICE_FAILURE, 3)
     }
     VkPhysicalDeviceProperties physicalDeviceProperties;
 
@@ -455,7 +419,7 @@ static int findPhysicalDevice(const char * const* ppRequiredExtensions, Uint32 r
             if(hasRequiredExtensions(pPhysicalDevices[i - 1], ppRequiredExtensions, requiredExtensionsAmount)) {
                 SwapChainCapabilities *pSwapChainCapabilities = NULL;
 
-                if(querySwapChainCapabilities(pPhysicalDevices[i - 1], context.vk.surface, &pSwapChainCapabilities))
+                if(querySwapChainCapabilities(pPhysicalDevices[i - 1], context.vk.surface, &pSwapChainCapabilities).type == VE_SUCCESS)
                     requiredParameters |= 4;
 
                 if(pSwapChainCapabilities != NULL)
@@ -488,15 +452,15 @@ static int findPhysicalDevice(const char * const* ppRequiredExtensions, Uint32 r
     else {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to find suitable device!");
         free(pPhysicalDevices);
-        return -14;
+        RETURN_RESULT_CODE(VE_FIND_PHYSICAL_DEVICE_FAILURE, 4)
     }
 
     free(pPhysicalDevices);
 
-    return 1;
+    RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-static int allocateLogicalDevice(const char * const* ppRequiredExtensions, Uint32 requiredExtensionsAmount) {
+static VEngineResult allocateLogicalDevice(const char * const* ppRequiredExtensions, Uint32 requiredExtensionsAmount) {
     context.vk.device = NULL;
 
     float normal_priority = 1.0f;
@@ -559,7 +523,7 @@ static int allocateLogicalDevice(const char * const* ppRequiredExtensions, Uint3
     result = vkCreateDevice(context.vk.physicalDevice, &deviceCreateInfo, NULL, &context.vk.device);
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to create rendering device returned %i", result);
-        return -15;
+        RETURN_RESULT_CODE(VE_ALLOC_LOGICAL_DEVICE_FAILURE, 0)
     }
 
     vkGetDeviceQueue(context.vk.device, deviceQueueCreateInfos[GRAPHICS_FAMILY_INDEX].queueFamilyIndex, 0, &context.vk.graphicsQueue);
@@ -568,19 +532,19 @@ static int allocateLogicalDevice(const char * const* ppRequiredExtensions, Uint3
     context.vk.graphicsQueueFamilyIndex     = deviceQueueCreateInfos[GRAPHICS_FAMILY_INDEX].queueFamilyIndex;
     context.vk.presentationQueueFamilyIndex = deviceQueueCreateInfos[ PRESENT_FAMILY_INDEX].queueFamilyIndex;
 
-    return 1;
+    RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-static int allocateSwapChain() {
+static VEngineResult allocateSwapChain() {
     SwapChainCapabilities *pSwapChainCapabilities;
     int foundPriority;
     int currentPriority;
 
-    int updateResult = querySwapChainCapabilities(context.vk.physicalDevice, context.vk.surface, &pSwapChainCapabilities);
+    VEngineResult updateResult = querySwapChainCapabilities(context.vk.physicalDevice, context.vk.surface, &pSwapChainCapabilities);
 
-    if(updateResult < 0) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to update swap chain capabilities %i", updateResult);
-        return -16;
+    if(updateResult.type < 0) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to update swap chain capabilities %i at point %i", updateResult.type, updateResult.point);
+        RETURN_RESULT_CODE(VE_ALLOC_SWAP_CHAIN_FAILURE, 0)
     }
 
     // Find VkSurfaceFormatKHR
@@ -691,14 +655,14 @@ static int allocateSwapChain() {
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to create swap chain returned %i", result);
-        return -17;
+        RETURN_RESULT_CODE(VE_ALLOC_SWAP_CHAIN_FAILURE, 1)
     }
 
     result = vkGetSwapchainImagesKHR(context.vk.device, context.vk.swapChain, &context.vk.swapChainFrameCount, NULL);
 
     if(result < VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to vkGetSwapchainImagesKHR for count returned %i", result);
-        return -18;
+        RETURN_RESULT_CODE(VE_ALLOC_SWAP_CHAIN_FAILURE, 2)
     }
 
     context.vk.pSwapChainFrames = calloc(context.vk.swapChainFrameCount, sizeof(context.vk.pSwapChainFrames[0]));
@@ -713,17 +677,17 @@ static int allocateSwapChain() {
         if(context.vk.pSwapChainFrames != NULL)
             free(context.vk.pSwapChainFrames);
 
-        return -19;
+        RETURN_RESULT_CODE(VE_ALLOC_SWAP_CHAIN_FAILURE, 3)
     }
 
     for(Uint32 i = context.vk.swapChainFrameCount; i != 0; i--) {
         context.vk.pSwapChainFrames[i - 1].image = swapChainImages[i - 1];
     }
 
-    return 1;
+    RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-static int allocateSwapChainImageViews() {
+static VEngineResult allocateSwapChainImageViews() {
     VkImageViewCreateInfo imageViewCreateInfo;
     VkResult result;
 
@@ -750,15 +714,15 @@ static int allocateSwapChainImageViews() {
 
         if(result != VK_SUCCESS) {
             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to vkCreateImageView at index %i for allocate returned %i", i, result);
-            return -20;
+            RETURN_RESULT_CODE(VE_ALLOC_SWAP_CHAIN_I_V_FAILURE, i)
         }
 
     }
 
-    return 1;
+    RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-static int createRenderPass() {
+static VEngineResult createRenderPass() {
     VkAttachmentDescription colorAttachmentDescription;
     memset(&colorAttachmentDescription, 0, sizeof(colorAttachmentDescription));
     colorAttachmentDescription.format  = context.vk.surfaceFormat.format;
@@ -804,10 +768,10 @@ static int createRenderPass() {
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkCreateRenderPass() Failed to allocate %i", result);
-        return -21;
+        RETURN_RESULT_CODE(VE_CREATE_RENDER_PASS_FAILURE, 0)
     }
 
-    return 1;
+    RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
 static VkShaderModule allocateShaderModule(Uint8* data, size_t size) {
@@ -834,13 +798,13 @@ static VkShaderModule allocateShaderModule(Uint8* data, size_t size) {
     return shaderModule;
 }
 
-static int allocateGraphicsPipeline() {
+static VEngineResult allocateGraphicsPipeline() {
     Sint64 vertexShaderCodeLength;
     Uint8* pVertexShaderCode = u_read_file("hello_world_vert.spv", &vertexShaderCodeLength);
 
     if(pVertexShaderCode == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to load vertex shader code");
-        return -22;
+        RETURN_RESULT_CODE(VE_ALLOC_GRAPH_PIPELINE_FAILURE, 0)
     }
 
     Sint64 fragmentShaderCodeLength;
@@ -849,7 +813,7 @@ static int allocateGraphicsPipeline() {
     if(pFragmentShaderCode == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to load fragment shader code");
         free(pVertexShaderCode);
-        return -23;
+        RETURN_RESULT_CODE(VE_ALLOC_GRAPH_PIPELINE_FAILURE, 1)
     }
 
     VkShaderModule   vertexShaderModule = allocateShaderModule(  pVertexShaderCode,   vertexShaderCodeLength);
@@ -863,14 +827,14 @@ static int allocateGraphicsPipeline() {
 
         vkDestroyShaderModule(context.vk.device, fragmentShaderModule, NULL);
 
-        return -24;
+        RETURN_RESULT_CODE(VE_ALLOC_GRAPH_PIPELINE_FAILURE, 2)
     }
     else if(fragmentShaderModule == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Vulkan failed to parse fragment shader code!");
 
         vkDestroyShaderModule(context.vk.device, vertexShaderModule, NULL);
 
-        return -25;
+        RETURN_RESULT_CODE(VE_ALLOC_GRAPH_PIPELINE_FAILURE, 3)
     }
 
     VkPipelineShaderStageCreateInfo pipelineShaderStageCreateInfos[2];
@@ -1001,7 +965,7 @@ static int allocateGraphicsPipeline() {
         vkDestroyShaderModule(context.vk.device,   vertexShaderModule, NULL);
         vkDestroyShaderModule(context.vk.device, fragmentShaderModule, NULL);
 
-        return -26;
+        RETURN_RESULT_CODE(VE_ALLOC_GRAPH_PIPELINE_FAILURE, 4)
     }
 
     VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo;
@@ -1035,13 +999,13 @@ static int allocateGraphicsPipeline() {
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkCreateGraphicsPipelines creation failed with result: %i", result);
-        return -27;
+        RETURN_RESULT_CODE(VE_ALLOC_GRAPH_PIPELINE_FAILURE, 5)
     }
 
-    return 1;
+    RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-static int allocateFrameBuffers() {
+static VEngineResult allocateFrameBuffers() {
     VkResult result;
     VkFramebufferCreateInfo framebufferCreateInfo;
 
@@ -1067,12 +1031,12 @@ static int allocateFrameBuffers() {
     }
 
     if(numberOfFailures != 0) {
-        return -28;
+        RETURN_RESULT_CODE(VE_ALLOC_FRAME_BUFFERS_FAILURE, numberOfFailures)
     }
-    return 1;
+    RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-static int allocateCommandPool() {
+static VEngineResult allocateCommandPool() {
     VkResult result;
 
     VkCommandPoolCreateInfo commandPoolCreateInfo;
@@ -1085,12 +1049,12 @@ static int allocateCommandPool() {
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkCommandPool creation failed with result: %i", result);
-        return -29;
+        RETURN_RESULT_CODE(VE_ALLOC_COMMAND_POOL_FAILURE, 0)
     }
-    return 1;
+    RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-static int createCommandBuffer() {
+static VEngineResult createCommandBuffer() {
     VkResult result;
 
     VkCommandBufferAllocateInfo commandBufferAllocateInfo;
@@ -1105,10 +1069,44 @@ static int createCommandBuffer() {
 
         if(result != VK_SUCCESS) {
             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkAllocateCommandBuffers at index %i creation failed with result: %i", i - 1, result);
-            return -30;
+            RETURN_RESULT_CODE(VE_CREATE_COMMAND_BUFFER_FAILURE, i - 1)
         }
     }
-    return 1;
+    RETURN_RESULT_CODE(VE_SUCCESS, 0)
+}
+
+static VEngineResult allocateSyncObjects() {
+    VkResult result;
+
+    VkSemaphoreCreateInfo semaphoreCreateInfo;
+    memset(&semaphoreCreateInfo, 0, sizeof(semaphoreCreateInfo));
+    semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+    VkFenceCreateInfo fenceCreateInfo;
+    memset(&fenceCreateInfo, 0, sizeof(fenceCreateInfo));
+    fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+    for(Uint32 i = MAX_FRAMES_IN_FLIGHT; i != 0; i--) {
+        result = vkCreateSemaphore(context.vk.device, &semaphoreCreateInfo, NULL, &context.vk.frames[i - 1].imageAvailableSemaphore);
+        if(result != VK_SUCCESS) {
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "imageAvailableSemaphore at index %i creation failed with result: %i", i - 1, result);
+            RETURN_RESULT_CODE(VE_ALLOC_SYNC_OBJECTS_FAILURE, 0)
+        }
+
+        result = vkCreateSemaphore(context.vk.device, &semaphoreCreateInfo, NULL, &context.vk.frames[i - 1].renderFinishedSemaphore);
+        if(result != VK_SUCCESS) {
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "renderFinishedSemaphore at index %i creation failed with result: %i", i - 1, result);
+            RETURN_RESULT_CODE(VE_ALLOC_SYNC_OBJECTS_FAILURE, 1)
+        }
+
+        result = vkCreateFence(context.vk.device, &fenceCreateInfo, NULL, &context.vk.frames[i - 1].inFlightFence);
+        if(result != VK_SUCCESS) {
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "inFlightFence at index %i creation failed with result: %i", i - 1, result);
+            RETURN_RESULT_CODE(VE_ALLOC_SYNC_OBJECTS_FAILURE, 2)
+        }
+    }
+    RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
 static void cleanupSwapChain() {

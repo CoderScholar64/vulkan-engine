@@ -1,10 +1,12 @@
 #ifndef V_INIT_29
 #define V_INIT_29
 
-int v_init();
+#include "v_results.h"
+
+VEngineResult v_init();
 
 void v_deinit();
 
-int v_recreate_swap_chain();
+VEngineResult v_recreate_swap_chain();
 
 #endif // V_INIT_29

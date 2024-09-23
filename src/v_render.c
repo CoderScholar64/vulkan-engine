@@ -3,38 +3,40 @@
 #include "context.h"
 #include "v_mem.h"
 
-int v_draw_frame() {
+VEngineResult v_draw_frame() {
     const Uint64 TIME_OUT_NS = 25000000;
 
     VkResult result;
     Uint32 imageIndex;
-    int returnCode = 1;
+    VEngineResult returnCode;
+    returnCode.type  = VE_TIME_OUT;
+    returnCode.point = 0;
 
     result = vkWaitForFences(context.vk.device, 1, &context.vk.frames[context.vk.currentFrame].inFlightFence, VK_TRUE, TIME_OUT_NS);
 
     if(result == VK_TIMEOUT)
-        return 0; // Cancel drawing the frame then.
+        RETURN_RESULT_CODE(VE_TIME_OUT, 0) // Cancel drawing the frame then.
     else if(result < VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_draw_frame: in flight fence had failed with %i aborting!", result);
-        return -1; // Program had encountered a problem!
+        RETURN_RESULT_CODE(VE_DRAW_FRAME_FAILURE, 0) // Program had encountered a problem!
     }
 
     result = vkAcquireNextImageKHR(context.vk.device, context.vk.swapChain, TIME_OUT_NS, context.vk.frames[context.vk.currentFrame].imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
 
     if(result == VK_TIMEOUT)
-        return 0; // Cancel drawing the frame then.
+        RETURN_RESULT_CODE(VE_TIME_OUT, 0) // Cancel drawing the frame then.
     else if(result == VK_ERROR_OUT_OF_DATE_KHR) {
         returnCode = v_recreate_swap_chain();
 
         // Cancel drawing the frame as well.
-        if(returnCode == 1)
-            return 0;
+        if(returnCode.type == VE_SUCCESS)
+            RETURN_RESULT_CODE(VE_TIME_OUT, 1)
 
         return returnCode;
     }
     else if(result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_draw_frame: failed vkAcquireNextImageKHR with code %i aborting!", result);
-        return -2; // Program had encountered a problem!
+        RETURN_RESULT_CODE(VE_DRAW_FRAME_FAILURE, 1) // Program had encountered a problem!
     }
 
     // vkResultFences returns something, but ignoring it.
@@ -64,7 +66,7 @@ int v_draw_frame() {
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_draw_frame: failed to submit to queue code %i aborting!", result);
-        return -3; // Program had encountered a problem!
+        RETURN_RESULT_CODE(VE_DRAW_FRAME_FAILURE, 2) // Program had encountered a problem!
     }
 
     VkPresentInfoKHR presentInfo;
@@ -88,15 +90,15 @@ int v_draw_frame() {
     }
     else if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_draw_frame: queue present failed %i aborting!", result);
-        return -4;
+        RETURN_RESULT_CODE(VE_DRAW_FRAME_FAILURE, 3)
     }
 
     context.vk.currentFrame = (context.vk.currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
-    return 1;
+    RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-int v_record_command_buffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
+VEngineResult v_record_command_buffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
     VkResult result;
 
     VkCommandBufferBeginInfo commandBufferBeginInfo;
@@ -109,7 +111,7 @@ int v_record_command_buffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) 
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkBeginCommandBuffer creation failed with result: %i", result);
-        return -31;
+        RETURN_RESULT_CODE(VE_RECORD_COMMAND_BUFFER_FAILURE, 0)
     }
 
     VkRenderPassBeginInfo renderPassBeginInfo;
@@ -161,7 +163,7 @@ int v_record_command_buffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) 
     result = vkEndCommandBuffer(commandBuffer);
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkBeginCommandBuffer creation failed with result: %i", result);
-        return -32;
+        RETURN_RESULT_CODE(VE_RECORD_COMMAND_BUFFER_FAILURE, 1)
     }
-    return 1;
+    RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }

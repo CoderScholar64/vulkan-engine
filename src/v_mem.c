@@ -24,7 +24,7 @@ const VkVertexInputAttributeDescription vertexInputAttributeDescriptions[2] = {
     {       1,       0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, color)}
 };
 
-int v_alloc_vertex_buffer() {
+VEngineResult v_alloc_vertex_buffer() {
     VkResult result;
 
     VkBufferCreateInfo bufferCreateInfo;
@@ -38,7 +38,7 @@ int v_alloc_vertex_buffer() {
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkCreateBuffer failed with result: %i", result);
-        return -31;
+        RETURN_RESULT_CODE(VE_ALLOC_MEMORY_V_BUFFER_FAILURE, 0)
     }
 
     VkMemoryRequirements memRequirements;
@@ -52,7 +52,7 @@ int v_alloc_vertex_buffer() {
 
     if(memoryAllocateInfo.memoryTypeIndex == 0) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Memory type not found");
-        return -32;
+        RETURN_RESULT_CODE(VE_ALLOC_MEMORY_V_BUFFER_FAILURE, 1)
     }
     else
         memoryAllocateInfo.memoryTypeIndex--;
@@ -61,7 +61,7 @@ int v_alloc_vertex_buffer() {
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkAllocateMemory failed with result: %i", result);
-        return -33;
+        RETURN_RESULT_CODE(VE_ALLOC_MEMORY_V_BUFFER_FAILURE, 2)
     }
 
     vkBindBufferMemory(context.vk.device, context.vk.vertexBuffer, context.vk.vertexBufferMemory, 0);
@@ -71,7 +71,7 @@ int v_alloc_vertex_buffer() {
     memcpy(data, &vertices, (size_t) bufferCreateInfo.size);
     vkUnmapMemory(context.vk.device, context.vk.vertexBufferMemory);
 
-    return 1;
+    RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
 Uint32 v_find_memory_type(Uint32 typeFilter, VkMemoryPropertyFlags properties) {

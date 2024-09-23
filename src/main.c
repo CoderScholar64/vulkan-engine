@@ -8,6 +8,7 @@
 struct Context context = {"Hello World", 0, 0, 1920, 1080, SDL_WINDOW_MAXIMIZED | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN, 0};
 
 void loop() {
+    VEngineResult vResult;
     SDL_Event event;
     int run = 1;
     int isWindowMinimized = 0;
@@ -39,14 +40,16 @@ void loop() {
         }
 
         if(!isWindowMinimized) {
-            if(v_draw_frame() < 0)
+            vResult = v_draw_frame();
+
+            if(vResult.type < 0)
                 return;
         }
     }
 }
 
 int main(int argc, char **argv) {
-    int returnCode;
+    VEngineResult returnCode;
 
     if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) < 0 ) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_Init failed with %s", SDL_GetError());
@@ -62,7 +65,7 @@ int main(int argc, char **argv) {
 
     returnCode = v_init();
 
-    if( returnCode < 0 ) {
+    if( returnCode.type < 0 ) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Thus v_init() failed with code %s", SDL_GetError());
     }
     else {
@@ -72,5 +75,5 @@ int main(int argc, char **argv) {
     v_deinit();
     SDL_DestroyWindow(context.pWindow);
 
-    return returnCode;
+    return returnCode.type;
 }

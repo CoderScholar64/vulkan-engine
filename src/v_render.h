@@ -5,8 +5,8 @@
 
 #include <vulkan/vulkan.h>
 
-int v_record_command_buffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+VEngineResult v_draw_frame();
 
-int v_draw_frame();
+VEngineResult v_record_command_buffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
 #endif // V_RENDER_29

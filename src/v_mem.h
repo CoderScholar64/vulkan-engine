@@ -1,6 +1,8 @@
 #ifndef V_MEMORY_29
 #define V_MEMORY_29
 
+#include "v_results.h"
+
 #include "raymath.h"
 #include "SDL_stdinc.h"
 #include <vulkan/vulkan.h>
@@ -15,7 +17,7 @@ extern const Vertex vertices[6];
 extern const VkVertexInputBindingDescription vertexBindingDescription;
 extern const VkVertexInputAttributeDescription vertexInputAttributeDescriptions[2];
 
-int v_alloc_vertex_buffer();
+VEngineResult v_alloc_vertex_buffer();
 Uint32 v_find_memory_type(Uint32 typeFilter, VkMemoryPropertyFlags properties);
 
 #endif // V_MEMORY_29
