@@ -185,7 +185,7 @@ void v_update_uniform_buffer(float delta, uint32_t imageIndex) {
 
     time += delta;
 
-    ubo.model = MatrixIdentity(); //MatrixRotate(up, (90.0 * DEG2RAD) * time);
+    ubo.model = MatrixRotate(up, (90.0 * DEG2RAD) * time);
 
     ubo.view  = MatrixIdentity(); //MatrixLookAt(eye, target, up);
 

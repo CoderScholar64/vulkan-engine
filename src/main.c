@@ -51,7 +51,7 @@ void loop() {
 
         currentTime = nextTime;
         nextTime = SDL_GetTicks64();
-        delta = (currentTime - nextTime) * 0.001;
+        delta = (nextTime - currentTime) * 0.001;
     }
 }
 
