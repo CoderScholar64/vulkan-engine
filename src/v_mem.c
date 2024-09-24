@@ -122,13 +122,11 @@ VEngineResult v_alloc_static_buffer(const void *pData, size_t sizeOfData, VkBuff
     vkDestroyBuffer(context.vk.device, stagingBuffer, NULL);
     vkFreeMemory(context.vk.device, stagingBufferMemory, NULL);
 
-    if(buffer_result.type == VE_SUCCESS) {
-        RETURN_RESULT_CODE(VE_SUCCESS, 0)
-    }
-    else {
+    if(buffer_result.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_copy_buffer failed with result: %i", buffer_result.type);
         RETURN_RESULT_CODE(VE_ALLOC_STATIC_BUFFER, 8)
     }
+    RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
 VEngineResult v_alloc_builtin_vertex_buffer() {
@@ -212,7 +210,7 @@ VEngineResult v_copy_buffer(VkBuffer srcBuffer, VkDeviceSize srcOffset, VkBuffer
 
         vkFreeCommandBuffers(context.vk.device, context.vk.commandPool, 1, &commandBuffer);
 
-        RETURN_RESULT_CODE(VE_COPY_BUFFER_FAILURE, 3)
+        RETURN_RESULT_CODE(VE_COPY_BUFFER_FAILURE, 4)
     }
 
     vkFreeCommandBuffers(context.vk.device, context.vk.commandPool, 1, &commandBuffer);
