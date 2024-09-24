@@ -1007,8 +1007,8 @@ static VEngineResult allocateGraphicsPipeline() {
     VkPipelineLayoutCreateInfo pipelineLayoutInfo;
     memset(&pipelineLayoutInfo, 0, sizeof(pipelineLayoutInfo));
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    pipelineLayoutInfo.setLayoutCount = 0; // OPTIONAL
-    pipelineLayoutInfo.pSetLayouts = NULL; // OPTIONAL
+    pipelineLayoutInfo.setLayoutCount = 1;
+    pipelineLayoutInfo.pSetLayouts = &context.vk.descriptorSetLayout;
     pipelineLayoutInfo.pushConstantRangeCount = 0; // OPTIONAL
     pipelineLayoutInfo.pPushConstantRanges = NULL; // OPTIONAL
 
