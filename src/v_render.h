@@ -10,7 +10,7 @@
  * @warning Make sure that v_init() is called first.
  * @return A VEngineResult. If its type is VE_SUCCESS then this function had drawn something on the screen. If VE_TIME_OUT then nothing is drawn, if there is any error then the vulkan instance is crashed.
  */
-VEngineResult v_draw_frame();
+VEngineResult v_draw_frame(float delta);
 
 /**
  * Record a command buffer.
@@ -21,5 +21,7 @@ VEngineResult v_draw_frame();
  * @return A VEngineResult. If its type is VE_SUCCESS then this function had drawn something on the screen otherwise VE_RECORD_COMMAND_BUFFER_FAILURE and whatever point to where it failed.
  */
 VEngineResult v_record_command_buffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+
+VEngineResult v_update_uniform_buffer(float delta, uint32_t imageIndex);
 
 #endif // V_RENDER_29

@@ -111,6 +111,10 @@ VEngineResult v_init() {
     if( returnCode.type < 0 )
         return returnCode;
 
+    returnCode = v_alloc_builtin_uniform_buffers();
+    if( returnCode.type < 0 )
+        return returnCode;
+
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
@@ -128,6 +132,8 @@ void v_deinit() {
         vkDestroySemaphore(context.vk.device, context.vk.frames[i - 1].imageAvailableSemaphore, NULL);
         vkDestroySemaphore(context.vk.device, context.vk.frames[i - 1].renderFinishedSemaphore, NULL);
         vkDestroyFence(    context.vk.device, context.vk.frames[i - 1].inFlightFence,           NULL);
+        vkDestroyBuffer(   context.vk.device, context.vk.frames[i - 1].uniformBuffer,           NULL);
+        vkFreeMemory(      context.vk.device, context.vk.frames[i - 1].uniformBufferMemory,     NULL);
     }
 
     vkDestroyBuffer(context.vk.device, context.vk.vertexBuffer, NULL);
@@ -729,7 +735,6 @@ static VEngineResult allocateSwapChainImageViews() {
             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to vkCreateImageView at index %i for allocate returned %i", i, result);
             RETURN_RESULT_CODE(VE_ALLOC_SWAP_CHAIN_I_V_FAILURE, i)
         }
-
     }
 
     RETURN_RESULT_CODE(VE_SUCCESS, 0)

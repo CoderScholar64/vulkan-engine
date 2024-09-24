@@ -83,20 +83,20 @@ VEngineResult v_alloc_buffer(VkDeviceSize size, VkBufferUsageFlags usageFlags, V
 }
 
 VEngineResult v_alloc_static_buffer(const void *pData, size_t sizeOfData, VkBuffer *pBuffer, VkBufferUsageFlags usageFlags, VkDeviceMemory *pBufferMemory) {
-    VEngineResult buffer_result;
+    VEngineResult bufferResult;
 
     VkBuffer       stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
 
-    buffer_result = v_alloc_buffer(
+    bufferResult = v_alloc_buffer(
                 sizeOfData,
                 VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                 &stagingBuffer,
                 &stagingBufferMemory);
 
-    if(buffer_result.type != VE_SUCCESS) {
-        RETURN_RESULT_CODE(VE_ALLOC_STATIC_BUFFER, buffer_result.point)
+    if(bufferResult.type != VE_SUCCESS) {
+        RETURN_RESULT_CODE(VE_ALLOC_STATIC_BUFFER, bufferResult.point)
     }
 
     void* pDstData;
@@ -104,26 +104,26 @@ VEngineResult v_alloc_static_buffer(const void *pData, size_t sizeOfData, VkBuff
     memcpy(pDstData, pData, sizeOfData);
     vkUnmapMemory(context.vk.device, stagingBufferMemory);
 
-    buffer_result = v_alloc_buffer(
+    bufferResult = v_alloc_buffer(
                 sizeOfData,
                 VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags,
                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                 pBuffer,
                 pBufferMemory);
 
-    if(buffer_result.type != VE_SUCCESS) {
+    if(bufferResult.type != VE_SUCCESS) {
         vkDestroyBuffer(context.vk.device, stagingBuffer, NULL);
         vkFreeMemory(context.vk.device, stagingBufferMemory, NULL);
-        RETURN_RESULT_CODE(VE_ALLOC_STATIC_BUFFER, 4 + buffer_result.point)
+        RETURN_RESULT_CODE(VE_ALLOC_STATIC_BUFFER, 4 + bufferResult.point)
     }
 
-    buffer_result = v_copy_buffer(stagingBuffer, 0, *pBuffer, 0, sizeOfData);
+    bufferResult = v_copy_buffer(stagingBuffer, 0, *pBuffer, 0, sizeOfData);
 
     vkDestroyBuffer(context.vk.device, stagingBuffer, NULL);
     vkFreeMemory(context.vk.device, stagingBufferMemory, NULL);
 
-    if(buffer_result.type != VE_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_copy_buffer failed with result: %i", buffer_result.type);
+    if(bufferResult.type != VE_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_copy_buffer failed with result: %i", bufferResult.type);
         RETURN_RESULT_CODE(VE_ALLOC_STATIC_BUFFER, 8)
     }
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
@@ -135,6 +135,27 @@ VEngineResult v_alloc_builtin_vertex_buffer() {
 
 VEngineResult v_alloc_builtin_index_buffer() {
     return v_alloc_static_buffer(&builtin_indexes, sizeof(builtin_indexes), &context.vk.indexBuffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, &context.vk.indexBufferMemory);
+}
+
+VEngineResult v_alloc_builtin_uniform_buffers() {
+    VEngineResult bufferResult;
+
+    for(Uint32 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        bufferResult = v_alloc_buffer(
+            sizeof(UniformBufferObject),
+            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+            &context.vk.frames[i].uniformBuffer,
+            &context.vk.frames[i].uniformBufferMemory);
+
+        if(bufferResult.type != VE_SUCCESS) {
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_copy_buffer failed with result: %i", bufferResult.type);
+            return bufferResult;
+        }
+
+        vkMapMemory(context.vk.device, context.vk.frames[i].uniformBufferMemory, 0, sizeof(UniformBufferObject), 0, &context.vk.frames[i].uniformBufferMapped);
+    }
+    RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
 VEngineResult v_copy_buffer(VkBuffer srcBuffer, VkDeviceSize srcOffset, VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize size) {

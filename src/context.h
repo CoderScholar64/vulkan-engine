@@ -55,6 +55,9 @@ struct Context {
             VkSemaphore imageAvailableSemaphore;
             VkSemaphore renderFinishedSemaphore;
             VkFence inFlightFence;
+            VkBuffer uniformBuffer;
+            VkDeviceMemory uniformBufferMemory;
+            void* uniformBufferMapped;
         } frames[MAX_FRAMES_IN_FLIGHT];
         unsigned currentFrame;
     } vk;

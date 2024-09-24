@@ -12,6 +12,9 @@ void loop() {
     SDL_Event event;
     int run = 1;
     int isWindowMinimized = 0;
+    Uint64 currentTime = SDL_GetTicks64();
+    Uint64 nextTime = currentTime;
+    float delta = 0;
 
     while(run) {
         while(SDL_PollEvent(&event)) {
@@ -40,11 +43,15 @@ void loop() {
         }
 
         if(!isWindowMinimized) {
-            vResult = v_draw_frame();
+            vResult = v_draw_frame(delta);
 
             if(vResult.type < 0)
                 return;
         }
+
+        currentTime = nextTime;
+        nextTime = SDL_GetTicks64();
+        delta = (currentTime - nextTime) * 0.001;
     }
 }
 

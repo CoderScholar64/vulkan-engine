@@ -64,6 +64,13 @@ VEngineResult v_alloc_builtin_vertex_buffer();
 VEngineResult v_alloc_builtin_index_buffer();
 
 /**
+ * This function allocates a built-in uniform buffer to the context.
+ * @warning Make sure that v_init() is called first.
+ * @return A VEngineResult. If its type is VE_SUCCESS then this buffer is successfully created. If VE_ALLOC_MEMORY_V_BUFFER_FAILURE then the buffer had failed to generate.
+ */
+VEngineResult v_alloc_builtin_uniform_buffers();
+
+/**
  * This function copies the srcBuffer to dstBuffer via vulkan.
  * @warning Make sure that v_init() is called first. Also srcBuffer must have VK_BUFFER_USAGE_TRANSFER_SRC_BIT, and the dstBuffer VK_BUFFER_USAGE_TRANSFER_DST_BIT.
  * @param srcBuffer the Vulkan source buffer.

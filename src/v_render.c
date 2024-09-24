@@ -3,7 +3,7 @@
 #include "context.h"
 #include "v_mem.h"
 
-VEngineResult v_draw_frame() {
+VEngineResult v_draw_frame(float delta) {
     const Uint64 TIME_OUT_NS = 25000000;
 
     VkResult result;
@@ -43,6 +43,8 @@ VEngineResult v_draw_frame() {
     vkResetFences(context.vk.device, 1, &context.vk.frames[context.vk.currentFrame].inFlightFence);
 
     vkResetCommandBuffer(context.vk.frames[context.vk.currentFrame].commandBuffer, 0);
+
+    v_update_uniform_buffer(delta, context.vk.currentFrame);
 
     v_record_command_buffer(context.vk.frames[context.vk.currentFrame].commandBuffer, imageIndex);
 
@@ -167,5 +169,27 @@ VEngineResult v_record_command_buffer(VkCommandBuffer commandBuffer, uint32_t im
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkBeginCommandBuffer creation failed with result: %i", result);
         RETURN_RESULT_CODE(VE_RECORD_COMMAND_BUFFER_FAILURE, 1)
     }
+    RETURN_RESULT_CODE(VE_SUCCESS, 0)
+}
+
+VEngineResult v_update_uniform_buffer(float delta, uint32_t imageIndex) {
+    // TODO All of this is temporary.
+    static float time = 0;
+    static UniformBufferObject ubo;
+
+    time += delta;
+
+    Vector3 up = {0.0f, 0.0f, 1.0f};
+
+    ubo.model = MatrixRotate(up, (90.0 * DEG2RAD) * time);
+
+    Vector3 eye    = {2.0f, 2.0f, 2.0f};
+    Vector3 target = {0.0f, 0.0f, 0.0f};
+    ubo.view  = MatrixLookAt(eye, target, up);
+
+    ubo.proj  = MatrixPerspective(45.0 * DEG2RAD, context.vk.swapExtent.width / (float) context.vk.swapExtent.height, 0.1f, 10.0f);
+
+    memcpy(context.vk.frames[imageIndex].uniformBufferMapped, &ubo, sizeof(ubo));
+
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
