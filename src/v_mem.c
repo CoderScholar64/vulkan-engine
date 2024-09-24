@@ -115,7 +115,7 @@ VEngineResult v_alloc_builtin_vertex_buffer() {
         return buffer_result;
     }
 
-    buffer_result = v_copy_buffer(stagingBuffer, context.vk.vertexBuffer, sizeof(builtin_vertices));
+    buffer_result = v_copy_buffer(stagingBuffer, 0, context.vk.vertexBuffer, 0, sizeof(builtin_vertices));
 
     vkDestroyBuffer(context.vk.device, stagingBuffer, NULL);
     vkFreeMemory(context.vk.device, stagingBufferMemory, NULL);
@@ -129,7 +129,7 @@ VEngineResult v_alloc_builtin_vertex_buffer() {
     }
 }
 
-VEngineResult v_copy_buffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
+VEngineResult v_copy_buffer(VkBuffer srcBuffer, VkDeviceSize srcOffset, VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize size) {
     VkResult result;
 
     VkCommandBufferAllocateInfo commandBufferAllocateInfo;
@@ -164,8 +164,8 @@ VEngineResult v_copy_buffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize
 
     VkBufferCopy copyRegion;
     memset(&commandBufferAllocateInfo, 0, sizeof(commandBufferAllocateInfo));
-    copyRegion.srcOffset = 0; // Optional
-    copyRegion.dstOffset = 0; // Optional
+    copyRegion.srcOffset = srcOffset;
+    copyRegion.dstOffset = dstOffset;
     copyRegion.size = size;
     vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 

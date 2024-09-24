@@ -26,7 +26,17 @@ VEngineResult v_alloc_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemo
  */
 VEngineResult v_alloc_builtin_vertex_buffer();
 
-VEngineResult v_copy_buffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+/**
+ * This function copies the srcBuffer to dstBuffer.
+ * @warning Make sure that v_init() is called first. Also srcBuffer must have VK_BUFFER_USAGE_TRANSFER_SRC_BIT, and the dstBuffer VK_BUFFER_USAGE_TRANSFER_DST_BIT.
+ * @param srcBuffer the Vulkan source buffer.
+ * @param srcOffset the Vulkan source offset.
+ * @param dstBuffer the Vulkan destination buffer.
+ * @param dstOffset the Vulkan destination offset.
+ * @param size the size in bytes of BOTH buffers.
+ * @return A VEngineResult. If its type is VE_SUCCESS then srcBuffer is successfully copied to dstBuffer. If VE_COPY_BUFFER_FAILURE then the copying failed.
+ */
+VEngineResult v_copy_buffer(VkBuffer srcBuffer, VkDeviceSize srcOffset, VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize size);
 
 /**
  * Find the memory buffer from
