@@ -23,7 +23,8 @@ typedef enum {
     VE_ALLOC_SYNC_OBJECTS_FAILURE    = -17,
     VE_COPY_BUFFER_FAILURE           = -18,
     VE_ALLOC_STATIC_BUFFER           = -19,
-    VE_DESCRIPTOR_SET_LAYOUT_FAILURE = -20
+    VE_DESCRIPTOR_SET_LAYOUT_FAILURE = -20,
+    VE_ALLOC_DESCRIPTOR_POOL_FAILURE = -21
 } VEngineResultType;
 
 typedef struct {

@@ -38,6 +38,7 @@ static VEngineResult allocateFrameBuffers();
 static VEngineResult allocateCommandPool();
 static VEngineResult createCommandBuffer();
 static VEngineResult allocateSyncObjects();
+static VEngineResult allocateDescriptorPool();
 static void cleanupSwapChain();
 
 
@@ -115,6 +116,10 @@ VEngineResult v_init() {
     if( returnCode.type < 0 )
         return returnCode;
 
+    returnCode = allocateDescriptorPool();
+    if( returnCode.type < 0 )
+        return returnCode;
+
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
@@ -135,6 +140,7 @@ void v_deinit() {
         vkDestroyBuffer(   context.vk.device, context.vk.frames[i - 1].uniformBuffer,           NULL);
         vkFreeMemory(      context.vk.device, context.vk.frames[i - 1].uniformBufferMemory,     NULL);
     }
+    vkDestroyDescriptorPool(context.vk.device, context.vk.descriptorPool, NULL);
 
     vkDestroyBuffer(context.vk.device, context.vk.vertexBuffer, NULL);
     vkFreeMemory(context.vk.device, context.vk.vertexBufferMemory, NULL);
@@ -1150,6 +1156,30 @@ static VEngineResult allocateSyncObjects() {
             RETURN_RESULT_CODE(VE_ALLOC_SYNC_OBJECTS_FAILURE, 2)
         }
     }
+    RETURN_RESULT_CODE(VE_SUCCESS, 0)
+}
+
+static VEngineResult allocateDescriptorPool() {
+    VkResult result;
+
+    VkDescriptorPoolSize descriptorPoolSize; // Memset not needed.
+    descriptorPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    descriptorPoolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
+
+    VkDescriptorPoolCreateInfo descriptorPoolCreateInfo;
+    memset(&descriptorPoolCreateInfo, 0, sizeof(descriptorPoolCreateInfo));
+    descriptorPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    descriptorPoolCreateInfo.poolSizeCount = 1;
+    descriptorPoolCreateInfo.pPoolSizes = &descriptorPoolSize;
+    descriptorPoolCreateInfo.maxSets = MAX_FRAMES_IN_FLIGHT;
+
+    result = vkCreateDescriptorPool(context.vk.device, &descriptorPoolCreateInfo, NULL, &context.vk.descriptorPool);
+
+    if(result != VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkCreateDescriptorPool failed with result: %i", result);
+        RETURN_RESULT_CODE(VE_ALLOC_DESCRIPTOR_POOL_FAILURE, 0)
+    }
+
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
