@@ -962,7 +962,7 @@ static VEngineResult allocateGraphicsPipeline() {
     pipelineRasterizationStateCreateInfo.polygonMode = VK_POLYGON_MODE_FILL; // VK_POLYGON_MODE_LINE and VK_POLYGON_MODE_POINT.
     pipelineRasterizationStateCreateInfo.lineWidth = 1.0f; // One pixel lines please.
     pipelineRasterizationStateCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
-    pipelineRasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
+    pipelineRasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     pipelineRasterizationStateCreateInfo.depthBiasEnable = VK_FALSE;
     pipelineRasterizationStateCreateInfo.depthBiasConstantFactor = 0.0f; // OPTIONAL
     pipelineRasterizationStateCreateInfo.depthBiasClamp = 0.0f; // OPTIONAL
