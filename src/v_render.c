@@ -185,11 +185,11 @@ void v_update_uniform_buffer(float delta, uint32_t imageIndex) {
 
     time += delta;
 
-    ubo.model = MatrixRotate(up, (90.0 * DEG2RAD) * time);
+    ubo.model = MatrixIdentity(); //MatrixRotate(up, (90.0 * DEG2RAD) * time);
 
-    ubo.view  = MatrixLookAt(eye, target, up);
+    ubo.view  = MatrixIdentity(); //MatrixLookAt(eye, target, up);
 
-    ubo.proj  = MatrixPerspective(45.0 * DEG2RAD, context.vk.swapExtent.width / (float) context.vk.swapExtent.height, 0.1f, 10.0f);
+    ubo.proj  = MatrixIdentity(); //MatrixPerspective(45.0 * DEG2RAD, context.vk.swapExtent.width / (float) context.vk.swapExtent.height, 0.1f, 10.0f);
 
     memcpy(context.vk.frames[imageIndex].uniformBufferMapped, &ubo, sizeof(ubo));
 }
