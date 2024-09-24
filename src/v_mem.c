@@ -24,14 +24,14 @@ const VkVertexInputAttributeDescription vertexInputAttributeDescriptions[2] = {
     {       1,       0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, color)}
 };
 
-VEngineResult v_alloc_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer *pBuffer, VkDeviceMemory *pBufferMemory) {
+VEngineResult v_alloc_buffer(VkDeviceSize size, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags, VkBuffer *pBuffer, VkDeviceMemory *pBufferMemory) {
     VkResult result;
 
     VkBufferCreateInfo bufferCreateInfo;
     memset(&bufferCreateInfo, 0, sizeof(bufferCreateInfo));
     bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     bufferCreateInfo.size = size;
-    bufferCreateInfo.usage = usage;
+    bufferCreateInfo.usage = usageFlags;
     bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
     result = vkCreateBuffer(context.vk.device, &bufferCreateInfo, NULL, pBuffer);
@@ -48,7 +48,7 @@ VEngineResult v_alloc_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemo
     memset(&memoryAllocateInfo, 0, sizeof(memoryAllocateInfo));
     memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     memoryAllocateInfo.allocationSize = memRequirements.size;
-    memoryAllocateInfo.memoryTypeIndex = v_find_memory_type_index(memRequirements.memoryTypeBits, properties);
+    memoryAllocateInfo.memoryTypeIndex = v_find_memory_type_index(memRequirements.memoryTypeBits, propertyFlags);
 
     if(memoryAllocateInfo.memoryTypeIndex == 0) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Memory type not found");
@@ -80,14 +80,14 @@ VEngineResult v_alloc_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemo
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-VEngineResult v_alloc_builtin_vertex_buffer() {
+VEngineResult v_alloc_static_buffer(const void *pData, size_t sizeOfData, VkBuffer *pBuffer, VkBufferUsageFlags usageFlags, VkDeviceMemory *pBufferMemory) {
     VEngineResult buffer_result;
 
     VkBuffer       stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
 
     buffer_result = v_alloc_buffer(
-                sizeof(builtin_vertices),
+                sizeOfData,
                 VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                 &stagingBuffer,
@@ -97,17 +97,17 @@ VEngineResult v_alloc_builtin_vertex_buffer() {
         return buffer_result;
     }
 
-    void* data;
-    vkMapMemory(context.vk.device, stagingBufferMemory, 0, sizeof(builtin_vertices), 0, &data);
-    memcpy(data, &builtin_vertices, sizeof(builtin_vertices));
+    void* pDstData;
+    vkMapMemory(context.vk.device, stagingBufferMemory, 0, sizeOfData, 0, &pDstData);
+    memcpy(pDstData, pData, sizeOfData);
     vkUnmapMemory(context.vk.device, stagingBufferMemory);
 
     buffer_result = v_alloc_buffer(
-                sizeof(builtin_vertices),
-                VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                sizeOfData,
+                VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags,
                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                &context.vk.vertexBuffer,
-                &context.vk.vertexBufferMemory);
+                pBuffer,
+                pBufferMemory);
 
     if(buffer_result.type != VE_SUCCESS) {
         vkDestroyBuffer(context.vk.device, stagingBuffer, NULL);
@@ -115,7 +115,7 @@ VEngineResult v_alloc_builtin_vertex_buffer() {
         return buffer_result;
     }
 
-    buffer_result = v_copy_buffer(stagingBuffer, 0, context.vk.vertexBuffer, 0, sizeof(builtin_vertices));
+    buffer_result = v_copy_buffer(stagingBuffer, 0, *pBuffer, 0, sizeOfData);
 
     vkDestroyBuffer(context.vk.device, stagingBuffer, NULL);
     vkFreeMemory(context.vk.device, stagingBufferMemory, NULL);
@@ -127,6 +127,10 @@ VEngineResult v_alloc_builtin_vertex_buffer() {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_copy_buffer failed with result: %i", buffer_result.type);
         RETURN_RESULT_CODE(VE_ALLOC_MEMORY_V_BUFFER_FAILURE, 4)
     }
+}
+
+VEngineResult v_alloc_builtin_vertex_buffer() {
+    return v_alloc_static_buffer(&builtin_vertices, sizeof(builtin_vertices), &context.vk.vertexBuffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, &context.vk.vertexBufferMemory);
 }
 
 VEngineResult v_copy_buffer(VkBuffer srcBuffer, VkDeviceSize srcOffset, VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize size) {

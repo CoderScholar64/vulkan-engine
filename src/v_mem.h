@@ -19,7 +19,7 @@ extern const VkVertexInputAttributeDescription vertexInputAttributeDescriptions[
 
 /**
  * Allocate a singular buffer.
- * @note This is for more advanced usage for a general purpose one use ...
+ * @note This is for more advanced usage for a general purpose one use v_alloc_static_buffer().
  * @warning Make sure that v_init() is called first.
  * @param size the Vulkan buffer to allocate.
  * @param usageFlags the VkBufferUsageFlags for the newely allocated buffer.
@@ -29,6 +29,17 @@ extern const VkVertexInputAttributeDescription vertexInputAttributeDescriptions[
  * @return A VEngineResult. If its type is VE_SUCCESS then this buffer is successfully created. If VE_ALLOC_MEMORY_V_BUFFER_FAILURE then the buffer had failed to generate.
  */
 VEngineResult v_alloc_buffer(VkDeviceSize size, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags, VkBuffer *pBuffer, VkDeviceMemory *pBufferMemory);
+
+/**
+ * Allocate a static buffer.
+ * @warning Make sure that v_init() is called first.
+ * @param pData the source of the data.
+ * @param sizeOfData the size in bytes of the source.
+ * @param pBuffer An unallocated reference to a vulkan buffer. @warning Make sure that pBuffer is unallocated before hand.
+ * @param pBufferMemory An unallocated reference to a vulkan memory buffer. @warning Make sure that pBufferMemory is unallocated before hand.
+ * @return A VEngineResult. If its type is VE_SUCCESS then this buffer is successfully created
+ */
+VEngineResult v_alloc_static_buffer(const void *pData, size_t sizeOfData, VkBuffer *pBuffer, VkBufferUsageFlags usageFlags, VkDeviceMemory *pBufferMemory);
 
 /**
  * This function allocates a built-in vertex buffer to the context.
