@@ -32,6 +32,7 @@ static VEngineResult allocateSwapChain();
 static VEngineResult allocateSwapChainImageViews();
 static VEngineResult createRenderPass();
 static VkShaderModule allocateShaderModule(Uint8* data, size_t size);
+static VEngineResult allocateDescriptorSetLayout();
 static VEngineResult allocateGraphicsPipeline();
 static VEngineResult allocateFrameBuffers();
 static VEngineResult allocateCommandPool();
@@ -78,6 +79,10 @@ VEngineResult v_init() {
     if( returnCode.type < 0 )
         return returnCode;
 
+    returnCode = allocateDescriptorSetLayout();
+    if( returnCode.type < 0 )
+        return returnCode;
+
     returnCode = allocateGraphicsPipeline();
     if( returnCode.type < 0 )
         return returnCode;
@@ -113,6 +118,8 @@ void v_deinit() {
     vkDeviceWaitIdle(context.vk.device);
 
     cleanupSwapChain();
+
+    vkDestroyDescriptorSetLayout(context.vk.device, context.vk.descriptorSetLayout, NULL);
 
     if(context.vk.pQueueFamilyProperties != NULL)
         free(context.vk.pQueueFamilyProperties);
@@ -777,6 +784,32 @@ static VEngineResult createRenderPass() {
         RETURN_RESULT_CODE(VE_CREATE_RENDER_PASS_FAILURE, 0)
     }
 
+    RETURN_RESULT_CODE(VE_SUCCESS, 0)
+}
+
+static VEngineResult allocateDescriptorSetLayout() {
+    VkResult result;
+
+    VkDescriptorSetLayoutBinding descriptorSetBinding;
+    memset(&descriptorSetBinding, 0, sizeof(descriptorSetBinding));
+    descriptorSetBinding.binding = 0;
+    descriptorSetBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    descriptorSetBinding.descriptorCount = 1;
+    descriptorSetBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    descriptorSetBinding.pImmutableSamplers = NULL;
+
+    VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo;
+    memset(&descriptorSetLayoutCreateInfo, 0, sizeof(descriptorSetLayoutCreateInfo));
+    descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    descriptorSetLayoutCreateInfo.bindingCount = 1;
+    descriptorSetLayoutCreateInfo.pBindings = &descriptorSetBinding;
+
+    result = vkCreateDescriptorSetLayout(context.vk.device, &descriptorSetLayoutCreateInfo, NULL, &context.vk.descriptorSetLayout);
+
+    if(result != VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkCreateRenderPass() Failed to allocate %i", result);
+        RETURN_RESULT_CODE(VE_DESCRIPTOR_SET_LAYOUT_FAILURE, 0)
+    }
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 

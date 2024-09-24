@@ -40,6 +40,7 @@ struct Context {
         } *pSwapChainFrames;
 
         VkRenderPass renderPass;
+        VkDescriptorSetLayout descriptorSetLayout;
         VkPipelineLayout pipelineLayout;
         VkPipeline graphicsPipeline;
 

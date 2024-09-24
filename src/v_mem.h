@@ -12,6 +12,13 @@ typedef struct {
     Vector3 color;
 } Vertex;
 
+typedef struct {
+    Matrix model;
+    Matrix view;
+    Matrix proj;
+} UniformBufferObject;
+
+
 extern const Vertex builtin_vertices[4];
 extern const Uint16 builtin_indexes[6];
 
