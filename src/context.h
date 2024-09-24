@@ -52,6 +52,7 @@ struct Context {
 
         struct {
             VkCommandBuffer commandBuffer;
+            VkDescriptorSet descriptorSet;
             VkSemaphore imageAvailableSemaphore;
             VkSemaphore renderFinishedSemaphore;
             VkFence inFlightFence;

@@ -39,6 +39,7 @@ static VEngineResult allocateCommandPool();
 static VEngineResult createCommandBuffer();
 static VEngineResult allocateSyncObjects();
 static VEngineResult allocateDescriptorPool();
+static VEngineResult allocateDescriptorSets();
 static void cleanupSwapChain();
 
 
@@ -120,6 +121,10 @@ VEngineResult v_init() {
     if( returnCode.type < 0 )
         return returnCode;
 
+    returnCode = allocateDescriptorSets();
+    if( returnCode.type < 0 )
+        return returnCode;
+
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
@@ -128,6 +133,7 @@ void v_deinit() {
 
     cleanupSwapChain();
 
+    vkDestroyDescriptorPool(context.vk.device, context.vk.descriptorPool, NULL);
     vkDestroyDescriptorSetLayout(context.vk.device, context.vk.descriptorSetLayout, NULL);
 
     if(context.vk.pQueueFamilyProperties != NULL)
@@ -140,7 +146,6 @@ void v_deinit() {
         vkDestroyBuffer(   context.vk.device, context.vk.frames[i - 1].uniformBuffer,           NULL);
         vkFreeMemory(      context.vk.device, context.vk.frames[i - 1].uniformBufferMemory,     NULL);
     }
-    vkDestroyDescriptorPool(context.vk.device, context.vk.descriptorPool, NULL);
 
     vkDestroyBuffer(context.vk.device, context.vk.vertexBuffer, NULL);
     vkFreeMemory(context.vk.device, context.vk.vertexBufferMemory, NULL);
@@ -1179,7 +1184,46 @@ static VEngineResult allocateDescriptorPool() {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkCreateDescriptorPool failed with result: %i", result);
         RETURN_RESULT_CODE(VE_ALLOC_DESCRIPTOR_POOL_FAILURE, 0)
     }
+    RETURN_RESULT_CODE(VE_SUCCESS, 0)
+}
 
+static VEngineResult allocateDescriptorSets() {
+    VkResult result;
+
+    VkDescriptorSetAllocateInfo descriptorSetAllocateInfo;
+    descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    descriptorSetAllocateInfo.pNext = NULL;
+    descriptorSetAllocateInfo.descriptorPool = context.vk.descriptorPool;
+    descriptorSetAllocateInfo.descriptorSetCount = 1;
+    descriptorSetAllocateInfo.pSetLayouts = &context.vk.descriptorSetLayout;
+
+    VkDescriptorBufferInfo descriptorBufferInfo;
+    descriptorBufferInfo.offset = 0;
+    descriptorBufferInfo.range = sizeof(UniformBufferObject);
+
+    VkWriteDescriptorSet writeDescriptorSet;
+    memset(&writeDescriptorSet, 0, sizeof(writeDescriptorSet));
+    writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    writeDescriptorSet.dstBinding = 0;
+    writeDescriptorSet.dstArrayElement = 0;
+    writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    writeDescriptorSet.descriptorCount = 1;
+    writeDescriptorSet.pBufferInfo = &descriptorBufferInfo;
+
+    for(Uint32 i = MAX_FRAMES_IN_FLIGHT; i != 0; i--) {
+        result = vkAllocateDescriptorSets(context.vk.device, &descriptorSetAllocateInfo, &context.vk.frames[i - 1].descriptorSet);
+
+        if(result != VK_SUCCESS) {
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkAllocateDescriptorSets at index %i failed with result: %i", i - 1, result);
+            RETURN_RESULT_CODE(VE_ALLOC_DESCRIPTOR_SET_FAILURE, i - 1)
+        }
+
+        descriptorBufferInfo.buffer = context.vk.frames[i - 1].uniformBuffer;
+
+        writeDescriptorSet.dstSet = context.vk.frames[i - 1].descriptorSet;
+
+        vkUpdateDescriptorSets(context.vk.device, 1, &writeDescriptorSet, 0, NULL);
+    }
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
