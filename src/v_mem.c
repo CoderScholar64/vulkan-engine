@@ -116,11 +116,18 @@ VEngineResult v_alloc_vertex_buffer() {
         return buffer_result;
     }
 
-    v_copy_buffer(stagingBuffer, context.vk.vertexBuffer, sizeof(vertices));
+    buffer_result = v_copy_buffer(stagingBuffer, context.vk.vertexBuffer, sizeof(vertices));
 
     vkDestroyBuffer(context.vk.device, stagingBuffer, NULL);
     vkFreeMemory(context.vk.device, stagingBufferMemory, NULL);
-    RETURN_RESULT_CODE(VE_SUCCESS, 0)
+
+    if(buffer_result.type == VE_SUCCESS) {
+        RETURN_RESULT_CODE(VE_SUCCESS, 0)
+    }
+    else {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_copy_buffer failed with result: %i", buffer_result.type);
+        RETURN_RESULT_CODE(VE_ALLOC_MEMORY_V_BUFFER_FAILURE, 4)
+    }
 }
 
 VEngineResult v_copy_buffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
