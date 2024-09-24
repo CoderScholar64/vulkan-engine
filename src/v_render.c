@@ -156,7 +156,7 @@ VEngineResult v_record_command_buffer(VkCommandBuffer commandBuffer, uint32_t im
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-    vkCmdDraw(commandBuffer, sizeof(vertices) / sizeof(vertices[0]), 1, 0, 0);
+    vkCmdDraw(commandBuffer, sizeof(builtin_vertices) / sizeof(builtin_vertices[0]), 1, 0, 0);
 
     vkCmdEndRenderPass(commandBuffer);
 

@@ -12,7 +12,7 @@ typedef struct {
     Vector3 color;
 } Vertex;
 
-extern const Vertex vertices[6];
+extern const Vertex builtin_vertices[6];
 
 extern const VkVertexInputBindingDescription vertexBindingDescription;
 extern const VkVertexInputAttributeDescription vertexInputAttributeDescriptions[2];
@@ -24,7 +24,7 @@ VEngineResult v_alloc_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemo
  * @warning Make sure that v_init() is called first.
  * @return A VEngineResult. If its type is VE_SUCCESS then this buffer is successfully created. If VE_ALLOC_MEMORY_V_BUFFER_FAILURE then the buffer had failed to generate.
  */
-VEngineResult v_alloc_vertex_buffer();
+VEngineResult v_alloc_builtin_vertex_buffer();
 
 VEngineResult v_copy_buffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 

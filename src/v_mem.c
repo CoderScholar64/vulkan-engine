@@ -4,7 +4,7 @@
 
 #include "SDL_log.h"
 
-const Vertex vertices[6] = {
+const Vertex builtin_vertices[6] = {
     {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
     {{ 0.5f,  0.5f}, {0.0f, 1.0f, 0.0f}},
     {{-0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}},
@@ -80,15 +80,14 @@ VEngineResult v_alloc_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemo
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-VEngineResult v_alloc_vertex_buffer() {
+VEngineResult v_alloc_builtin_vertex_buffer() {
     VEngineResult buffer_result;
-    VkResult result;
 
     VkBuffer       stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
 
     buffer_result = v_alloc_buffer(
-                sizeof(vertices),
+                sizeof(builtin_vertices),
                 VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                 &stagingBuffer,
@@ -99,12 +98,12 @@ VEngineResult v_alloc_vertex_buffer() {
     }
 
     void* data;
-    vkMapMemory(context.vk.device, stagingBufferMemory, 0, sizeof(vertices), 0, &data);
-    memcpy(data, &vertices, sizeof(vertices));
+    vkMapMemory(context.vk.device, stagingBufferMemory, 0, sizeof(builtin_vertices), 0, &data);
+    memcpy(data, &builtin_vertices, sizeof(builtin_vertices));
     vkUnmapMemory(context.vk.device, stagingBufferMemory);
 
     buffer_result = v_alloc_buffer(
-                sizeof(vertices),
+                sizeof(builtin_vertices),
                 VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                 &context.vk.vertexBuffer,
@@ -116,7 +115,7 @@ VEngineResult v_alloc_vertex_buffer() {
         return buffer_result;
     }
 
-    buffer_result = v_copy_buffer(stagingBuffer, context.vk.vertexBuffer, sizeof(vertices));
+    buffer_result = v_copy_buffer(stagingBuffer, context.vk.vertexBuffer, sizeof(builtin_vertices));
 
     vkDestroyBuffer(context.vk.device, stagingBuffer, NULL);
     vkFreeMemory(context.vk.device, stagingBufferMemory, NULL);
