@@ -4,13 +4,15 @@
 
 #include "SDL_log.h"
 
-const Vertex builtin_vertices[6] = {
+const Vertex builtin_vertices[4] = {
     {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-    {{ 0.5f,  0.5f}, {0.0f, 1.0f, 0.0f}},
-    {{-0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}},
-    {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-    {{ 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}},
-    {{ 0.5f,  0.5f}, {0.0f, 1.0f, 0.0f}}
+    {{ 0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+    {{ 0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}},
+    {{-0.5f,  0.5f}, {1.0f, 1.0f, 1.0f}}
+};
+
+const Uint16 builtin_indexes[6] = {
+    0, 1, 2, 2, 3, 0
 };
 
 const VkVertexInputBindingDescription vertexBindingDescription = {
@@ -131,6 +133,10 @@ VEngineResult v_alloc_static_buffer(const void *pData, size_t sizeOfData, VkBuff
 
 VEngineResult v_alloc_builtin_vertex_buffer() {
     return v_alloc_static_buffer(&builtin_vertices, sizeof(builtin_vertices), &context.vk.vertexBuffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, &context.vk.vertexBufferMemory);
+}
+
+VEngineResult v_alloc_builtin_index_buffer() {
+    return v_alloc_static_buffer(&builtin_indexes, sizeof(builtin_indexes), &context.vk.indexBuffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, &context.vk.indexBufferMemory);
 }
 
 VEngineResult v_copy_buffer(VkBuffer srcBuffer, VkDeviceSize srcOffset, VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize size) {

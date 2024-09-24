@@ -12,7 +12,8 @@ typedef struct {
     Vector3 color;
 } Vertex;
 
-extern const Vertex builtin_vertices[6];
+extern const Vertex builtin_vertices[4];
+extern const Uint16 builtin_indexes[6];
 
 extern const VkVertexInputBindingDescription vertexBindingDescription;
 extern const VkVertexInputAttributeDescription vertexInputAttributeDescriptions[2];
@@ -47,6 +48,13 @@ VEngineResult v_alloc_static_buffer(const void *pData, size_t sizeOfData, VkBuff
  * @return A VEngineResult. If its type is VE_SUCCESS then this buffer is successfully created. If VE_ALLOC_MEMORY_V_BUFFER_FAILURE then the buffer had failed to generate.
  */
 VEngineResult v_alloc_builtin_vertex_buffer();
+
+/**
+ * This function allocates a built-in index buffer to the context.
+ * @warning Make sure that v_init() is called first.
+ * @return A VEngineResult. If its type is VE_SUCCESS then this buffer is successfully created. If VE_ALLOC_MEMORY_V_BUFFER_FAILURE then the buffer had failed to generate.
+ */
+VEngineResult v_alloc_builtin_index_buffer();
 
 /**
  * This function copies the srcBuffer to dstBuffer via vulkan.

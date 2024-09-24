@@ -45,6 +45,8 @@ struct Context {
 
         VkBuffer vertexBuffer;
         VkDeviceMemory vertexBufferMemory;
+        VkBuffer indexBuffer;
+        VkDeviceMemory indexBufferMemory;
         VkCommandPool commandPool;
 
         struct {

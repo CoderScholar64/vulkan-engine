@@ -156,7 +156,9 @@ VEngineResult v_record_command_buffer(VkCommandBuffer commandBuffer, uint32_t im
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-    vkCmdDraw(commandBuffer, sizeof(builtin_vertices) / sizeof(builtin_vertices[0]), 1, 0, 0);
+    vkCmdBindIndexBuffer(commandBuffer, context.vk.indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+
+    vkCmdDrawIndexed(commandBuffer, sizeof(builtin_indexes) / sizeof(builtin_indexes[0]), 1, 0, 0, 0);
 
     vkCmdEndRenderPass(commandBuffer);
 

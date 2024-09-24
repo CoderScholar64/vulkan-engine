@@ -102,6 +102,10 @@ VEngineResult v_init() {
     if( returnCode.type < 0 )
         return returnCode;
 
+    returnCode = v_alloc_builtin_index_buffer();
+    if( returnCode.type < 0 )
+        return returnCode;
+
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
@@ -121,6 +125,8 @@ void v_deinit() {
 
     vkDestroyBuffer(context.vk.device, context.vk.vertexBuffer, NULL);
     vkFreeMemory(context.vk.device, context.vk.vertexBufferMemory, NULL);
+    vkDestroyBuffer(context.vk.device, context.vk.indexBuffer, NULL);
+    vkFreeMemory(context.vk.device, context.vk.indexBufferMemory, NULL);
     vkDestroyCommandPool(context.vk.device, context.vk.commandPool, NULL);
     vkDestroyPipeline(context.vk.device, context.vk.graphicsPipeline, NULL);
     vkDestroyPipelineLayout(context.vk.device, context.vk.pipelineLayout, NULL);
