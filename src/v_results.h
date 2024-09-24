@@ -20,7 +20,8 @@ typedef enum {
     VE_ALLOC_FRAME_BUFFERS_FAILURE   = -14,
     VE_ALLOC_COMMAND_POOL_FAILURE    = -15,
     VE_CREATE_COMMAND_BUFFER_FAILURE = -16,
-    VE_ALLOC_SYNC_OBJECTS_FAILURE    = -17
+    VE_ALLOC_SYNC_OBJECTS_FAILURE    = -17,
+    VE_COPY_BUFFER_FAILURE           = -18
 } VEngineResultType;
 
 typedef struct {
