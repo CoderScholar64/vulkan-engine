@@ -160,6 +160,8 @@ VEngineResult v_record_command_buffer(VkCommandBuffer commandBuffer, uint32_t im
 
     vkCmdBindIndexBuffer(commandBuffer, context.vk.indexBuffer, 0, VK_INDEX_TYPE_UINT16);
 
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, context.vk.pipelineLayout, 0, 1, &context.vk.frames[context.vk.currentFrame].descriptorSet, 0, NULL);
+
     vkCmdDrawIndexed(commandBuffer, sizeof(builtin_indexes) / sizeof(builtin_indexes[0]), 1, 0, 0, 0);
 
     vkCmdEndRenderPass(commandBuffer);
