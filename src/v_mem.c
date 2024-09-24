@@ -96,7 +96,7 @@ VEngineResult v_alloc_static_buffer(const void *pData, size_t sizeOfData, VkBuff
                 &stagingBufferMemory);
 
     if(buffer_result.type != VE_SUCCESS) {
-        return buffer_result;
+        RETURN_RESULT_CODE(VE_ALLOC_STATIC_BUFFER, buffer_result.point)
     }
 
     void* pDstData;
@@ -114,7 +114,7 @@ VEngineResult v_alloc_static_buffer(const void *pData, size_t sizeOfData, VkBuff
     if(buffer_result.type != VE_SUCCESS) {
         vkDestroyBuffer(context.vk.device, stagingBuffer, NULL);
         vkFreeMemory(context.vk.device, stagingBufferMemory, NULL);
-        return buffer_result;
+        RETURN_RESULT_CODE(VE_ALLOC_STATIC_BUFFER, 4 + buffer_result.point)
     }
 
     buffer_result = v_copy_buffer(stagingBuffer, 0, *pBuffer, 0, sizeOfData);
@@ -127,7 +127,7 @@ VEngineResult v_alloc_static_buffer(const void *pData, size_t sizeOfData, VkBuff
     }
     else {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_copy_buffer failed with result: %i", buffer_result.type);
-        RETURN_RESULT_CODE(VE_ALLOC_MEMORY_V_BUFFER_FAILURE, 4)
+        RETURN_RESULT_CODE(VE_ALLOC_STATIC_BUFFER, 8)
     }
 }
 
