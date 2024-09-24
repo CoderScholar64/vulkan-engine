@@ -172,24 +172,22 @@ VEngineResult v_record_command_buffer(VkCommandBuffer commandBuffer, uint32_t im
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-VEngineResult v_update_uniform_buffer(float delta, uint32_t imageIndex) {
+void v_update_uniform_buffer(float delta, uint32_t imageIndex) {
     // TODO All of this is temporary.
     static float time = 0;
     static UniformBufferObject ubo;
 
-    time += delta;
+    Vector3 up     = {0.0f, 0.0f, 1.0f};
+    Vector3 eye    = {2.0f, 2.0f, 2.0f};
+    Vector3 target = {0.0f, 0.0f, 0.0f};
 
-    Vector3 up = {0.0f, 0.0f, 1.0f};
+    time += delta;
 
     ubo.model = MatrixRotate(up, (90.0 * DEG2RAD) * time);
 
-    Vector3 eye    = {2.0f, 2.0f, 2.0f};
-    Vector3 target = {0.0f, 0.0f, 0.0f};
     ubo.view  = MatrixLookAt(eye, target, up);
 
     ubo.proj  = MatrixPerspective(45.0 * DEG2RAD, context.vk.swapExtent.width / (float) context.vk.swapExtent.height, 0.1f, 10.0f);
 
     memcpy(context.vk.frames[imageIndex].uniformBufferMapped, &ubo, sizeof(ubo));
-
-    RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
