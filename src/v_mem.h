@@ -17,7 +17,18 @@ extern const Vertex builtin_vertices[6];
 extern const VkVertexInputBindingDescription vertexBindingDescription;
 extern const VkVertexInputAttributeDescription vertexInputAttributeDescriptions[2];
 
-VEngineResult v_alloc_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer *pBuffer, VkDeviceMemory *pBufferMemory);
+/**
+ * Allocate a singular buffer.
+ * @note This is for more advanced usage for a general purpose one use ...
+ * @warning Make sure that v_init() is called first.
+ * @param size the Vulkan buffer to allocate.
+ * @param usageFlags the VkBufferUsageFlags for the newely allocated buffer.
+ * @param properties The desired property flags of the memory index.
+ * @param pBuffer An unallocated reference to a vulkan buffer. @warning Make sure that pBuffer is unallocated before hand.
+ * @param pBufferMemory An unallocated reference to a vulkan memory buffer. @warning Make sure that pBufferMemory is unallocated before hand.
+ * @return A VEngineResult. If its type is VE_SUCCESS then this buffer is successfully created. If VE_ALLOC_MEMORY_V_BUFFER_FAILURE then the buffer had failed to generate.
+ */
+VEngineResult v_alloc_buffer(VkDeviceSize size, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags, VkBuffer *pBuffer, VkDeviceMemory *pBufferMemory);
 
 /**
  * This function allocates a built-in vertex buffer to the context.
@@ -27,7 +38,7 @@ VEngineResult v_alloc_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemo
 VEngineResult v_alloc_builtin_vertex_buffer();
 
 /**
- * This function copies the srcBuffer to dstBuffer.
+ * This function copies the srcBuffer to dstBuffer via vulkan.
  * @warning Make sure that v_init() is called first. Also srcBuffer must have VK_BUFFER_USAGE_TRANSFER_SRC_BIT, and the dstBuffer VK_BUFFER_USAGE_TRANSFER_DST_BIT.
  * @param srcBuffer the Vulkan source buffer.
  * @param srcOffset the Vulkan source offset.
