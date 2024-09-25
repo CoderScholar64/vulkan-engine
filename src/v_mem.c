@@ -158,6 +158,66 @@ VEngineResult v_alloc_builtin_uniform_buffers() {
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
+VEngineResult v_alloc_image(Uint32 width, Uint32 height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage *pImage, VkDeviceMemory *pImageMemory) {
+    VkResult result;
+
+    VkImageCreateInfo imageCreateInfo;
+    memset(&imageCreateInfo, 0, sizeof(imageCreateInfo));
+    imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+    imageCreateInfo.extent.width = width;
+    imageCreateInfo.extent.height = height;
+    imageCreateInfo.extent.depth = 1;
+    imageCreateInfo.mipLevels = 1;
+    imageCreateInfo.arrayLayers = 1;
+    imageCreateInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
+    imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+    imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    imageCreateInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+    imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+    imageCreateInfo.flags = 0;
+
+    result = vkCreateImage(context.vk.device, &imageCreateInfo, NULL, pImage);
+
+    if(result != VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkCreateImage had failed with %i", result);
+        RETURN_RESULT_CODE(VE_ALLOC_IMAGE_FAILURE, 0)
+    }
+
+    VkMemoryRequirements memRequirements;
+    vkGetImageMemoryRequirements(context.vk.device, *pImage, &memRequirements);
+
+    VkMemoryAllocateInfo memoryAllocateInfo;
+    memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    memoryAllocateInfo.pNext = NULL;
+    memoryAllocateInfo.allocationSize = memRequirements.size;
+    memoryAllocateInfo.memoryTypeIndex = v_find_memory_type_index(memRequirements.memoryTypeBits, properties);
+
+    result = vkAllocateMemory(context.vk.device, &memoryAllocateInfo, NULL, pImageMemory);
+
+    if(result != VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkAllocateMemory had failed with %i", result);
+
+        vkDestroyImage(context.vk.device, *pImage, NULL);
+
+        RETURN_RESULT_CODE(VE_ALLOC_IMAGE_FAILURE, 1)
+    }
+
+    result = vkBindImageMemory(context.vk.device, *pImage, *pImageMemory, 0);
+
+    if(result != VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkAllocateMemory had failed with %i", result);
+
+        vkDestroyImage(context.vk.device, *pImage, NULL);
+        vkFreeMemory(context.vk.device, *pImageMemory, NULL);
+
+        RETURN_RESULT_CODE(VE_ALLOC_IMAGE_FAILURE, 2)
+    }
+
+    RETURN_RESULT_CODE(VE_SUCCESS, 0)
+}
+
 VEngineResult v_copy_buffer(VkBuffer srcBuffer, VkDeviceSize srcOffset, VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize size) {
     VkResult result;
 

@@ -70,6 +70,8 @@ VEngineResult v_alloc_builtin_index_buffer();
  */
 VEngineResult v_alloc_builtin_uniform_buffers();
 
+VEngineResult v_alloc_image(Uint32 width, Uint32 height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage *pImage, VkDeviceMemory *pImageMemory);
+
 /**
  * This function copies the srcBuffer to dstBuffer via vulkan.
  * @warning Make sure that v_init() is called first. Also srcBuffer must have VK_BUFFER_USAGE_TRANSFER_SRC_BIT, and the dstBuffer VK_BUFFER_USAGE_TRANSFER_DST_BIT.

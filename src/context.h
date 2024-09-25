@@ -50,6 +50,9 @@ struct Context {
         VkDeviceMemory indexBufferMemory;
         VkCommandPool commandPool;
 
+        VkImage textureImage;
+        VkDeviceMemory textureImageMemory;
+
         struct {
             VkCommandBuffer commandBuffer;
             VkDescriptorSet descriptorSet;

@@ -98,6 +98,10 @@ VEngineResult v_init() {
     if( returnCode.type < 0 )
         return returnCode;
 
+    returnCode = allocateTextureImage();
+    if( returnCode.type < 0 )
+        return returnCode;
+
     returnCode = createCommandBuffer();
     if( returnCode.type < 0 )
         return returnCode;
@@ -134,6 +138,8 @@ void v_deinit() {
 
     cleanupSwapChain();
 
+    vkDestroyImage(context.vk.device, context.vk.textureImage, NULL);
+    vkFreeMemory(context.vk.device, context.vk.textureImageMemory, NULL);
     vkDestroyDescriptorPool(context.vk.device, context.vk.descriptorPool, NULL);
     vkDestroyDescriptorSetLayout(context.vk.device, context.vk.descriptorSetLayout, NULL);
 
@@ -1130,7 +1136,7 @@ static VEngineResult allocateTextureImage() {
 
     if(engineResult.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to make staging buffer for allocateTextureImage");
-        RETURN_RESULT_CODE(VE_ALLOC_TEXTURE_IMAGE_FAILURE, 1 + engineResult.point)
+        RETURN_RESULT_CODE(VE_ALLOC_TEXTURE_IMAGE_FAILURE, 1)
     }
 
     void* data;
@@ -1139,6 +1145,13 @@ static VEngineResult allocateTextureImage() {
     vkUnmapMemory(context.vk.device, stagingBufferMemory);
 
     free(pPixels);
+
+    engineResult = v_alloc_image(QOIdescription.width, QOIdescription.height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &context.vk.textureImage, &context.vk.textureImageMemory);
+
+    if(engineResult.type != VE_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_alloc_image had failed with %i", engineResult.point);
+        RETURN_RESULT_CODE(VE_ALLOC_TEXTURE_IMAGE_FAILURE, 2)
+    }
 
     vkDestroyBuffer(context.vk.device, stagingBuffer, NULL);
     vkFreeMemory(context.vk.device, stagingBufferMemory, NULL);
