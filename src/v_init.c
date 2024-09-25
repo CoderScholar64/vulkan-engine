@@ -1153,6 +1153,24 @@ static VEngineResult allocateTextureImage() {
         RETURN_RESULT_CODE(VE_ALLOC_TEXTURE_IMAGE_FAILURE, 2)
     }
 
+    engineResult = v_transition_image_layout(context.vk.textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    if(engineResult.type != VE_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_transition_image_layout had failed with %i", engineResult.point);
+        RETURN_RESULT_CODE(VE_ALLOC_TEXTURE_IMAGE_FAILURE, 3)
+    }
+
+    engineResult = v_copy_buffer_to_image(stagingBuffer, context.vk.textureImage, QOIdescription.width, QOIdescription.height);
+    if(engineResult.type != VE_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_copy_buffer_to_image had failed with %i", engineResult.point);
+        RETURN_RESULT_CODE(VE_ALLOC_TEXTURE_IMAGE_FAILURE, 4)
+    }
+
+    engineResult = v_transition_image_layout(context.vk.textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    if(engineResult.type != VE_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_transition_image_layout had failed with %i", engineResult.point);
+        RETURN_RESULT_CODE(VE_ALLOC_TEXTURE_IMAGE_FAILURE, 5)
+    }
+
     vkDestroyBuffer(context.vk.device, stagingBuffer, NULL);
     vkFreeMemory(context.vk.device, stagingBufferMemory, NULL);
 
