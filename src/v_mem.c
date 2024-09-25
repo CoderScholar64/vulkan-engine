@@ -329,6 +329,50 @@ VEngineResult v_end_one_time_command_buffer(VkCommandBuffer *pCommandBuffer) {
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
+VEngineResult v_transition_image_layout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) {
+    VEngineResult bufferResult;
+
+    VkCommandBuffer commandBuffer;
+
+    bufferResult = v_begin_one_time_command_buffer(&commandBuffer);
+    if(bufferResult.type != VE_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_begin_one_time_command_buffer had failed with %i", bufferResult.point);
+        RETURN_RESULT_CODE(VE_TRANSIT_IMAGE_LAYOUT_FAILURE, 0)
+    }
+
+    VkImageMemoryBarrier imageMemoryBarrier;
+    memset(&imageMemoryBarrier, 0, sizeof(imageMemoryBarrier));
+    imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    imageMemoryBarrier.oldLayout = oldLayout;
+    imageMemoryBarrier.newLayout = newLayout;
+    imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    imageMemoryBarrier.image = image;
+    imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    imageMemoryBarrier.subresourceRange.baseMipLevel = 0;
+    imageMemoryBarrier.subresourceRange.levelCount = 1;
+    imageMemoryBarrier.subresourceRange.baseArrayLayer = 0;
+    imageMemoryBarrier.subresourceRange.layerCount = 1;
+    imageMemoryBarrier.srcAccessMask = 0; // TODO For some reason this is there?
+    imageMemoryBarrier.dstAccessMask = 0;
+
+    vkCmdPipelineBarrier(
+        commandBuffer,
+        0, 0, // Both TODO
+        0,
+        0, NULL,
+        0, NULL,
+        1, &imageMemoryBarrier
+    );
+
+    bufferResult = v_end_one_time_command_buffer(&commandBuffer);
+    if(bufferResult.type != VE_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_end_one_time_command_buffer had failed with %i", bufferResult.point);
+        RETURN_RESULT_CODE(VE_TRANSIT_IMAGE_LAYOUT_FAILURE, 1)
+    }
+    RETURN_RESULT_CODE(VE_SUCCESS, 0)
+}
+
 Uint32 v_find_memory_type_index(Uint32 typeFilter, VkMemoryPropertyFlags properties) {
     VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties;
     vkGetPhysicalDeviceMemoryProperties(context.vk.physicalDevice, &physicalDeviceMemoryProperties);

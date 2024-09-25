@@ -87,6 +87,8 @@ VEngineResult v_copy_buffer(VkBuffer srcBuffer, VkDeviceSize srcOffset, VkBuffer
 VEngineResult v_begin_one_time_command_buffer(VkCommandBuffer *pCommandBuffer);
 VEngineResult   v_end_one_time_command_buffer(VkCommandBuffer *pCommandBuffer);
 
+VEngineResult v_transition_image_layout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+
 /**
  * Find the memory buffer from
  * @warning Make sure that v_init() is called first.
