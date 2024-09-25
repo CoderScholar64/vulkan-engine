@@ -194,6 +194,13 @@ VEngineResult v_alloc_image(Uint32 width, Uint32 height, VkFormat format, VkImag
     memoryAllocateInfo.allocationSize = memRequirements.size;
     memoryAllocateInfo.memoryTypeIndex = v_find_memory_type_index(memRequirements.memoryTypeBits, properties);
 
+    if(memoryAllocateInfo.memoryTypeIndex == 0) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Memory type not found");
+        RETURN_RESULT_CODE(VE_ALLOC_IMAGE_FAILURE, 1)
+    }
+    else
+        memoryAllocateInfo.memoryTypeIndex--;
+
     result = vkAllocateMemory(context.vk.device, &memoryAllocateInfo, NULL, pImageMemory);
 
     if(result != VK_SUCCESS) {
@@ -201,7 +208,7 @@ VEngineResult v_alloc_image(Uint32 width, Uint32 height, VkFormat format, VkImag
 
         vkDestroyImage(context.vk.device, *pImage, NULL);
 
-        RETURN_RESULT_CODE(VE_ALLOC_IMAGE_FAILURE, 1)
+        RETURN_RESULT_CODE(VE_ALLOC_IMAGE_FAILURE, 2)
     }
 
     result = vkBindImageMemory(context.vk.device, *pImage, *pImageMemory, 0);
@@ -212,7 +219,7 @@ VEngineResult v_alloc_image(Uint32 width, Uint32 height, VkFormat format, VkImag
         vkDestroyImage(context.vk.device, *pImage, NULL);
         vkFreeMemory(context.vk.device, *pImageMemory, NULL);
 
-        RETURN_RESULT_CODE(VE_ALLOC_IMAGE_FAILURE, 2)
+        RETURN_RESULT_CODE(VE_ALLOC_IMAGE_FAILURE, 3)
     }
 
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
