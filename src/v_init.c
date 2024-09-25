@@ -36,6 +36,7 @@ static VEngineResult allocateDescriptorSetLayout();
 static VEngineResult allocateGraphicsPipeline();
 static VEngineResult allocateFrameBuffers();
 static VEngineResult allocateCommandPool();
+static VEngineResult allocateTextureImage();
 static VEngineResult createCommandBuffer();
 static VEngineResult allocateSyncObjects();
 static VEngineResult allocateDescriptorPool();
@@ -1106,6 +1107,18 @@ static VEngineResult allocateCommandPool() {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkCommandPool creation failed with result: %i", result);
         RETURN_RESULT_CODE(VE_ALLOC_COMMAND_POOL_FAILURE, 0)
     }
+    RETURN_RESULT_CODE(VE_SUCCESS, 0)
+}
+
+static VEngineResult allocateTextureImage() {
+    qoi_desc QOIdescription;
+
+    void *pPixels = u_qoi_read("test_texture.qoi", &QOIdescription, 4);
+
+    VkDeviceSize imageSize = 4 * QOIdescription.width * QOIdescription.height;
+
+    if(pPixels == NULL)
+        RETURN_RESULT_CODE(VE_ALLOC_TEXTURE_IMAGE_FAILURE, 0)
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
