@@ -1112,13 +1112,37 @@ static VEngineResult allocateCommandPool() {
 
 static VEngineResult allocateTextureImage() {
     qoi_desc QOIdescription;
+    const char FILENAME[] = "test_texture.qoi";
 
-    void *pPixels = u_qoi_read("test_texture.qoi", &QOIdescription, 4);
+    void *pPixels = u_qoi_read(FILENAME, &QOIdescription, 4);
 
     VkDeviceSize imageSize = 4 * QOIdescription.width * QOIdescription.height;
 
-    if(pPixels == NULL)
+    if(pPixels == NULL) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Could not read file with name \"%s\"", FILENAME);
         RETURN_RESULT_CODE(VE_ALLOC_TEXTURE_IMAGE_FAILURE, 0)
+    }
+
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+
+    VEngineResult engineResult = v_alloc_buffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, &stagingBufferMemory);
+
+    if(engineResult.type != VE_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to make staging buffer for allocateTextureImage");
+        RETURN_RESULT_CODE(VE_ALLOC_TEXTURE_IMAGE_FAILURE, 1 + engineResult.point)
+    }
+
+    void* data;
+    vkMapMemory(context.vk.device, stagingBufferMemory, 0, imageSize, 0, &data);
+    memcpy(data, pPixels, (size_t)imageSize);
+    vkUnmapMemory(context.vk.device, stagingBufferMemory);
+
+    free(pPixels);
+
+    vkDestroyBuffer(context.vk.device, stagingBuffer, NULL);
+    vkFreeMemory(context.vk.device, stagingBufferMemory, NULL);
+
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
