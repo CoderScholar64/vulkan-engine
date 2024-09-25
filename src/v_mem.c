@@ -373,6 +373,53 @@ VEngineResult v_transition_image_layout(VkImage image, VkFormat format, VkImageL
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
+VEngineResult v_copy_buffer_to_image(VkBuffer buffer, VkImage image, Uint32 width, Uint32 height) {
+    VEngineResult bufferResult;
+
+    VkCommandBuffer commandBuffer;
+
+    bufferResult = v_begin_one_time_command_buffer(&commandBuffer);
+    if(bufferResult.type != VE_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_begin_one_time_command_buffer had failed with %i", bufferResult.point);
+        RETURN_RESULT_CODE(VE_COPY_BUFFER_TO_IMAGE_FAILURE, 0)
+    }
+
+    VkBufferImageCopy bufferImageCopy;
+    memset(&bufferImageCopy, 0, sizeof(bufferImageCopy));
+    bufferImageCopy.bufferOffset = 0;
+    bufferImageCopy.bufferRowLength = 0;
+    bufferImageCopy.bufferImageHeight = 0;
+
+    bufferImageCopy.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    bufferImageCopy.imageSubresource.mipLevel = 0;
+    bufferImageCopy.imageSubresource.baseArrayLayer = 0;
+    bufferImageCopy.imageSubresource.layerCount = 1;
+
+    bufferImageCopy.imageOffset.x = 0;
+    bufferImageCopy.imageOffset.y = 0;
+    bufferImageCopy.imageOffset.z = 0;
+
+    bufferImageCopy.imageExtent.width  = width;
+    bufferImageCopy.imageExtent.height = height;
+    bufferImageCopy.imageExtent.depth  = 1;
+
+    vkCmdCopyBufferToImage(
+        commandBuffer,
+        buffer,
+        image,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        1,
+        &bufferImageCopy
+    );
+
+    bufferResult = v_end_one_time_command_buffer(&commandBuffer);
+    if(bufferResult.type != VE_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_end_one_time_command_buffer had failed with %i", bufferResult.point);
+        RETURN_RESULT_CODE(VE_COPY_BUFFER_TO_IMAGE_FAILURE, 1)
+    }
+    RETURN_RESULT_CODE(VE_SUCCESS, 0)
+}
+
 Uint32 v_find_memory_type_index(Uint32 typeFilter, VkMemoryPropertyFlags properties) {
     VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties;
     vkGetPhysicalDeviceMemoryProperties(context.vk.physicalDevice, &physicalDeviceMemoryProperties);
