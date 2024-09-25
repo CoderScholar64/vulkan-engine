@@ -27,7 +27,8 @@ typedef enum {
     VE_ALLOC_DESCRIPTOR_POOL_FAILURE = -21,
     VE_ALLOC_DESCRIPTOR_SET_FAILURE  = -22,
     VE_ALLOC_TEXTURE_IMAGE_FAILURE   = -23,
-    VE_ALLOC_IMAGE_FAILURE           = -24
+    VE_ALLOC_IMAGE_FAILURE           = -24,
+    VE_1_TIME_COMMAND_BUFFER_FAILURE = -25
 } VEngineResultType;
 
 typedef struct {

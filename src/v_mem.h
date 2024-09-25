@@ -84,6 +84,9 @@ VEngineResult v_alloc_image(Uint32 width, Uint32 height, VkFormat format, VkImag
  */
 VEngineResult v_copy_buffer(VkBuffer srcBuffer, VkDeviceSize srcOffset, VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize size);
 
+VEngineResult v_begin_one_time_command_buffer(VkCommandBuffer *pCommandBuffer);
+VEngineResult   v_end_one_time_command_buffer(VkCommandBuffer *pCommandBuffer);
+
 /**
  * Find the memory buffer from
  * @warning Make sure that v_init() is called first.

@@ -226,6 +226,33 @@ VEngineResult v_alloc_image(Uint32 width, Uint32 height, VkFormat format, VkImag
 }
 
 VEngineResult v_copy_buffer(VkBuffer srcBuffer, VkDeviceSize srcOffset, VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize size) {
+    VEngineResult bufferResult;
+
+    VkCommandBuffer commandBuffer;
+
+    bufferResult = v_begin_one_time_command_buffer(&commandBuffer);
+    if(bufferResult.type != VE_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_begin_one_time_command_buffer had failed with %i", bufferResult.point);
+        RETURN_RESULT_CODE(VE_COPY_BUFFER_FAILURE, 0)
+    }
+
+    VkBufferCopy copyRegion;
+    memset(&copyRegion, 0, sizeof(copyRegion));
+    copyRegion.srcOffset = srcOffset;
+    copyRegion.dstOffset = dstOffset;
+    copyRegion.size = size;
+    vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+    bufferResult = v_end_one_time_command_buffer(&commandBuffer);
+    if(bufferResult.type != VE_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_end_one_time_command_buffer had failed with %i", bufferResult.point);
+        RETURN_RESULT_CODE(VE_COPY_BUFFER_FAILURE, 1)
+    }
+
+    RETURN_RESULT_CODE(VE_SUCCESS, 0)
+}
+
+VEngineResult v_begin_one_time_command_buffer(VkCommandBuffer *pCommandBuffer) {
     VkResult result;
 
     VkCommandBufferAllocateInfo commandBufferAllocateInfo;
@@ -235,12 +262,11 @@ VEngineResult v_copy_buffer(VkBuffer srcBuffer, VkDeviceSize srcOffset, VkBuffer
     commandBufferAllocateInfo.commandPool = context.vk.commandPool;
     commandBufferAllocateInfo.commandBufferCount = 1;
 
-    VkCommandBuffer commandBuffer;
-    result = vkAllocateCommandBuffers(context.vk.device, &commandBufferAllocateInfo, &commandBuffer);
+    result = vkAllocateCommandBuffers(context.vk.device, &commandBufferAllocateInfo, pCommandBuffer);
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkAllocateCommandBuffers failed with result: %i", result);
-        RETURN_RESULT_CODE(VE_COPY_BUFFER_FAILURE, 0)
+        RETURN_RESULT_CODE(VE_1_TIME_COMMAND_BUFFER_FAILURE, 0)
     }
 
     VkCommandBufferBeginInfo commandBufferBeginInfo;
@@ -248,47 +274,44 @@ VEngineResult v_copy_buffer(VkBuffer srcBuffer, VkDeviceSize srcOffset, VkBuffer
     commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     commandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-    result = vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
+    result = vkBeginCommandBuffer(*pCommandBuffer, &commandBufferBeginInfo);
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkBeginCommandBuffer failed with result: %i", result);
 
-        vkFreeCommandBuffers(context.vk.device, context.vk.commandPool, 1, &commandBuffer);
+        vkFreeCommandBuffers(context.vk.device, context.vk.commandPool, 1, pCommandBuffer);
 
-        RETURN_RESULT_CODE(VE_COPY_BUFFER_FAILURE, 1)
+        RETURN_RESULT_CODE(VE_1_TIME_COMMAND_BUFFER_FAILURE, 1)
     }
 
-    VkBufferCopy copyRegion;
-    memset(&commandBufferAllocateInfo, 0, sizeof(commandBufferAllocateInfo));
-    copyRegion.srcOffset = srcOffset;
-    copyRegion.dstOffset = dstOffset;
-    copyRegion.size = size;
-    vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+    RETURN_RESULT_CODE(VE_SUCCESS, 0)
+}
 
-    result = vkEndCommandBuffer(commandBuffer);
+VEngineResult v_end_one_time_command_buffer(VkCommandBuffer *pCommandBuffer) {
+    VkResult result = vkEndCommandBuffer(*pCommandBuffer);
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkEndCommandBuffer failed with result: %i", result);
 
-        vkFreeCommandBuffers(context.vk.device, context.vk.commandPool, 1, &commandBuffer);
+        vkFreeCommandBuffers(context.vk.device, context.vk.commandPool, 1, pCommandBuffer);
 
-        RETURN_RESULT_CODE(VE_COPY_BUFFER_FAILURE, 2)
+        RETURN_RESULT_CODE(VE_1_TIME_COMMAND_BUFFER_FAILURE, 2)
     }
 
     VkSubmitInfo submitInfo;
     memset(&submitInfo, 0, sizeof(submitInfo));
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &commandBuffer;
+    submitInfo.pCommandBuffers = pCommandBuffer;
 
     result = vkQueueSubmit(context.vk.graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkQueueSubmit failed with result: %i", result);
 
-        vkFreeCommandBuffers(context.vk.device, context.vk.commandPool, 1, &commandBuffer);
+        vkFreeCommandBuffers(context.vk.device, context.vk.commandPool, 1, pCommandBuffer);
 
-        RETURN_RESULT_CODE(VE_COPY_BUFFER_FAILURE, 3)
+        RETURN_RESULT_CODE(VE_1_TIME_COMMAND_BUFFER_FAILURE, 3)
     }
 
     result = vkQueueWaitIdle(context.vk.graphicsQueue);
@@ -296,12 +319,13 @@ VEngineResult v_copy_buffer(VkBuffer srcBuffer, VkDeviceSize srcOffset, VkBuffer
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkQueueSubmit failed with result: %i", result);
 
-        vkFreeCommandBuffers(context.vk.device, context.vk.commandPool, 1, &commandBuffer);
+        vkFreeCommandBuffers(context.vk.device, context.vk.commandPool, 1, pCommandBuffer);
 
-        RETURN_RESULT_CODE(VE_COPY_BUFFER_FAILURE, 4)
+        RETURN_RESULT_CODE(VE_1_TIME_COMMAND_BUFFER_FAILURE, 4)
     }
 
-    vkFreeCommandBuffers(context.vk.device, context.vk.commandPool, 1, &commandBuffer);
+    vkFreeCommandBuffers(context.vk.device, context.vk.commandPool, 1, pCommandBuffer);
+
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
