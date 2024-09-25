@@ -3,6 +3,9 @@
 #include "SDL_rwops.h"
 #include "SDL_log.h"
 
+#define QOI_IMPLEMENTATION
+#include "qoi.h"
+
 Uint8* u_read_file(const char *const pFilepath, Sint64 *pFileSize) {
     *pFileSize = 0;
 
@@ -46,4 +49,18 @@ Uint8* u_read_file(const char *const pFilepath, Sint64 *pFileSize) {
     SDL_RWclose(pFile);
     *pFileSize = size;
     return pData;
+}
+
+void* u_qoi_read(const char *const pUTF8Filepath, qoi_desc *pDesc, int channels) {
+    Sint64 fileSize;
+    Uint8 *pData = u_read_file(pUTF8Filepath, &fileSize);
+
+    if(pData == NULL)
+        return NULL;
+
+    void *pPixelData = qoi_decode(pData, fileSize, pDesc, channels);
+
+    free(pData);
+
+    return pPixelData;
 }
