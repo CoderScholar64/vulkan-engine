@@ -332,14 +332,6 @@ VEngineResult v_end_one_time_command_buffer(VkCommandBuffer *pCommandBuffer) {
 VEngineResult v_transition_image_layout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) {
     VEngineResult bufferResult;
 
-    VkCommandBuffer commandBuffer;
-
-    bufferResult = v_begin_one_time_command_buffer(&commandBuffer);
-    if(bufferResult.type != VE_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_begin_one_time_command_buffer had failed with %i", bufferResult.point);
-        RETURN_RESULT_CODE(VE_TRANSIT_IMAGE_LAYOUT_FAILURE, 0)
-    }
-
     VkImageMemoryBarrier imageMemoryBarrier;
     memset(&imageMemoryBarrier, 0, sizeof(imageMemoryBarrier));
     imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -356,9 +348,24 @@ VEngineResult v_transition_image_layout(VkImage image, VkFormat format, VkImageL
     imageMemoryBarrier.srcAccessMask = 0; // TODO For some reason this is there?
     imageMemoryBarrier.dstAccessMask = 0;
 
+    if(oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {}
+    else if(oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {}
+    else {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "unsupported layout transition");
+        RETURN_RESULT_CODE(VE_TRANSIT_IMAGE_LAYOUT_FAILURE, 0)
+    }
+
+    VkCommandBuffer commandBuffer;
+
+    bufferResult = v_begin_one_time_command_buffer(&commandBuffer);
+    if(bufferResult.type != VE_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_begin_one_time_command_buffer had failed with %i", bufferResult.point);
+        RETURN_RESULT_CODE(VE_TRANSIT_IMAGE_LAYOUT_FAILURE, 1)
+    }
+
     vkCmdPipelineBarrier(
         commandBuffer,
-        0, 0, // Both TODO
+        0, 0, // Both TODO For some reason this is there?
         0,
         0, NULL,
         0, NULL,
@@ -368,7 +375,7 @@ VEngineResult v_transition_image_layout(VkImage image, VkFormat format, VkImageL
     bufferResult = v_end_one_time_command_buffer(&commandBuffer);
     if(bufferResult.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_end_one_time_command_buffer had failed with %i", bufferResult.point);
-        RETURN_RESULT_CODE(VE_TRANSIT_IMAGE_LAYOUT_FAILURE, 1)
+        RETURN_RESULT_CODE(VE_TRANSIT_IMAGE_LAYOUT_FAILURE, 2)
     }
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
