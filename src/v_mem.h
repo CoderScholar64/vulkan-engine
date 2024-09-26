@@ -10,6 +10,7 @@
 typedef struct {
     Vector2 pos;
     Vector3 color;
+    Vector2 texCoord;
 } Vertex;
 
 typedef struct {
@@ -23,7 +24,7 @@ extern const Vertex builtin_vertices[4];
 extern const Uint16 builtin_indexes[6];
 
 extern const VkVertexInputBindingDescription vertexBindingDescription;
-extern const VkVertexInputAttributeDescription vertexInputAttributeDescriptions[2];
+extern const VkVertexInputAttributeDescription vertexInputAttributeDescriptions[3];
 
 /**
  * Allocate a singular buffer.

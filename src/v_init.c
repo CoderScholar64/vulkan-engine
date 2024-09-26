@@ -806,20 +806,25 @@ static VEngineResult createRenderPass() {
 static VEngineResult allocateDescriptorSetLayout() {
     VkResult result;
 
-    VkDescriptorSetLayoutBinding descriptorSetBinding;
+    VkDescriptorSetLayoutBinding descriptorSetBindings[2];
+    descriptorSetBindings[0].binding = 0;
+    descriptorSetBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    descriptorSetBindings[0].descriptorCount = 1;
+    descriptorSetBindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    descriptorSetBindings[0].pImmutableSamplers = NULL;
+
+    descriptorSetBindings[1].binding = 1;
+    descriptorSetBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    descriptorSetBindings[1].descriptorCount = 1;
+    descriptorSetBindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+    descriptorSetBindings[1].pImmutableSamplers = NULL;
+
     VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo;
-
-    descriptorSetBinding.binding = 0;
-    descriptorSetBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    descriptorSetBinding.descriptorCount = 1;
-    descriptorSetBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-    descriptorSetBinding.pImmutableSamplers = NULL;
-
     descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
     descriptorSetLayoutCreateInfo.pNext = 0;
     descriptorSetLayoutCreateInfo.flags = 0;
-    descriptorSetLayoutCreateInfo.bindingCount = 1;
-    descriptorSetLayoutCreateInfo.pBindings = &descriptorSetBinding;
+    descriptorSetLayoutCreateInfo.bindingCount = sizeof(descriptorSetBindings) / sizeof(descriptorSetBindings[0]);
+    descriptorSetLayoutCreateInfo.pBindings = descriptorSetBindings;
 
     result = vkCreateDescriptorSetLayout(context.vk.device, &descriptorSetLayoutCreateInfo, NULL, &context.vk.descriptorSetLayout);
 
@@ -827,6 +832,7 @@ static VEngineResult allocateDescriptorSetLayout() {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkCreateRenderPass() Failed to allocate %i", result);
         RETURN_RESULT_CODE(VE_DESCRIPTOR_SET_LAYOUT_FAILURE, 0)
     }
+
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
@@ -1269,15 +1275,17 @@ static VEngineResult allocateSyncObjects() {
 static VEngineResult allocateDescriptorPool() {
     VkResult result;
 
-    VkDescriptorPoolSize descriptorPoolSize; // Memset not needed.
-    descriptorPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    descriptorPoolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
+    VkDescriptorPoolSize descriptorPoolSizes[2];
+    descriptorPoolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    descriptorPoolSizes[0].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+    descriptorPoolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    descriptorPoolSizes[1].descriptorCount = MAX_FRAMES_IN_FLIGHT;
 
     VkDescriptorPoolCreateInfo descriptorPoolCreateInfo;
     memset(&descriptorPoolCreateInfo, 0, sizeof(descriptorPoolCreateInfo));
     descriptorPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    descriptorPoolCreateInfo.poolSizeCount = 1;
-    descriptorPoolCreateInfo.pPoolSizes = &descriptorPoolSize;
+    descriptorPoolCreateInfo.poolSizeCount = sizeof(descriptorPoolSizes) / sizeof(descriptorPoolSizes[0]);
+    descriptorPoolCreateInfo.pPoolSizes = descriptorPoolSizes;
     descriptorPoolCreateInfo.maxSets = MAX_FRAMES_IN_FLIGHT;
 
     result = vkCreateDescriptorPool(context.vk.device, &descriptorPoolCreateInfo, NULL, &context.vk.descriptorPool);
@@ -1303,14 +1311,26 @@ static VEngineResult allocateDescriptorSets() {
     descriptorBufferInfo.offset = 0;
     descriptorBufferInfo.range = sizeof(UniformBufferObject);
 
-    VkWriteDescriptorSet writeDescriptorSet;
-    memset(&writeDescriptorSet, 0, sizeof(writeDescriptorSet));
-    writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    writeDescriptorSet.dstBinding = 0;
-    writeDescriptorSet.dstArrayElement = 0;
-    writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    writeDescriptorSet.descriptorCount = 1;
-    writeDescriptorSet.pBufferInfo = &descriptorBufferInfo;
+    VkDescriptorImageInfo descriptorImageInfo;
+    descriptorImageInfo.sampler = context.vk.defaultTextureSampler;
+    descriptorImageInfo.imageView = context.vk.textureImageView;
+    descriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+    VkWriteDescriptorSet writeDescriptorSets[2];
+    memset(writeDescriptorSets, 0, sizeof(writeDescriptorSets));
+    writeDescriptorSets[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    writeDescriptorSets[0].dstBinding = 0;
+    writeDescriptorSets[0].dstArrayElement = 0;
+    writeDescriptorSets[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    writeDescriptorSets[0].descriptorCount = 1;
+    writeDescriptorSets[0].pBufferInfo = &descriptorBufferInfo;
+
+    writeDescriptorSets[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    writeDescriptorSets[1].dstBinding = 1;
+    writeDescriptorSets[1].dstArrayElement = 0;
+    writeDescriptorSets[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    writeDescriptorSets[1].descriptorCount = 1;
+    writeDescriptorSets[1].pImageInfo = &descriptorImageInfo;
 
     for(Uint32 i = MAX_FRAMES_IN_FLIGHT; i != 0; i--) {
         result = vkAllocateDescriptorSets(context.vk.device, &descriptorSetAllocateInfo, &context.vk.frames[i - 1].descriptorSet);
@@ -1322,9 +1342,10 @@ static VEngineResult allocateDescriptorSets() {
 
         descriptorBufferInfo.buffer = context.vk.frames[i - 1].uniformBuffer;
 
-        writeDescriptorSet.dstSet = context.vk.frames[i - 1].descriptorSet;
+        writeDescriptorSets[0].dstSet = context.vk.frames[i - 1].descriptorSet;
+        writeDescriptorSets[1].dstSet = context.vk.frames[i - 1].descriptorSet;
 
-        vkUpdateDescriptorSets(context.vk.device, 1, &writeDescriptorSet, 0, NULL);
+        vkUpdateDescriptorSets(context.vk.device, 2, writeDescriptorSets, 0, NULL);
     }
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }

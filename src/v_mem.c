@@ -5,10 +5,10 @@
 #include "SDL_log.h"
 
 const Vertex builtin_vertices[4] = {
-    {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-    {{ 0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-    {{ 0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}},
-    {{-0.5f,  0.5f}, {1.0f, 1.0f, 1.0f}}
+    {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+    {{ 0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+    {{ 0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+    {{-0.5f,  0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
 };
 
 const Uint16 builtin_indexes[6] = {
@@ -20,10 +20,11 @@ const VkVertexInputBindingDescription vertexBindingDescription = {
           0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX
 };
 
-const VkVertexInputAttributeDescription vertexInputAttributeDescriptions[2] = {
-//   location, binding,                     format,                 offset
-    {       0,       0,    VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex,   pos)},
-    {       1,       0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, color)}
+const VkVertexInputAttributeDescription vertexInputAttributeDescriptions[3] = {
+//   location, binding,                     format,                    offset
+    {       0,       0,    VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex,      pos)},
+    {       1,       0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex,    color)},
+    {       2,       0,    VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, texCoord)}
 };
 
 VEngineResult v_alloc_buffer(VkDeviceSize size, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags, VkBuffer *pBuffer, VkDeviceMemory *pBufferMemory) {
