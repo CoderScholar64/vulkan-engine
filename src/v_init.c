@@ -37,6 +37,7 @@ static VEngineResult allocateGraphicsPipeline();
 static VEngineResult allocateFrameBuffers();
 static VEngineResult allocateCommandPool();
 static VEngineResult allocateTextureImage();
+static VEngineResult allocateTextureImageView();
 static VEngineResult createCommandBuffer();
 static VEngineResult allocateSyncObjects();
 static VEngineResult allocateDescriptorPool();
@@ -102,6 +103,10 @@ VEngineResult v_init() {
     if( returnCode.type < 0 )
         return returnCode;
 
+    returnCode = allocateTextureImageView();
+    if( returnCode.type < 0 )
+        return returnCode;
+
     returnCode = createCommandBuffer();
     if( returnCode.type < 0 )
         return returnCode;
@@ -138,6 +143,7 @@ void v_deinit() {
 
     cleanupSwapChain();
 
+    vkDestroyImageView(context.vk.device, context.vk.textureImageView, NULL);
     vkDestroyImage(context.vk.device, context.vk.textureImage, NULL);
     vkFreeMemory(context.vk.device, context.vk.textureImageMemory, NULL);
     vkDestroyDescriptorPool(context.vk.device, context.vk.descriptorPool, NULL);
@@ -1154,6 +1160,17 @@ static VEngineResult allocateTextureImage() {
 
     vkDestroyBuffer(context.vk.device, stagingBuffer, NULL);
     vkFreeMemory(context.vk.device, stagingBufferMemory, NULL);
+
+    RETURN_RESULT_CODE(VE_SUCCESS, 0)
+}
+
+static VEngineResult allocateTextureImageView() {
+    VEngineResult engineResult = v_alloc_image_view(context.vk.textureImage, VK_FORMAT_R8G8B8A8_SRGB, 0, &context.vk.textureImageView);
+
+    if(engineResult.type != VE_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_alloc_image_view failed for allocate returned %i", engineResult.point);
+        RETURN_RESULT_CODE(VE_ALLOC_TEXTURE_I_V_FAILURE, 0)
+    }
 
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
