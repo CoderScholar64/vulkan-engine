@@ -725,32 +725,13 @@ static VEngineResult allocateSwapChain() {
 }
 
 static VEngineResult allocateSwapChainImageViews() {
-    VkImageViewCreateInfo imageViewCreateInfo;
-    VkResult result;
+    VEngineResult engineResult;
 
     for(Uint32 i = 0; i < context.vk.swapChainFrameCount; i++) {
-        memset(&imageViewCreateInfo, 0, sizeof(imageViewCreateInfo));
-        imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        imageViewCreateInfo.image = context.vk.pSwapChainFrames[i].image;
+        engineResult = v_alloc_image_view(context.vk.pSwapChainFrames[i].image, context.vk.surfaceFormat.format, 0, &context.vk.pSwapChainFrames[i].imageView);
 
-        imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        imageViewCreateInfo.format = context.vk.surfaceFormat.format;
-
-        imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-        imageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-        imageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-        imageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-
-        imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
-        imageViewCreateInfo.subresourceRange.levelCount = 1;
-        imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
-        imageViewCreateInfo.subresourceRange.layerCount = 1;
-
-        result = vkCreateImageView(context.vk.device, &imageViewCreateInfo, NULL, &context.vk.pSwapChainFrames[i].imageView);
-
-        if(result != VK_SUCCESS) {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to vkCreateImageView at index %i for allocate returned %i", i, result);
+        if(engineResult.type != VE_SUCCESS) {
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_alloc_image_view failed at index %i for allocate returned %i", i, engineResult.point);
             RETURN_RESULT_CODE(VE_ALLOC_SWAP_CHAIN_I_V_FAILURE, i)
         }
     }

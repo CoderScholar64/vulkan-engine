@@ -90,7 +90,7 @@ VEngineResult   v_end_one_time_command_buffer(VkCommandBuffer *pCommandBuffer);
 VEngineResult v_transition_image_layout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
 VEngineResult v_copy_buffer_to_image(VkBuffer buffer, VkImage image, Uint32 width, Uint32 height);
 
-VEngineResult v_alloc_image_view(VkImage image, VkFormat format, VkImageViewCreateFlags flags,  VkImageView *pImageView);
+VEngineResult v_alloc_image_view(VkImage image, VkFormat format, VkImageViewCreateFlags flags, VkImageView *pImageView);
 
 /**
  * Find the memory buffer from
