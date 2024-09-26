@@ -8,7 +8,7 @@
 #include <vulkan/vulkan.h>
 
 typedef struct {
-    Vector2 pos;
+    Vector3 pos;
     Vector3 color;
     Vector2 texCoord;
 } Vertex;
@@ -20,8 +20,8 @@ typedef struct {
 } UniformBufferObject;
 
 
-extern const Vertex builtin_vertices[4];
-extern const Uint16 builtin_indexes[6];
+extern const Vertex builtin_vertices[8];
+extern const Uint16 builtin_indexes[12];
 
 extern const VkVertexInputBindingDescription vertexBindingDescription;
 extern const VkVertexInputAttributeDescription vertexInputAttributeDescriptions[3];

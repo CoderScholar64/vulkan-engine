@@ -4,15 +4,21 @@
 
 #include "SDL_log.h"
 
-const Vertex builtin_vertices[4] = {
-    {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-    {{ 0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
-    {{ 0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
-    {{-0.5f,  0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
+const Vertex builtin_vertices[8] = {
+    {{-0.5f, -0.5f,  0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+    {{ 0.5f, -0.5f,  0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+    {{ 0.5f,  0.5f,  0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+    {{-0.5f,  0.5f,  0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},
+
+    {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+    {{ 0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+    {{ 0.5f,  0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+    {{-0.5f,  0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
 };
 
-const Uint16 builtin_indexes[6] = {
-    0, 1, 2, 2, 3, 0
+const Uint16 builtin_indexes[12] = {
+    0, 1, 2, 2, 3, 0,
+    4, 5, 6, 6, 7, 4
 };
 
 const VkVertexInputBindingDescription vertexBindingDescription = {
@@ -22,7 +28,7 @@ const VkVertexInputBindingDescription vertexBindingDescription = {
 
 const VkVertexInputAttributeDescription vertexInputAttributeDescriptions[3] = {
 //   location, binding,                     format,                    offset
-    {       0,       0,    VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex,      pos)},
+    {       0,       0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex,      pos)},
     {       1,       0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex,    color)},
     {       2,       0,    VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, texCoord)}
 };
