@@ -30,7 +30,8 @@ typedef enum {
     VE_ALLOC_IMAGE_FAILURE           = -24,
     VE_1_TIME_COMMAND_BUFFER_FAILURE = -25,
     VE_TRANSIT_IMAGE_LAYOUT_FAILURE  = -26,
-    VE_COPY_BUFFER_TO_IMAGE_FAILURE  = -27
+    VE_COPY_BUFFER_TO_IMAGE_FAILURE  = -27,
+    VE_ALLOC_IMAGE_VIEW_FAILURE      = -28
 } VEngineResultType;
 
 typedef struct {
