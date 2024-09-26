@@ -54,6 +54,8 @@ struct Context {
         VkImageView textureImageView;
         VkDeviceMemory textureImageMemory;
 
+        VkSampler defaultTextureSampler;
+
         struct {
             VkCommandBuffer commandBuffer;
             VkDescriptorSet descriptorSet;

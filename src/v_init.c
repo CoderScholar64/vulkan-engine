@@ -38,6 +38,7 @@ static VEngineResult allocateFrameBuffers();
 static VEngineResult allocateCommandPool();
 static VEngineResult allocateTextureImage();
 static VEngineResult allocateTextureImageView();
+static VEngineResult allocateDefaultTextureSampler();
 static VEngineResult createCommandBuffer();
 static VEngineResult allocateSyncObjects();
 static VEngineResult allocateDescriptorPool();
@@ -107,6 +108,10 @@ VEngineResult v_init() {
     if( returnCode.type < 0 )
         return returnCode;
 
+    returnCode = allocateDefaultTextureSampler();
+    if( returnCode.type < 0 )
+        return returnCode;
+
     returnCode = createCommandBuffer();
     if( returnCode.type < 0 )
         return returnCode;
@@ -143,6 +148,7 @@ void v_deinit() {
 
     cleanupSwapChain();
 
+    vkDestroySampler(context.vk.device, context.vk.defaultTextureSampler, NULL);
     vkDestroyImageView(context.vk.device, context.vk.textureImageView, NULL);
     vkDestroyImage(context.vk.device, context.vk.textureImage, NULL);
     vkFreeMemory(context.vk.device, context.vk.textureImageMemory, NULL);
@@ -1172,6 +1178,35 @@ static VEngineResult allocateTextureImageView() {
         RETURN_RESULT_CODE(VE_ALLOC_TEXTURE_I_V_FAILURE, 0)
     }
 
+    RETURN_RESULT_CODE(VE_SUCCESS, 0)
+}
+
+static VEngineResult allocateDefaultTextureSampler() {
+    VkSamplerCreateInfo samplerCreateInfo;
+    samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    samplerCreateInfo.pNext = NULL;
+    samplerCreateInfo.flags = 0;
+    samplerCreateInfo.magFilter = VK_FILTER_LINEAR;
+    samplerCreateInfo.minFilter = VK_FILTER_LINEAR;
+    samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerCreateInfo.mipLodBias = 0.0f;
+    samplerCreateInfo.anisotropyEnable = VK_FALSE;
+    samplerCreateInfo.maxAnisotropy = 1.0;
+    samplerCreateInfo.compareEnable = VK_FALSE;
+    samplerCreateInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+    samplerCreateInfo.minLod = 0.0f;
+    samplerCreateInfo.maxLod = 0.0f;
+    samplerCreateInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+    samplerCreateInfo.unnormalizedCoordinates = VK_FALSE;
+
+    VkResult result = vkCreateSampler(context.vk.device, &samplerCreateInfo, NULL, &context.vk.defaultTextureSampler);
+    if(result != VK_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkCreateSampler creation failed with result: %i", result);
+        RETURN_RESULT_CODE(VE_ALLOC_DEFAULT_SAMPLER_FAILURE, 0)
+    }
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
