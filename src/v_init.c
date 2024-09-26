@@ -807,16 +807,17 @@ static VEngineResult allocateDescriptorSetLayout() {
     VkResult result;
 
     VkDescriptorSetLayoutBinding descriptorSetBinding;
-    memset(&descriptorSetBinding, 0, sizeof(descriptorSetBinding));
+    VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo;
+
     descriptorSetBinding.binding = 0;
     descriptorSetBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     descriptorSetBinding.descriptorCount = 1;
     descriptorSetBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
     descriptorSetBinding.pImmutableSamplers = NULL;
 
-    VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo;
-    memset(&descriptorSetLayoutCreateInfo, 0, sizeof(descriptorSetLayoutCreateInfo));
     descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    descriptorSetLayoutCreateInfo.pNext = 0;
+    descriptorSetLayoutCreateInfo.flags = 0;
     descriptorSetLayoutCreateInfo.bindingCount = 1;
     descriptorSetLayoutCreateInfo.pBindings = &descriptorSetBinding;
 
