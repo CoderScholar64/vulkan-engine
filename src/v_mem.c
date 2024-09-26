@@ -83,20 +83,20 @@ VEngineResult v_alloc_buffer(VkDeviceSize size, VkBufferUsageFlags usageFlags, V
 }
 
 VEngineResult v_alloc_static_buffer(const void *pData, size_t sizeOfData, VkBuffer *pBuffer, VkBufferUsageFlags usageFlags, VkDeviceMemory *pBufferMemory) {
-    VEngineResult bufferResult;
+    VEngineResult engineResult;
 
     VkBuffer       stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
 
-    bufferResult = v_alloc_buffer(
+    engineResult = v_alloc_buffer(
                 sizeOfData,
                 VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                 &stagingBuffer,
                 &stagingBufferMemory);
 
-    if(bufferResult.type != VE_SUCCESS) {
-        RETURN_RESULT_CODE(VE_ALLOC_STATIC_BUFFER, bufferResult.point)
+    if(engineResult.type != VE_SUCCESS) {
+        RETURN_RESULT_CODE(VE_ALLOC_STATIC_BUFFER, engineResult.point)
     }
 
     void* pDstData;
@@ -104,26 +104,26 @@ VEngineResult v_alloc_static_buffer(const void *pData, size_t sizeOfData, VkBuff
     memcpy(pDstData, pData, sizeOfData);
     vkUnmapMemory(context.vk.device, stagingBufferMemory);
 
-    bufferResult = v_alloc_buffer(
+    engineResult = v_alloc_buffer(
                 sizeOfData,
                 VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags,
                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                 pBuffer,
                 pBufferMemory);
 
-    if(bufferResult.type != VE_SUCCESS) {
+    if(engineResult.type != VE_SUCCESS) {
         vkDestroyBuffer(context.vk.device, stagingBuffer, NULL);
         vkFreeMemory(context.vk.device, stagingBufferMemory, NULL);
-        RETURN_RESULT_CODE(VE_ALLOC_STATIC_BUFFER, 4 + bufferResult.point)
+        RETURN_RESULT_CODE(VE_ALLOC_STATIC_BUFFER, 4 + engineResult.point)
     }
 
-    bufferResult = v_copy_buffer(stagingBuffer, 0, *pBuffer, 0, sizeOfData);
+    engineResult = v_copy_buffer(stagingBuffer, 0, *pBuffer, 0, sizeOfData);
 
     vkDestroyBuffer(context.vk.device, stagingBuffer, NULL);
     vkFreeMemory(context.vk.device, stagingBufferMemory, NULL);
 
-    if(bufferResult.type != VE_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_copy_buffer failed with result: %i", bufferResult.type);
+    if(engineResult.type != VE_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_copy_buffer failed with result: %i", engineResult.type);
         RETURN_RESULT_CODE(VE_ALLOC_STATIC_BUFFER, 8)
     }
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
@@ -138,19 +138,19 @@ VEngineResult v_alloc_builtin_index_buffer() {
 }
 
 VEngineResult v_alloc_builtin_uniform_buffers() {
-    VEngineResult bufferResult;
+    VEngineResult engineResult;
 
     for(Uint32 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        bufferResult = v_alloc_buffer(
+        engineResult = v_alloc_buffer(
             sizeof(UniformBufferObject),
             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
             &context.vk.frames[i].uniformBuffer,
             &context.vk.frames[i].uniformBufferMemory);
 
-        if(bufferResult.type != VE_SUCCESS) {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_copy_buffer failed with result: %i", bufferResult.type);
-            return bufferResult;
+        if(engineResult.type != VE_SUCCESS) {
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_copy_buffer failed with result: %i", engineResult.type);
+            return engineResult;
         }
 
         vkMapMemory(context.vk.device, context.vk.frames[i].uniformBufferMemory, 0, sizeof(UniformBufferObject), 0, &context.vk.frames[i].uniformBufferMapped);
@@ -226,13 +226,13 @@ VEngineResult v_alloc_image(Uint32 width, Uint32 height, VkFormat format, VkImag
 }
 
 VEngineResult v_copy_buffer(VkBuffer srcBuffer, VkDeviceSize srcOffset, VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize size) {
-    VEngineResult bufferResult;
+    VEngineResult engineResult;
 
     VkCommandBuffer commandBuffer;
 
-    bufferResult = v_begin_one_time_command_buffer(&commandBuffer);
-    if(bufferResult.type != VE_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_begin_one_time_command_buffer had failed with %i", bufferResult.point);
+    engineResult = v_begin_one_time_command_buffer(&commandBuffer);
+    if(engineResult.type != VE_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_begin_one_time_command_buffer had failed with %i", engineResult.point);
         RETURN_RESULT_CODE(VE_COPY_BUFFER_FAILURE, 0)
     }
 
@@ -243,9 +243,9 @@ VEngineResult v_copy_buffer(VkBuffer srcBuffer, VkDeviceSize srcOffset, VkBuffer
     copyRegion.size = size;
     vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
-    bufferResult = v_end_one_time_command_buffer(&commandBuffer);
-    if(bufferResult.type != VE_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_end_one_time_command_buffer had failed with %i", bufferResult.point);
+    engineResult = v_end_one_time_command_buffer(&commandBuffer);
+    if(engineResult.type != VE_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_end_one_time_command_buffer had failed with %i", engineResult.point);
         RETURN_RESULT_CODE(VE_COPY_BUFFER_FAILURE, 1)
     }
 
@@ -330,7 +330,7 @@ VEngineResult v_end_one_time_command_buffer(VkCommandBuffer *pCommandBuffer) {
 }
 
 VEngineResult v_transition_image_layout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) {
-    VEngineResult bufferResult;
+    VEngineResult engineResult;
     VkImageMemoryBarrier imageMemoryBarrier;
     VkPipelineStageFlags sourceStage;
     VkPipelineStageFlags destinationStage;
@@ -369,9 +369,9 @@ VEngineResult v_transition_image_layout(VkImage image, VkFormat format, VkImageL
 
     VkCommandBuffer commandBuffer;
 
-    bufferResult = v_begin_one_time_command_buffer(&commandBuffer);
-    if(bufferResult.type != VE_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_begin_one_time_command_buffer had failed with %i", bufferResult.point);
+    engineResult = v_begin_one_time_command_buffer(&commandBuffer);
+    if(engineResult.type != VE_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_begin_one_time_command_buffer had failed with %i", engineResult.point);
         RETURN_RESULT_CODE(VE_TRANSIT_IMAGE_LAYOUT_FAILURE, 1)
     }
 
@@ -384,22 +384,22 @@ VEngineResult v_transition_image_layout(VkImage image, VkFormat format, VkImageL
         1, &imageMemoryBarrier
     );
 
-    bufferResult = v_end_one_time_command_buffer(&commandBuffer);
-    if(bufferResult.type != VE_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_end_one_time_command_buffer had failed with %i", bufferResult.point);
+    engineResult = v_end_one_time_command_buffer(&commandBuffer);
+    if(engineResult.type != VE_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_end_one_time_command_buffer had failed with %i", engineResult.point);
         RETURN_RESULT_CODE(VE_TRANSIT_IMAGE_LAYOUT_FAILURE, 2)
     }
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
 VEngineResult v_copy_buffer_to_image(VkBuffer buffer, VkImage image, Uint32 width, Uint32 height) {
-    VEngineResult bufferResult;
+    VEngineResult engineResult;
 
     VkCommandBuffer commandBuffer;
 
-    bufferResult = v_begin_one_time_command_buffer(&commandBuffer);
-    if(bufferResult.type != VE_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_begin_one_time_command_buffer had failed with %i", bufferResult.point);
+    engineResult = v_begin_one_time_command_buffer(&commandBuffer);
+    if(engineResult.type != VE_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_begin_one_time_command_buffer had failed with %i", engineResult.point);
         RETURN_RESULT_CODE(VE_COPY_BUFFER_TO_IMAGE_FAILURE, 0)
     }
 
@@ -431,9 +431,9 @@ VEngineResult v_copy_buffer_to_image(VkBuffer buffer, VkImage image, Uint32 widt
         &bufferImageCopy
     );
 
-    bufferResult = v_end_one_time_command_buffer(&commandBuffer);
-    if(bufferResult.type != VE_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_end_one_time_command_buffer had failed with %i", bufferResult.point);
+    engineResult = v_end_one_time_command_buffer(&commandBuffer);
+    if(engineResult.type != VE_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_end_one_time_command_buffer had failed with %i", engineResult.point);
         RETURN_RESULT_CODE(VE_COPY_BUFFER_TO_IMAGE_FAILURE, 1)
     }
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
