@@ -149,7 +149,7 @@ VEngineResult v_record_command_buffer(VkCommandBuffer commandBuffer, uint32_t im
     viewport.width  = (float)context.vk.swapExtent.width;
     viewport.height = (float)context.vk.swapExtent.height;
     viewport.minDepth = 0.0f;
-    viewport.maxDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
     vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
     VkRect2D scissor;
