@@ -101,6 +101,10 @@ VEngineResult v_init() {
     if( returnCode.type < 0 )
         return returnCode;
 
+    returnCode = allocateDepthResources();
+    if( returnCode.type < 0 )
+        return returnCode;
+
     returnCode = allocateTextureImage();
     if( returnCode.type < 0 )
         return returnCode;
