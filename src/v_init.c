@@ -1151,6 +1151,13 @@ static VEngineResult allocateDepthResources() {
         RETURN_RESULT_CODE(VE_ALLOC_DEPTH_BUFFER_FAILURE, 2)
     }
 
+    engineResult = v_transition_image_layout(context.vk.depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+
+    if(engineResult.type != VE_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_transition_image_layout creation failed with result: %i", engineResult.point);
+        RETURN_RESULT_CODE(VE_ALLOC_DEPTH_BUFFER_FAILURE, 3)
+    }
+
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
