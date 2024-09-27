@@ -199,6 +199,10 @@ VEngineResult v_recreate_swap_chain() {
     if( returnCode.type < 0 )
         return returnCode;
 
+    returnCode = allocateDepthResources();
+    if( returnCode.type < 0 )
+        return returnCode;
+
     returnCode = allocateFrameBuffers();
     if( returnCode.type < 0 )
         return returnCode;
@@ -1432,6 +1436,10 @@ static VEngineResult allocateDescriptorSets() {
 }
 
 static void cleanupSwapChain() {
+    vkDestroyImageView( context.vk.device, context.vk.depthImageView,   NULL);
+    vkDestroyImage(     context.vk.device, context.vk.depthImage,       NULL);
+    vkFreeMemory(       context.vk.device, context.vk.depthImageMemory, NULL);
+
     for(Uint32 i = context.vk.swapChainFrameCount; i != 0; i--) {
         vkDestroyImageView(  context.vk.device, context.vk.pSwapChainFrames[i - 1].imageView,   NULL);
         vkDestroyFramebuffer(context.vk.device, context.vk.pSwapChainFrames[i - 1].framebuffer, NULL);
