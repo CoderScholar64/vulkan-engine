@@ -1122,18 +1122,18 @@ static VEngineResult allocateDepthResources() {
 
     VEngineResult engineResult;
 
-    VkFormat depthFormat = v_find_supported_format(
+    context.vk.depthFormat = v_find_supported_format(
         candidates, sizeof(candidates) / sizeof(candidates[0]),
         VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 
-    if(depthFormat == VK_FORMAT_UNDEFINED) {
+    if(context.vk.depthFormat == VK_FORMAT_UNDEFINED) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_find_supported_format failed to find any valid format");
         RETURN_RESULT_CODE(VE_ALLOC_DEPTH_BUFFER_FAILURE, 0)
     }
 
     engineResult = v_alloc_image(
         context.vk.swapExtent.width, context.vk.swapExtent.height,
-        depthFormat,
+        context.vk.depthFormat,
         VK_IMAGE_TILING_OPTIMAL,
         VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
@@ -1144,14 +1144,14 @@ static VEngineResult allocateDepthResources() {
         RETURN_RESULT_CODE(VE_ALLOC_DEPTH_BUFFER_FAILURE, 1)
     }
 
-    engineResult = v_alloc_image_view(context.vk.depthImage, depthFormat, 0, VK_IMAGE_ASPECT_DEPTH_BIT, &context.vk.depthImageView);
+    engineResult = v_alloc_image_view(context.vk.depthImage, context.vk.depthFormat, 0, VK_IMAGE_ASPECT_DEPTH_BIT, &context.vk.depthImageView);
 
     if(engineResult.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_alloc_image_view creation failed with result: %i", engineResult.point);
         RETURN_RESULT_CODE(VE_ALLOC_DEPTH_BUFFER_FAILURE, 2)
     }
 
-    engineResult = v_transition_image_layout(context.vk.depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+    engineResult = v_transition_image_layout(context.vk.depthImage, context.vk.depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
     if(engineResult.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_transition_image_layout creation failed with result: %i", engineResult.point);

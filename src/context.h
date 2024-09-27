@@ -55,6 +55,7 @@ struct Context {
         VkDeviceMemory textureImageMemory;
 
         VkImage depthImage;
+        VkFormat depthFormat;
         VkDeviceMemory depthImageMemory;
         VkImageView depthImageView;
 
