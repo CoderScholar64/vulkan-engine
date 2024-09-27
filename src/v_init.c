@@ -1025,7 +1025,7 @@ static VEngineResult allocateGraphicsPipeline() {
     pipelineDepthStencilStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
     pipelineDepthStencilStateCreateInfo.depthTestEnable = VK_TRUE;
     pipelineDepthStencilStateCreateInfo.depthWriteEnable = VK_TRUE;
-    pipelineDepthStencilStateCreateInfo.depthCompareOp = VK_COMPARE_OP_GREATER;
+    pipelineDepthStencilStateCreateInfo.depthCompareOp = VK_COMPARE_OP_GREATER_OR_EQUAL;
     pipelineDepthStencilStateCreateInfo.depthBoundsTestEnable = VK_FALSE;
     pipelineDepthStencilStateCreateInfo.minDepthBounds = 0.0f;
     pipelineDepthStencilStateCreateInfo.maxDepthBounds = 1.0f;
