@@ -446,11 +446,11 @@ VEngineResult v_copy_buffer_to_image(VkBuffer buffer, VkImage image, Uint32 widt
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-VEngineResult v_alloc_image_view(VkImage image, VkFormat format, VkImageViewCreateFlags flags, VkImageView *pImageView) {
+VEngineResult v_alloc_image_view(VkImage image, VkFormat format, VkImageViewCreateFlags createFlags, VkImageAspectFlags aspectFlags, VkImageView *pImageView) {
     VkImageViewCreateInfo imageViewCreateInfo;
     imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     imageViewCreateInfo.pNext = NULL;
-    imageViewCreateInfo.flags = flags;
+    imageViewCreateInfo.flags = createFlags;
     imageViewCreateInfo.image = image;
     imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
     imageViewCreateInfo.format = format;
@@ -460,7 +460,7 @@ VEngineResult v_alloc_image_view(VkImage image, VkFormat format, VkImageViewCrea
     imageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
     imageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
 
-    imageViewCreateInfo.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+    imageViewCreateInfo.subresourceRange.aspectMask     = aspectFlags;
     imageViewCreateInfo.subresourceRange.baseMipLevel   = 0;
     imageViewCreateInfo.subresourceRange.levelCount     = 1;
     imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
@@ -486,4 +486,43 @@ Uint32 v_find_memory_type_index(Uint32 typeFilter, VkMemoryPropertyFlags propert
     }
 
     return 0;
+}
+
+VkFormat v_find_supported_format(const VkFormat *const pCandidates, unsigned candidateAmount, VkImageTiling tiling, VkFormatFeatureFlags features) {
+    VkFormatProperties props;
+
+    for(unsigned i = 0; i < candidateAmount; i++) {
+        VkFormat format = pCandidates[ i ];
+
+        vkGetPhysicalDeviceFormatProperties(context.vk.physicalDevice, format, &props);
+
+        switch(tiling) {
+            case VK_IMAGE_TILING_LINEAR:
+                if((props.linearTilingFeatures & features) == features)
+                    return format;
+                break;
+
+            case VK_IMAGE_TILING_OPTIMAL:
+                if((props.optimalTilingFeatures & features) == features)
+                    return format;
+                break;
+
+            default:
+                SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_find_supported_format: unsupported tiling value: %i", tiling);
+                return VK_FORMAT_UNDEFINED;
+        }
+    }
+    return VK_FORMAT_UNDEFINED;
+}
+
+VkBool32 v_has_stencil_component(VkFormat format) {
+    switch(format) {
+        case  VK_FORMAT_S8_UINT:
+        case  VK_FORMAT_D24_UNORM_S8_UINT:
+        case  VK_FORMAT_D16_UNORM_S8_UINT:
+        case VK_FORMAT_D32_SFLOAT_S8_UINT:
+            return VK_TRUE;
+        default:
+            return VK_FALSE;
+    }
 }

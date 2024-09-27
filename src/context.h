@@ -54,6 +54,10 @@ struct Context {
         VkImageView textureImageView;
         VkDeviceMemory textureImageMemory;
 
+        VkImage depthImage;
+        VkDeviceMemory depthImageMemory;
+        VkImageView depthImageView;
+
         VkSampler defaultTextureSampler;
 
         struct {

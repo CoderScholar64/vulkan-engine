@@ -36,6 +36,7 @@ static VEngineResult allocateDescriptorSetLayout();
 static VEngineResult allocateGraphicsPipeline();
 static VEngineResult allocateFrameBuffers();
 static VEngineResult allocateCommandPool();
+static VEngineResult allocateDepthResources();
 static VEngineResult allocateTextureImage();
 static VEngineResult allocateTextureImageView();
 static VEngineResult allocateDefaultTextureSampler();
@@ -740,7 +741,7 @@ static VEngineResult allocateSwapChainImageViews() {
     VEngineResult engineResult;
 
     for(Uint32 i = 0; i < context.vk.swapChainFrameCount; i++) {
-        engineResult = v_alloc_image_view(context.vk.pSwapChainFrames[i].image, context.vk.surfaceFormat.format, 0, &context.vk.pSwapChainFrames[i].imageView);
+        engineResult = v_alloc_image_view(context.vk.pSwapChainFrames[i].image, context.vk.surfaceFormat.format, 0, VK_IMAGE_ASPECT_COLOR_BIT, &context.vk.pSwapChainFrames[i].imageView);
 
         if(engineResult.type != VE_SUCCESS) {
             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_alloc_image_view failed at index %i for allocate returned %i", i, engineResult.point);
@@ -1116,6 +1117,43 @@ static VEngineResult allocateCommandPool() {
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
+static VEngineResult allocateDepthResources() {
+    const VkFormat candidates[] = {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D24_UNORM_S8_UINT, VK_FORMAT_D16_UNORM_S8_UINT, VK_FORMAT_D16_UNORM, VK_FORMAT_D32_SFLOAT_S8_UINT};
+
+    VEngineResult engineResult;
+
+    VkFormat depthFormat = v_find_supported_format(
+        candidates, sizeof(candidates) / sizeof(candidates[0]),
+        VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+
+    if(depthFormat == VK_FORMAT_UNDEFINED) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_find_supported_format failed to find any valid format");
+        RETURN_RESULT_CODE(VE_ALLOC_DEPTH_BUFFER_FAILURE, 0)
+    }
+
+    engineResult = v_alloc_image(
+        context.vk.swapExtent.width, context.vk.swapExtent.height,
+        depthFormat,
+        VK_IMAGE_TILING_OPTIMAL,
+        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        &context.vk.depthImage, &context.vk.depthImageMemory);
+
+    if(engineResult.type != VE_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_alloc_image creation failed with result: %i", engineResult.point);
+        RETURN_RESULT_CODE(VE_ALLOC_DEPTH_BUFFER_FAILURE, 1)
+    }
+
+    engineResult = v_alloc_image_view(context.vk.depthImage, depthFormat, 0, VK_IMAGE_ASPECT_DEPTH_BIT, &context.vk.depthImageView);
+
+    if(engineResult.type != VE_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_alloc_image_view creation failed with result: %i", engineResult.point);
+        RETURN_RESULT_CODE(VE_ALLOC_DEPTH_BUFFER_FAILURE, 2)
+    }
+
+    RETURN_RESULT_CODE(VE_SUCCESS, 0)
+}
+
 static VEngineResult allocateTextureImage() {
     qoi_desc QOIdescription;
     const char FILENAME[] = "test_texture.qoi";
@@ -1178,7 +1216,7 @@ static VEngineResult allocateTextureImage() {
 }
 
 static VEngineResult allocateTextureImageView() {
-    VEngineResult engineResult = v_alloc_image_view(context.vk.textureImage, VK_FORMAT_R8G8B8A8_SRGB, 0, &context.vk.textureImageView);
+    VEngineResult engineResult = v_alloc_image_view(context.vk.textureImage, VK_FORMAT_R8G8B8A8_SRGB, 0, VK_IMAGE_ASPECT_COLOR_BIT, &context.vk.textureImageView);
 
     if(engineResult.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_alloc_image_view failed for allocate returned %i", engineResult.point);
