@@ -207,7 +207,7 @@ void v_update_uniform_buffer(float delta, uint32_t imageIndex) {
 
     ubo.model = MatrixTranspose(MatrixRotate(axis, (90.0 * DEG2RAD) * time));
     ubo.view  = MatrixTranspose(MatrixLookAt(eye, target, up));
-    ubo.proj  = MatrixTranspose(MatrixVulkanPerspective(45.0 * DEG2RAD, context.vk.swapExtent.width / (float) context.vk.swapExtent.height, 0.1f, 10.0f));
+    ubo.proj  = MatrixTranspose(MatrixPerspective(45.0 * DEG2RAD, context.vk.swapExtent.width / (float) context.vk.swapExtent.height, 0.1f, 10.0f));
 
     memcpy(context.vk.frames[imageIndex].uniformBufferMapped, &ubo, sizeof(ubo));
 }
