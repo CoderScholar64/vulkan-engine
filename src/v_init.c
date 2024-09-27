@@ -3,6 +3,7 @@
 #include "context.h"
 #include "u_read.h"
 #include "v_mem.h"
+#include "v_render.h"
 #include "v_results.h"
 
 #include <assert.h>
@@ -144,6 +145,8 @@ VEngineResult v_init() {
     returnCode = allocateDescriptorSets();
     if( returnCode.type < 0 )
         return returnCode;
+
+    v_print_mod_vertices();
 
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
