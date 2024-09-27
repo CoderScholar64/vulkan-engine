@@ -1001,7 +1001,7 @@ static VEngineResult allocateGraphicsPipeline() {
     memset(&pipelineRasterizationStateCreateInfo, 0, sizeof(pipelineRasterizationStateCreateInfo));
     pipelineRasterizationStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     pipelineRasterizationStateCreateInfo.depthClampEnable = VK_FALSE; // No shadows for this pipeline.
-    pipelineRasterizationStateCreateInfo.rasterizerDiscardEnable = VK_FALSE; // Please do not discard everything. I just want to draw a triangle...
+    pipelineRasterizationStateCreateInfo.rasterizerDiscardEnable = VK_FALSE; // Please do not discard everything.
     pipelineRasterizationStateCreateInfo.polygonMode = VK_POLYGON_MODE_FILL; // VK_POLYGON_MODE_LINE and VK_POLYGON_MODE_POINT.
     pipelineRasterizationStateCreateInfo.lineWidth = 1.0f; // One pixel lines please.
     pipelineRasterizationStateCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
