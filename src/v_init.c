@@ -93,15 +93,15 @@ VEngineResult v_init() {
     if( returnCode.type < 0 )
         return returnCode;
 
-    returnCode = allocateFrameBuffers();
-    if( returnCode.type < 0 )
-        return returnCode;
-
     returnCode = allocateCommandPool();
     if( returnCode.type < 0 )
         return returnCode;
 
     returnCode = allocateDepthResources();
+    if( returnCode.type < 0 )
+        return returnCode;
+
+    returnCode = allocateFrameBuffers();
     if( returnCode.type < 0 )
         return returnCode;
 
@@ -757,8 +757,18 @@ static VEngineResult allocateSwapChainImageViews() {
 }
 
 static VEngineResult createRenderPass() {
-    VkAttachmentDescription colorAttachmentDescription;
-    memset(&colorAttachmentDescription, 0, sizeof(colorAttachmentDescription));
+    const VkFormat candidates[] = {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D24_UNORM_S8_UINT, VK_FORMAT_D16_UNORM_S8_UINT, VK_FORMAT_D16_UNORM, VK_FORMAT_D32_SFLOAT_S8_UINT};
+
+    context.vk.depthFormat = v_find_supported_format(
+        candidates, sizeof(candidates) / sizeof(candidates[0]),
+        VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+
+    if(context.vk.depthFormat == VK_FORMAT_UNDEFINED) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_find_supported_format failed to find any valid format");
+        RETURN_RESULT_CODE(VE_CREATE_RENDER_PASS_FAILURE, 0)
+    }
+
+    VkAttachmentDescription colorAttachmentDescription = {0};
     colorAttachmentDescription.format  = context.vk.surfaceFormat.format;
     colorAttachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
     colorAttachmentDescription.loadOp  = VK_ATTACHMENT_LOAD_OP_CLEAR; // I guess it means clear buffer every frame.
@@ -768,31 +778,48 @@ static VEngineResult createRenderPass() {
     colorAttachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     colorAttachmentDescription.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
+    VkAttachmentDescription depthAttachmentDescription = {0};
+    depthAttachmentDescription.format  = context.vk.depthFormat;
+    depthAttachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
+    depthAttachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR; // I guess it means clear buffer every frame.
+    depthAttachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depthAttachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE; // No stencil buffer.
+    depthAttachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depthAttachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    depthAttachmentDescription.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
     VkAttachmentReference colorAttachmentReference;
     memset(&colorAttachmentReference, 0, sizeof(colorAttachmentReference));
     colorAttachmentReference.attachment = 0;
     colorAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    VkAttachmentReference depthAttachmentReference = {0};
+    depthAttachmentReference.attachment = 1;
+    depthAttachmentReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
     VkSubpassDescription subpassDescription;
     memset(&subpassDescription, 0, sizeof(subpassDescription));
     subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
     subpassDescription.colorAttachmentCount = 1;
     subpassDescription.pColorAttachments = &colorAttachmentReference;
+    subpassDescription.pDepthStencilAttachment = &depthAttachmentReference;
 
     VkSubpassDependency subpassDependency;
     memset(&subpassDependency, 0, sizeof(subpassDependency));
     subpassDependency.srcSubpass    = VK_SUBPASS_EXTERNAL;
     subpassDependency.dstSubpass    = 0;
-    subpassDependency.srcStageMask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    subpassDependency.srcStageMask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
     subpassDependency.srcAccessMask = 0;
-    subpassDependency.dstStageMask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    subpassDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    subpassDependency.dstStageMask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+    subpassDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+    VkAttachmentDescription attachmentDescriptions[] = {colorAttachmentDescription, depthAttachmentDescription};
 
     VkRenderPassCreateInfo renderPassCreateInfo;
     memset(&renderPassCreateInfo, 0, sizeof(renderPassCreateInfo));
     renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-    renderPassCreateInfo.attachmentCount = 1;
-    renderPassCreateInfo.pAttachments = &colorAttachmentDescription;
+    renderPassCreateInfo.attachmentCount = sizeof(attachmentDescriptions) / sizeof(attachmentDescriptions[0]);
+    renderPassCreateInfo.pAttachments = attachmentDescriptions;
     renderPassCreateInfo.subpassCount = 1;
     renderPassCreateInfo.pSubpasses = &subpassDescription;
     renderPassCreateInfo.dependencyCount = 1;
@@ -802,7 +829,7 @@ static VEngineResult createRenderPass() {
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkCreateRenderPass() Failed to allocate %i", result);
-        RETURN_RESULT_CODE(VE_CREATE_RENDER_PASS_FAILURE, 0)
+        RETURN_RESULT_CODE(VE_CREATE_RENDER_PASS_FAILURE, 1)
     }
 
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
@@ -990,7 +1017,17 @@ static VEngineResult allocateGraphicsPipeline() {
     pipelineMultisampleStateCreateInfo.alphaToCoverageEnable = VK_FALSE; // OPTIONAL
     pipelineMultisampleStateCreateInfo.alphaToOneEnable = VK_FALSE; // OPTIONAL
 
-    // VkPipelineDepthStencilStateCreateInfo // TODO Add that for 3D.
+    VkPipelineDepthStencilStateCreateInfo pipelineDepthStencilStateCreateInfo = {0};
+    pipelineDepthStencilStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+    pipelineDepthStencilStateCreateInfo.depthTestEnable = VK_TRUE;
+    pipelineDepthStencilStateCreateInfo.depthWriteEnable = VK_TRUE;
+    pipelineDepthStencilStateCreateInfo.depthCompareOp = VK_COMPARE_OP_GREATER;
+    pipelineDepthStencilStateCreateInfo.depthBoundsTestEnable = VK_FALSE;
+    pipelineDepthStencilStateCreateInfo.minDepthBounds = 0.0f;
+    pipelineDepthStencilStateCreateInfo.maxDepthBounds = 1.0f;
+    pipelineDepthStencilStateCreateInfo.stencilTestEnable = VK_FALSE;
+    // pipelineDepthStencilStateCreateInfo.front = {}; // Optional
+    // pipelineDepthStencilStateCreateInfo.back = {};  // Optional
 
     VkPipelineColorBlendAttachmentState pipelineColorBlendAttachmentState;
     memset(&pipelineColorBlendAttachmentState, 0, sizeof(pipelineColorBlendAttachmentState));
@@ -1047,7 +1084,7 @@ static VEngineResult allocateGraphicsPipeline() {
     graphicsPipelineCreateInfo.pViewportState      = &pipelineViewportStateCreateInfo;
     graphicsPipelineCreateInfo.pRasterizationState = &pipelineRasterizationStateCreateInfo;
     graphicsPipelineCreateInfo.pMultisampleState   = &pipelineMultisampleStateCreateInfo;
-    graphicsPipelineCreateInfo.pDepthStencilState  =  NULL; // OPTIONAL
+    graphicsPipelineCreateInfo.pDepthStencilState  = &pipelineDepthStencilStateCreateInfo; // OPTIONAL
     graphicsPipelineCreateInfo.pColorBlendState    = &pipelineColorBlendStateCreateInfo;
     graphicsPipelineCreateInfo.pDynamicState       = &pipelineDynamicStateInfo;
 
@@ -1076,15 +1113,21 @@ static VEngineResult allocateFrameBuffers() {
     VkResult result;
     VkFramebufferCreateInfo framebufferCreateInfo;
 
+    VkImageView imageViews[2];
+
+    imageViews[1] = context.vk.depthImageView;
+
     int numberOfFailures = 0;
 
     for(Uint32 i = context.vk.swapChainFrameCount; i != 0; i--) {
         memset(&framebufferCreateInfo, 0, sizeof(framebufferCreateInfo));
 
+        imageViews[0] = context.vk.pSwapChainFrames[i - 1].imageView;
+
         framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
         framebufferCreateInfo.renderPass = context.vk.renderPass;
-        framebufferCreateInfo.attachmentCount = 1;
-        framebufferCreateInfo.pAttachments = &context.vk.pSwapChainFrames[i - 1].imageView;
+        framebufferCreateInfo.attachmentCount = sizeof(imageViews) / sizeof(imageViews[0]);
+        framebufferCreateInfo.pAttachments = imageViews;
         framebufferCreateInfo.width  = context.vk.swapExtent.width;
         framebufferCreateInfo.height = context.vk.swapExtent.height;
         framebufferCreateInfo.layers = 1;
@@ -1122,18 +1165,7 @@ static VEngineResult allocateCommandPool() {
 }
 
 static VEngineResult allocateDepthResources() {
-    const VkFormat candidates[] = {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D24_UNORM_S8_UINT, VK_FORMAT_D16_UNORM_S8_UINT, VK_FORMAT_D16_UNORM, VK_FORMAT_D32_SFLOAT_S8_UINT};
-
     VEngineResult engineResult;
-
-    context.vk.depthFormat = v_find_supported_format(
-        candidates, sizeof(candidates) / sizeof(candidates[0]),
-        VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
-
-    if(context.vk.depthFormat == VK_FORMAT_UNDEFINED) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_find_supported_format failed to find any valid format");
-        RETURN_RESULT_CODE(VE_ALLOC_DEPTH_BUFFER_FAILURE, 0)
-    }
 
     engineResult = v_alloc_image(
         context.vk.swapExtent.width, context.vk.swapExtent.height,
@@ -1145,21 +1177,21 @@ static VEngineResult allocateDepthResources() {
 
     if(engineResult.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_alloc_image creation failed with result: %i", engineResult.point);
-        RETURN_RESULT_CODE(VE_ALLOC_DEPTH_BUFFER_FAILURE, 1)
+        RETURN_RESULT_CODE(VE_ALLOC_DEPTH_BUFFER_FAILURE, 0)
     }
 
     engineResult = v_alloc_image_view(context.vk.depthImage, context.vk.depthFormat, 0, VK_IMAGE_ASPECT_DEPTH_BIT, &context.vk.depthImageView);
 
     if(engineResult.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_alloc_image_view creation failed with result: %i", engineResult.point);
-        RETURN_RESULT_CODE(VE_ALLOC_DEPTH_BUFFER_FAILURE, 2)
+        RETURN_RESULT_CODE(VE_ALLOC_DEPTH_BUFFER_FAILURE, 1)
     }
 
     engineResult = v_transition_image_layout(context.vk.depthImage, context.vk.depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
     if(engineResult.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_transition_image_layout creation failed with result: %i", engineResult.point);
-        RETURN_RESULT_CODE(VE_ALLOC_DEPTH_BUFFER_FAILURE, 3)
+        RETURN_RESULT_CODE(VE_ALLOC_DEPTH_BUFFER_FAILURE, 2)
     }
 
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
