@@ -525,12 +525,11 @@ static VEngineResult allocateLogicalDevice(const char * const* ppRequiredExtensi
     float normal_priority = 1.0f;
     VkResult result;
     VkBool32 surfaceSupported;
+
+    VkDeviceQueueCreateInfo deviceQueueCreateInfos[] = { {0}, {0} };
     const unsigned GRAPHICS_FAMILY_INDEX = 0;
     const unsigned PRESENT_FAMILY_INDEX  = 1;
-    const unsigned TOTAL_FAMILY_INDEXES  = 2;
-
-    VkDeviceQueueCreateInfo deviceQueueCreateInfos[TOTAL_FAMILY_INDEXES];
-    memset(deviceQueueCreateInfos, 0, TOTAL_FAMILY_INDEXES * sizeof(VkDeviceQueueCreateInfo));
+    const unsigned TOTAL_FAMILY_INDEXES  = sizeof(deviceQueueCreateInfos) / sizeof(deviceQueueCreateInfos[0]);
 
     for(int i = 0; i < TOTAL_FAMILY_INDEXES; i++) {
         deviceQueueCreateInfos[i].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
