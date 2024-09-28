@@ -1,1 +1,3 @@
+*.vert linguist-language=glsl
+*.frag linguist-language=glsl
 *.qoi -diff
