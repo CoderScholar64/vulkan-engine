@@ -114,7 +114,25 @@ VEngineResult v_begin_one_time_command_buffer(VkCommandBuffer *pCommandBuffer);
  */
 VEngineResult v_end_one_time_command_buffer(VkCommandBuffer *pCommandBuffer);
 
+/**
+ * This function transfers image layouts. For example, it would convert a linearly stored image to an image optimized for random access.
+ * @warning Make sure that v_init() is called first.
+ * @param image the image where the layout would be converted.
+ * @param format the format of the image to be converted.
+ * @param oldLayout the old layout being used by the image.
+ * @param newLayout The new layout that the image should be using.
+ * @return A VEngineResult. If its type is VE_SUCCESS then the image uses the newLayout. If VE_TRANSIT_IMAGE_LAYOUT_FAILURE then a problem occured. If point is zero then this function does not support the specific oldLayout and newLayout configuration.
+ */
 VEngineResult v_transition_image_layout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+
+/**
+ * This transfers buffer information to the image.
+ * @warning Make sure that v_init() is called first.
+ * @param buffer The buffer where the image data is stored.
+ * @param image An image where the buffer would be copied to.
+ * @param width The width of the image in pixel units.
+ * @param height The height of the image in pixel units.
+ */
 VEngineResult v_copy_buffer_to_image(VkBuffer buffer, VkImage image, Uint32 width, Uint32 height);
 
 /**
