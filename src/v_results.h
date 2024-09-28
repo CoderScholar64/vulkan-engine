@@ -34,7 +34,8 @@ typedef enum {
     VE_ALLOC_IMAGE_VIEW_FAILURE      = -28,
     VE_ALLOC_TEXTURE_I_V_FAILURE     = -29,
     VE_ALLOC_DEFAULT_SAMPLER_FAILURE = -30,
-    VE_ALLOC_DEPTH_BUFFER_FAILURE    = -31
+    VE_ALLOC_DEPTH_BUFFER_FAILURE    = -31,
+    VE_LOAD_MODEL_FAILURE            = -32
 } VEngineResultType;
 
 typedef struct {

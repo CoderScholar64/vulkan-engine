@@ -43,6 +43,7 @@ static VEngineResult allocateTextureImageView();
 static VEngineResult allocateDefaultTextureSampler();
 static VEngineResult createCommandBuffer();
 static VEngineResult allocateSyncObjects();
+static VEngineResult loadModel();
 static VEngineResult allocateDescriptorPool();
 static VEngineResult allocateDescriptorSets();
 static void cleanupSwapChain();
@@ -123,6 +124,10 @@ VEngineResult v_init() {
         return returnCode;
 
     returnCode = allocateSyncObjects();
+    if( returnCode.type < 0 )
+        return returnCode;
+
+    returnCode = loadModel();
     if( returnCode.type < 0 )
         return returnCode;
 
@@ -1323,6 +1328,24 @@ static VEngineResult allocateSyncObjects() {
             RETURN_RESULT_CODE(VE_ALLOC_SYNC_OBJECTS_FAILURE, 2)
         }
     }
+    RETURN_RESULT_CODE(VE_SUCCESS, 0)
+}
+
+static VEngineResult loadModel() {
+    cgltf_result result;
+    cgltf_data *pModel = u_gltf_read("model.glb", &result);
+
+    if(result != cgltf_result_success) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to find model!");
+        RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 0)
+    }
+
+    for(cgltf_size i = 0; i < pModel->meshes_count; i++) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Model name %s. primitives_count = %li", pModel->meshes[i].name, pModel->meshes[i].primitives_count);
+    }
+
+    cgltf_free(pModel);
+
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
