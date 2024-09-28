@@ -108,19 +108,27 @@ VEngineResult v_begin_one_time_command_buffer(VkCommandBuffer *pCommandBuffer);
 
 /**
  * This is a convience function to end the one time command buffer allocated from v_begin_one_time_command_buffer().
- * @warning Make sure that v_init() is called first and pCommandBuffer being the same value from v_begin_one_time_command_buffer
+ * @warning Be sure that pCommandBuffer points to a VkCommandBuffer that is allocated from v_begin_one_time_command_buffer().
  * @param pCommandBuffer the pointer to an ALLOCATED command buffer.
  * @return A VEngineResult. If its type is VE_SUCCESS then command buffer has been submitted and deleted. If VE_1_TIME_COMMAND_BUFFER_FAILURE then the command buffer submit/deletion process encountered a problem.
  */
-VEngineResult   v_end_one_time_command_buffer(VkCommandBuffer *pCommandBuffer);
+VEngineResult v_end_one_time_command_buffer(VkCommandBuffer *pCommandBuffer);
 
 VEngineResult v_transition_image_layout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
 VEngineResult v_copy_buffer_to_image(VkBuffer buffer, VkImage image, Uint32 width, Uint32 height);
 
+/**
+ * This function allocates an image view.
+ * @param format The format of the image parameter.
+ * @param createFlags These are additional flags for the image view. Setting this value other than 0 will require extensions, so the suggested value 0. @note See VkImageViewCreateFlags for details
+ * @param aspectFlags This specifies how the image in the view would be used. E.g. VK_IMAGE_ASPECT_COLOR_BIT for color or VK_IMAGE_ASPECT_DEPTH_BIT. @note See VkImageAspectFlags for details.
+ * @param pImageView The image view that would be generated. @warning This must point to a VkImageView that is not initialized yet.
+ * @return A VEngineResult. If its type is VE_SUCCESS then the image view is successfully created. If VE_ALLOC_IMAGE_VIEW_FAILURE then Vulkan had found a problem
+ */
 VEngineResult v_alloc_image_view(VkImage image, VkFormat format, VkImageViewCreateFlags createFlags, VkImageAspectFlags aspectFlags, VkImageView *pImageView);
 
 /**
- * Find the memory buffer from
+ * Find the memory buffer from the device.
  * @warning Make sure that v_init() is called first.
  * @note If you get a non-zero return you would need to subtract it by one to get the actual index.
  * @param typeFilter The memory type bits as needed from the VkMemoryRequirements::memoryTypeBits.
