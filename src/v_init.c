@@ -938,18 +938,16 @@ static VEngineResult allocateGraphicsPipeline() {
         RETURN_RESULT_CODE(VE_ALLOC_GRAPH_PIPELINE_FAILURE, 3)
     }
 
-    VkPipelineShaderStageCreateInfo pipelineShaderStageCreateInfos[2];
+    VkPipelineShaderStageCreateInfo pipelineShaderStageCreateInfos[2] = { {0}, {0} };
     const unsigned   VERTEX_INDEX = 0;
     const unsigned FRAGMENT_INDEX = 1;
 
-    memset(&pipelineShaderStageCreateInfos[VERTEX_INDEX], 0, sizeof(VkPipelineShaderStageCreateInfo));
     pipelineShaderStageCreateInfos[VERTEX_INDEX].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     pipelineShaderStageCreateInfos[VERTEX_INDEX].stage = VK_SHADER_STAGE_VERTEX_BIT;
     pipelineShaderStageCreateInfos[VERTEX_INDEX].module = vertexShaderModule;
     pipelineShaderStageCreateInfos[VERTEX_INDEX].pName = "main";
     // pipelineShaderStageCreateInfos[VERTEX_INDEX].pSpecializationInfo = NULL; // This allows the specification of constraints
 
-    memset(&pipelineShaderStageCreateInfos[FRAGMENT_INDEX], 0, sizeof(VkPipelineShaderStageCreateInfo));
     pipelineShaderStageCreateInfos[FRAGMENT_INDEX].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     pipelineShaderStageCreateInfos[FRAGMENT_INDEX].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
     pipelineShaderStageCreateInfos[FRAGMENT_INDEX].module = fragmentShaderModule;
@@ -957,22 +955,19 @@ static VEngineResult allocateGraphicsPipeline() {
     // pipelineShaderStageCreateInfos[FRAGMENT_INDEX].pSpecializationInfo = NULL; // This allows the specification of constraints
 
     //TODO Get to the point where vertex data could be added.
-    VkPipelineVertexInputStateCreateInfo pipelineVertexInputStateCreateInfo;
-    memset(&pipelineVertexInputStateCreateInfo, 0, sizeof(pipelineVertexInputStateCreateInfo));
+    VkPipelineVertexInputStateCreateInfo pipelineVertexInputStateCreateInfo = {0};
     pipelineVertexInputStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     pipelineVertexInputStateCreateInfo.vertexBindingDescriptionCount = 1;
     pipelineVertexInputStateCreateInfo.pVertexBindingDescriptions = &vertexBindingDescription;
     pipelineVertexInputStateCreateInfo.vertexAttributeDescriptionCount = sizeof(vertexInputAttributeDescriptions) / sizeof(vertexInputAttributeDescriptions[0]);
     pipelineVertexInputStateCreateInfo.pVertexAttributeDescriptions = vertexInputAttributeDescriptions;
 
-    VkPipelineInputAssemblyStateCreateInfo pipelineInputAssemblyStateCreateInfo;
-    memset(&pipelineInputAssemblyStateCreateInfo, 0, sizeof(pipelineInputAssemblyStateCreateInfo));
+    VkPipelineInputAssemblyStateCreateInfo pipelineInputAssemblyStateCreateInfo = {0};
     pipelineInputAssemblyStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     pipelineInputAssemblyStateCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     pipelineInputAssemblyStateCreateInfo.primitiveRestartEnable = VK_FALSE;
 
-    VkViewport viewport;
-    memset(&viewport, 0, sizeof(viewport));
+    VkViewport viewport = {0};
     viewport.x = 0.0f;
     viewport.y = 0.0f;
     viewport.width  = (float) context.vk.swapExtent.width;
@@ -980,28 +975,26 @@ static VEngineResult allocateGraphicsPipeline() {
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
 
-    VkRect2D scissor;
-    memset(&scissor, 0, sizeof(scissor));
+    VkRect2D scissor = {0};
     scissor.offset.x = 0.0f;
     scissor.offset.y = 0.0f;
     scissor.extent = context.vk.swapExtent;
 
     VkDynamicState dynamicStates[] = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
 
-    VkPipelineDynamicStateCreateInfo pipelineDynamicStateInfo;
-    memset(&pipelineDynamicStateInfo, 0, sizeof(pipelineDynamicStateInfo));
+    VkPipelineDynamicStateCreateInfo pipelineDynamicStateInfo = {0};
     pipelineDynamicStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
     pipelineDynamicStateInfo.dynamicStateCount = sizeof(dynamicStates) / sizeof(dynamicStates[0]);
     pipelineDynamicStateInfo.pDynamicStates = dynamicStates;
 
-    VkPipelineViewportStateCreateInfo pipelineViewportStateCreateInfo;
-    memset(&pipelineViewportStateCreateInfo, 0, sizeof(pipelineViewportStateCreateInfo));
+    VkPipelineViewportStateCreateInfo pipelineViewportStateCreateInfo = {0};
     pipelineViewportStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-    pipelineViewportStateCreateInfo.viewportCount = 1;
-    pipelineViewportStateCreateInfo.scissorCount  = 1;
+    pipelineViewportStateCreateInfo.viewportCount =  1;
+    pipelineViewportStateCreateInfo.pViewports    = &viewport;
+    pipelineViewportStateCreateInfo.scissorCount  =  1;
+    pipelineViewportStateCreateInfo.pScissors     = &scissor;
 
-    VkPipelineRasterizationStateCreateInfo pipelineRasterizationStateCreateInfo;
-    memset(&pipelineRasterizationStateCreateInfo, 0, sizeof(pipelineRasterizationStateCreateInfo));
+    VkPipelineRasterizationStateCreateInfo pipelineRasterizationStateCreateInfo = {0};
     pipelineRasterizationStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     pipelineRasterizationStateCreateInfo.depthClampEnable = VK_FALSE; // No shadows for this pipeline.
     pipelineRasterizationStateCreateInfo.rasterizerDiscardEnable = VK_FALSE; // Please do not discard everything.
@@ -1014,8 +1007,7 @@ static VEngineResult allocateGraphicsPipeline() {
     pipelineRasterizationStateCreateInfo.depthBiasClamp = 0.0f; // OPTIONAL
     pipelineRasterizationStateCreateInfo.depthBiasSlopeFactor = 0.0f; // OPTIONAL
 
-    VkPipelineMultisampleStateCreateInfo pipelineMultisampleStateCreateInfo;
-    memset(&pipelineMultisampleStateCreateInfo, 0, sizeof(pipelineMultisampleStateCreateInfo));
+    VkPipelineMultisampleStateCreateInfo pipelineMultisampleStateCreateInfo = {0};
     pipelineMultisampleStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     pipelineMultisampleStateCreateInfo.sampleShadingEnable = VK_FALSE;
     pipelineMultisampleStateCreateInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
@@ -1036,8 +1028,7 @@ static VEngineResult allocateGraphicsPipeline() {
     // pipelineDepthStencilStateCreateInfo.front = {}; // Optional
     // pipelineDepthStencilStateCreateInfo.back = {};  // Optional
 
-    VkPipelineColorBlendAttachmentState pipelineColorBlendAttachmentState;
-    memset(&pipelineColorBlendAttachmentState, 0, sizeof(pipelineColorBlendAttachmentState));
+    VkPipelineColorBlendAttachmentState pipelineColorBlendAttachmentState = {0};
     pipelineColorBlendAttachmentState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
     pipelineColorBlendAttachmentState.blendEnable = VK_FALSE;
     pipelineColorBlendAttachmentState.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
@@ -1047,8 +1038,7 @@ static VEngineResult allocateGraphicsPipeline() {
     pipelineColorBlendAttachmentState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
     pipelineColorBlendAttachmentState.alphaBlendOp = VK_BLEND_OP_ADD;
 
-    VkPipelineColorBlendStateCreateInfo pipelineColorBlendStateCreateInfo;
-    memset(&pipelineColorBlendStateCreateInfo, 0, sizeof(pipelineColorBlendStateCreateInfo));
+    VkPipelineColorBlendStateCreateInfo pipelineColorBlendStateCreateInfo = {0};
     pipelineColorBlendStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
     pipelineColorBlendStateCreateInfo.logicOpEnable = VK_FALSE;
     pipelineColorBlendStateCreateInfo.logicOp = VK_LOGIC_OP_COPY; // OPTIONAL
@@ -1060,8 +1050,7 @@ static VEngineResult allocateGraphicsPipeline() {
     pipelineColorBlendStateCreateInfo.blendConstants[3] = 0.0f; // OPTIONAL
 
     // Here is where uniforms should go.
-    VkPipelineLayoutCreateInfo pipelineLayoutInfo;
-    memset(&pipelineLayoutInfo, 0, sizeof(pipelineLayoutInfo));
+    VkPipelineLayoutCreateInfo pipelineLayoutInfo = {0};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutInfo.setLayoutCount = 1;
     pipelineLayoutInfo.pSetLayouts = &context.vk.descriptorSetLayout;
@@ -1079,8 +1068,7 @@ static VEngineResult allocateGraphicsPipeline() {
         RETURN_RESULT_CODE(VE_ALLOC_GRAPH_PIPELINE_FAILURE, 4)
     }
 
-    VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo;
-    memset(&graphicsPipelineCreateInfo, 0, sizeof(graphicsPipelineCreateInfo));
+    VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo = {0};
 
     graphicsPipelineCreateInfo.sType      = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     graphicsPipelineCreateInfo.stageCount = sizeof(pipelineShaderStageCreateInfos) / sizeof(pipelineShaderStageCreateInfos[0]);
