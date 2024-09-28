@@ -146,8 +146,6 @@ VEngineResult v_init() {
     if( returnCode.type < 0 )
         return returnCode;
 
-    v_print_mod_vertices();
-
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 

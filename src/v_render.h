@@ -22,8 +22,6 @@ VEngineResult v_draw_frame(float delta);
  */
 VEngineResult v_record_command_buffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
-void v_print_mod_vertices();
-
 /**
  * Update the uniform buffer.
  * @warning Make sure that v_init() is called first.

@@ -3,8 +3,6 @@
 #include "context.h"
 #include "v_mem.h"
 
-#include <stdio.h>
-
 VEngineResult v_draw_frame(float delta) {
     const uint64_t TIME_OUT_NS = 25000000;
 
@@ -189,31 +187,6 @@ static Matrix MatrixVulkanPerspective(double fovY, double aspect, double nearPla
     perspective.m14 = (farPlane * nearPlane) / (farPlane - nearPlane);
 
     return perspective;
-}
-
-void v_print_mod_vertices() {
-    Vector3 up     = {0.0f, 0.0f, 1.0f};
-    Vector3 eye    = {2.0f, 2.0f, 2.0f};
-    Vector3 target = {0.0f, 0.0f, 0.0f};
-
-    Matrix mat = MatrixMultiply(
-        MatrixLookAt(eye, target, up),
-        MatrixVulkanPerspective(45.0 * DEG2RAD, context.vk.swapExtent.width / (float) context.vk.swapExtent.height, 2.8f, 4.35f));
-
-    printf("# obj format\n");
-    for(int i = 0; i < sizeof(builtin_vertices) / sizeof(builtin_vertices[0]); i++) {
-        Vector3 vec = Vector3Transform(builtin_vertices[i].pos, mat);
-        float divide = mat.m3 * builtin_vertices[i].pos.x + mat.m7 * builtin_vertices[i].pos.y + mat.m11 * builtin_vertices[i].pos.z + mat.m15;
-
-        vec.x = vec.x / divide;
-        vec.y = vec.y / divide;
-        vec.z = vec.z / divide;
-
-        printf("v %f %f %f\n", vec.x, vec.y, vec.z);
-    }
-    for(int i = 0; i < sizeof(builtin_indexes) / sizeof(builtin_indexes[0]); i += 3) {
-        printf("f %i %i %i\n", builtin_indexes[0 + i] + 1, builtin_indexes[1 + i] + 1, builtin_indexes[2 + i] + 1);
-    }
 }
 
 void v_update_uniform_buffer(float delta, uint32_t imageIndex) {
