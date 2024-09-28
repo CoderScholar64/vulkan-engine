@@ -1095,26 +1095,23 @@ static VEngineResult allocateGraphicsPipeline() {
 
 static VEngineResult allocateFrameBuffers() {
     VkResult result;
-    VkFramebufferCreateInfo framebufferCreateInfo;
 
     VkImageView imageViews[2];
-
     imageViews[1] = context.vk.depthImageView;
+
+    VkFramebufferCreateInfo framebufferCreateInfo = {0};
+    framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+    framebufferCreateInfo.renderPass = context.vk.renderPass;
+    framebufferCreateInfo.attachmentCount = sizeof(imageViews) / sizeof(imageViews[0]);
+    framebufferCreateInfo.pAttachments = imageViews;
+    framebufferCreateInfo.width  = context.vk.swapExtent.width;
+    framebufferCreateInfo.height = context.vk.swapExtent.height;
+    framebufferCreateInfo.layers = 1;
 
     int numberOfFailures = 0;
 
     for(Uint32 i = context.vk.swapChainFrameCount; i != 0; i--) {
-        memset(&framebufferCreateInfo, 0, sizeof(framebufferCreateInfo));
-
         imageViews[0] = context.vk.pSwapChainFrames[i - 1].imageView;
-
-        framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        framebufferCreateInfo.renderPass = context.vk.renderPass;
-        framebufferCreateInfo.attachmentCount = sizeof(imageViews) / sizeof(imageViews[0]);
-        framebufferCreateInfo.pAttachments = imageViews;
-        framebufferCreateInfo.width  = context.vk.swapExtent.width;
-        framebufferCreateInfo.height = context.vk.swapExtent.height;
-        framebufferCreateInfo.layers = 1;
 
         result = vkCreateFramebuffer(context.vk.device, &framebufferCreateInfo, NULL, &context.vk.pSwapChainFrames[i - 1].framebuffer);
 
