@@ -52,8 +52,7 @@ VEngineResult v_draw_frame(float delta) {
 
     VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
 
-    VkSubmitInfo submitInfo;
-    memset(&submitInfo, 0, sizeof(submitInfo));
+    VkSubmitInfo submitInfo = {0};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
     submitInfo.waitSemaphoreCount = 1;
@@ -73,8 +72,7 @@ VEngineResult v_draw_frame(float delta) {
         RETURN_RESULT_CODE(VE_DRAW_FRAME_FAILURE, 2) // Program had encountered a problem!
     }
 
-    VkPresentInfoKHR presentInfo;
-    memset(&presentInfo, 0, sizeof(presentInfo));
+    VkPresentInfoKHR presentInfo = {0};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 
     presentInfo.waitSemaphoreCount = 1;
@@ -105,8 +103,7 @@ VEngineResult v_draw_frame(float delta) {
 VEngineResult v_record_command_buffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
     VkResult result;
 
-    VkCommandBufferBeginInfo commandBufferBeginInfo;
-    memset(&commandBufferBeginInfo, 0, sizeof(commandBufferBeginInfo));
+    VkCommandBufferBeginInfo commandBufferBeginInfo = {0};
     commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     commandBufferBeginInfo.flags = 0; // OPTIONAL
     commandBufferBeginInfo.pInheritanceInfo = NULL; // OPTIONAL
@@ -118,8 +115,7 @@ VEngineResult v_record_command_buffer(VkCommandBuffer commandBuffer, uint32_t im
         RETURN_RESULT_CODE(VE_RECORD_COMMAND_BUFFER_FAILURE, 0)
     }
 
-    VkRenderPassBeginInfo renderPassBeginInfo;
-    memset(&renderPassBeginInfo, 0, sizeof(renderPassBeginInfo));
+    VkRenderPassBeginInfo renderPassBeginInfo = {0};
     renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     renderPassBeginInfo.renderPass = context.vk.renderPass;
     renderPassBeginInfo.framebuffer = context.vk.pSwapChainFrames[imageIndex].framebuffer;

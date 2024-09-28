@@ -36,8 +36,7 @@ const VkVertexInputAttributeDescription vertexInputAttributeDescriptions[3] = {
 VEngineResult v_alloc_buffer(VkDeviceSize size, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags, VkBuffer *pBuffer, VkDeviceMemory *pBufferMemory) {
     VkResult result;
 
-    VkBufferCreateInfo bufferCreateInfo;
-    memset(&bufferCreateInfo, 0, sizeof(bufferCreateInfo));
+    VkBufferCreateInfo bufferCreateInfo = {0};
     bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     bufferCreateInfo.size = size;
     bufferCreateInfo.usage = usageFlags;
@@ -53,8 +52,7 @@ VEngineResult v_alloc_buffer(VkDeviceSize size, VkBufferUsageFlags usageFlags, V
     VkMemoryRequirements memRequirements;
     vkGetBufferMemoryRequirements(context.vk.device, *pBuffer, &memRequirements);
 
-    VkMemoryAllocateInfo memoryAllocateInfo;
-    memset(&memoryAllocateInfo, 0, sizeof(memoryAllocateInfo));
+    VkMemoryAllocateInfo memoryAllocateInfo = {0};
     memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     memoryAllocateInfo.allocationSize = memRequirements.size;
     memoryAllocateInfo.memoryTypeIndex = v_find_memory_type_index(memRequirements.memoryTypeBits, propertyFlags);
@@ -168,8 +166,7 @@ VEngineResult v_alloc_builtin_uniform_buffers() {
 VEngineResult v_alloc_image(Uint32 width, Uint32 height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage *pImage, VkDeviceMemory *pImageMemory) {
     VkResult result;
 
-    VkImageCreateInfo imageCreateInfo;
-    memset(&imageCreateInfo, 0, sizeof(imageCreateInfo));
+    VkImageCreateInfo imageCreateInfo = {0};
     imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
     imageCreateInfo.extent.width = width;
@@ -243,8 +240,7 @@ VEngineResult v_copy_buffer(VkBuffer srcBuffer, VkDeviceSize srcOffset, VkBuffer
         RETURN_RESULT_CODE(VE_COPY_BUFFER_FAILURE, 0)
     }
 
-    VkBufferCopy copyRegion;
-    memset(&copyRegion, 0, sizeof(copyRegion));
+    VkBufferCopy copyRegion = {0};
     copyRegion.srcOffset = srcOffset;
     copyRegion.dstOffset = dstOffset;
     copyRegion.size = size;
@@ -262,8 +258,7 @@ VEngineResult v_copy_buffer(VkBuffer srcBuffer, VkDeviceSize srcOffset, VkBuffer
 VEngineResult v_begin_one_time_command_buffer(VkCommandBuffer *pCommandBuffer) {
     VkResult result;
 
-    VkCommandBufferAllocateInfo commandBufferAllocateInfo;
-    memset(&commandBufferAllocateInfo, 0, sizeof(commandBufferAllocateInfo));
+    VkCommandBufferAllocateInfo commandBufferAllocateInfo = {0};
     commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     commandBufferAllocateInfo.commandPool = context.vk.commandPool;
@@ -276,8 +271,7 @@ VEngineResult v_begin_one_time_command_buffer(VkCommandBuffer *pCommandBuffer) {
         RETURN_RESULT_CODE(VE_1_TIME_COMMAND_BUFFER_FAILURE, 0)
     }
 
-    VkCommandBufferBeginInfo commandBufferBeginInfo;
-    memset(&commandBufferBeginInfo, 0, sizeof(commandBufferBeginInfo));
+    VkCommandBufferBeginInfo commandBufferBeginInfo = {0};
     commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     commandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
@@ -305,8 +299,7 @@ VEngineResult v_end_one_time_command_buffer(VkCommandBuffer *pCommandBuffer) {
         RETURN_RESULT_CODE(VE_1_TIME_COMMAND_BUFFER_FAILURE, 2)
     }
 
-    VkSubmitInfo submitInfo;
-    memset(&submitInfo, 0, sizeof(submitInfo));
+    VkSubmitInfo submitInfo = {0};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = pCommandBuffer;
@@ -338,11 +331,10 @@ VEngineResult v_end_one_time_command_buffer(VkCommandBuffer *pCommandBuffer) {
 
 VEngineResult v_transition_image_layout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) {
     VEngineResult engineResult;
-    VkImageMemoryBarrier imageMemoryBarrier;
+    VkImageMemoryBarrier imageMemoryBarrier = {0};
     VkPipelineStageFlags sourceStage;
     VkPipelineStageFlags destinationStage;
 
-    memset(&imageMemoryBarrier, 0, sizeof(imageMemoryBarrier));
     imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     imageMemoryBarrier.oldLayout = oldLayout;
     imageMemoryBarrier.newLayout = newLayout;
@@ -424,8 +416,7 @@ VEngineResult v_copy_buffer_to_image(VkBuffer buffer, VkImage image, Uint32 widt
         RETURN_RESULT_CODE(VE_COPY_BUFFER_TO_IMAGE_FAILURE, 0)
     }
 
-    VkBufferImageCopy bufferImageCopy;
-    memset(&bufferImageCopy, 0, sizeof(bufferImageCopy));
+    VkBufferImageCopy bufferImageCopy = {0};
     bufferImageCopy.bufferOffset = 0;
     bufferImageCopy.bufferRowLength = 0;
     bufferImageCopy.bufferImageHeight = 0;
