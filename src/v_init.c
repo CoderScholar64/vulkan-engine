@@ -17,22 +17,22 @@
 typedef struct {
     VkSurfaceCapabilitiesKHR surfaceCapabilities;
     VkSurfaceFormatKHR *pSurfaceFormat;
-    Uint32 surfaceFormatCount;
+    uint32_t surfaceFormatCount;
     VkPresentModeKHR *pPresentMode;
-    Uint32 presentModeCount;
+    uint32_t presentModeCount;
 } SwapChainCapabilities;
 
-static VkQueueFamilyProperties* allocateQueueFamilyArray(VkPhysicalDevice device, Uint32 *pQueueFamilyPropertyCount);
-static VkLayerProperties* allocateLayerPropertiesArray(Uint32 *pPropertyCount);
-static int hasRequiredExtensions(VkPhysicalDevice physicalDevice, const char * const* ppRequiredExtension, Uint32 requiredExtensionCount);
+static VkQueueFamilyProperties* allocateQueueFamilyArray(VkPhysicalDevice device, uint32_t *pQueueFamilyPropertyCount);
+static VkLayerProperties* allocateLayerPropertiesArray(uint32_t *pPropertyCount);
+static int hasRequiredExtensions(VkPhysicalDevice physicalDevice, const char * const* ppRequiredExtension, uint32_t requiredExtensionCount);
 static VEngineResult querySwapChainCapabilities(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, SwapChainCapabilities **ppSwapChainCapabilities);
 static VEngineResult initInstance();
-static VEngineResult findPhysicalDevice(const char * const* ppRequiredExtensions, Uint32 requiredExtensionsAmount);
-static VEngineResult allocateLogicalDevice(const char * const* ppRequiredExtensions, Uint32 requiredExtensionsAmount);
+static VEngineResult findPhysicalDevice(const char * const* ppRequiredExtensions, uint32_t requiredExtensionsAmount);
+static VEngineResult allocateLogicalDevice(const char * const* ppRequiredExtensions, uint32_t requiredExtensionsAmount);
 static VEngineResult allocateSwapChain();
 static VEngineResult allocateSwapChainImageViews();
 static VEngineResult createRenderPass();
-static VkShaderModule allocateShaderModule(Uint8* data, size_t size);
+static VkShaderModule allocateShaderModule(uint8_t* data, size_t size);
 static VEngineResult allocateDescriptorSetLayout();
 static VEngineResult allocateGraphicsPipeline();
 static VEngineResult allocateFrameBuffers();
@@ -166,7 +166,7 @@ void v_deinit() {
     if(context.vk.pQueueFamilyProperties != NULL)
         free(context.vk.pQueueFamilyProperties);
 
-    for(Uint32 i = MAX_FRAMES_IN_FLIGHT; i != 0; i--) {
+    for(uint32_t i = MAX_FRAMES_IN_FLIGHT; i != 0; i--) {
         vkDestroySemaphore(context.vk.device, context.vk.frames[i - 1].imageAvailableSemaphore, NULL);
         vkDestroySemaphore(context.vk.device, context.vk.frames[i - 1].renderFinishedSemaphore, NULL);
         vkDestroyFence(    context.vk.device, context.vk.frames[i - 1].inFlightFence,           NULL);
@@ -212,7 +212,7 @@ VEngineResult v_recreate_swap_chain() {
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-static VkQueueFamilyProperties* allocateQueueFamilyArray(VkPhysicalDevice device, Uint32 *pQueueFamilyPropertyCount) {
+static VkQueueFamilyProperties* allocateQueueFamilyArray(VkPhysicalDevice device, uint32_t *pQueueFamilyPropertyCount) {
     *pQueueFamilyPropertyCount = 0;
     VkQueueFamilyProperties *pQueueFamilyProperties = NULL;
 
@@ -227,7 +227,7 @@ static VkQueueFamilyProperties* allocateQueueFamilyArray(VkPhysicalDevice device
     return pQueueFamilyProperties;
 }
 
-static VkLayerProperties* allocateLayerPropertiesArray(Uint32 *pPropertyCount) {
+static VkLayerProperties* allocateLayerPropertiesArray(uint32_t *pPropertyCount) {
     *pPropertyCount = 0;
     VkLayerProperties *pLayerProperties = NULL;
 
@@ -242,8 +242,8 @@ static VkLayerProperties* allocateLayerPropertiesArray(Uint32 *pPropertyCount) {
     return pLayerProperties;
 }
 
-static int hasRequiredExtensions(VkPhysicalDevice physicalDevice, const char * const* ppRequiredExtension, Uint32 requiredExtensionCount) {
-    Uint32 extensionCount = 0;
+static int hasRequiredExtensions(VkPhysicalDevice physicalDevice, const char * const* ppRequiredExtension, uint32_t requiredExtensionCount) {
+    uint32_t extensionCount = 0;
     VkExtensionProperties *pExtensionProperties = NULL;
     int found;
     int everythingFound = 1;
@@ -260,10 +260,10 @@ static int hasRequiredExtensions(VkPhysicalDevice physicalDevice, const char * c
         return -1; // Cannot check requiredExtensions.
     }
 
-    for(Uint32 r = 0; r < requiredExtensionCount; r++) {
+    for(uint32_t r = 0; r < requiredExtensionCount; r++) {
         found = 0;
 
-        for(Uint32 e = 0; e < extensionCount && found == 0; e++) {
+        for(uint32_t e = 0; e < extensionCount && found == 0; e++) {
             if(strcmp(ppRequiredExtension[r], pExtensionProperties[e].extensionName) == 0) {
                 found = 1;
             }
@@ -377,7 +377,7 @@ static VEngineResult initInstance() {
         SDL_Log( "[%i] %s", i, ppExtensionNames[i]);
     }
 
-    Uint32 everyLayerAmount = 0;
+    uint32_t everyLayerAmount = 0;
     VkLayerProperties* pEveryLayerPropertiesArray = allocateLayerPropertiesArray(&everyLayerAmount);
     const char * name = NULL;
     for(unsigned int i = 0; i < everyLayerAmount; i++) {
@@ -416,8 +416,8 @@ static VEngineResult initInstance() {
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-static VEngineResult findPhysicalDevice(const char * const* ppRequiredExtensions, Uint32 requiredExtensionsAmount) {
-    Uint32 physicalDevicesCount = 0;
+static VEngineResult findPhysicalDevice(const char * const* ppRequiredExtensions, uint32_t requiredExtensionsAmount) {
+    uint32_t physicalDevicesCount = 0;
     VkPhysicalDevice *pPhysicalDevices = NULL;
 
     VkResult result = vkEnumeratePhysicalDevices(context.vk.instance, &physicalDevicesCount, NULL);
@@ -447,7 +447,7 @@ static VEngineResult findPhysicalDevice(const char * const* ppRequiredExtensions
     VkPhysicalDeviceProperties physicalDeviceProperties;
 
     unsigned int deviceIndex = physicalDevicesCount;
-    Uint32 queueFamilyPropertyCount;
+    uint32_t queueFamilyPropertyCount;
     VkQueueFamilyProperties *pQueueFamilyProperties;
     VkBool32 surfaceSupported;
     int requiredParameters;
@@ -461,7 +461,7 @@ static VEngineResult findPhysicalDevice(const char * const* ppRequiredExtensions
 
         requiredParameters = 0;
 
-        for(Uint32 p = 0; p < queueFamilyPropertyCount; p++) {
+        for(uint32_t p = 0; p < queueFamilyPropertyCount; p++) {
             if( (pQueueFamilyProperties[p].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0 ) {
                 requiredParameters |= 1;
             }
@@ -519,7 +519,7 @@ static VEngineResult findPhysicalDevice(const char * const* ppRequiredExtensions
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-static VEngineResult allocateLogicalDevice(const char * const* ppRequiredExtensions, Uint32 requiredExtensionsAmount) {
+static VEngineResult allocateLogicalDevice(const char * const* ppRequiredExtensions, uint32_t requiredExtensionsAmount) {
     context.vk.device = NULL;
 
     float normal_priority = 1.0f;
@@ -538,7 +538,7 @@ static VEngineResult allocateLogicalDevice(const char * const* ppRequiredExtensi
         deviceQueueCreateInfos[i].queueCount = 1;
     }
 
-    for(Uint32 p = context.vk.queueFamilyPropertyCount; p != 0; p--) {
+    for(uint32_t p = context.vk.queueFamilyPropertyCount; p != 0; p--) {
         if( (context.vk.pQueueFamilyProperties[p - 1].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0 ) {
             deviceQueueCreateInfos[GRAPHICS_FAMILY_INDEX].queueFamilyIndex = p - 1;
         }
@@ -612,11 +612,11 @@ static VEngineResult allocateSwapChain() {
     foundPriority = FORMAT_AMOUNT;
     currentPriority = FORMAT_AMOUNT;
 
-    for(Uint32 f = pSwapChainCapabilities->surfaceFormatCount; f != 0; f--) {
+    for(uint32_t f = pSwapChainCapabilities->surfaceFormatCount; f != 0; f--) {
         if(pSwapChainCapabilities->pSurfaceFormat[f - 1].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
             currentPriority = FORMAT_AMOUNT;
 
-            for(Uint32 p = FORMAT_AMOUNT; p != 0; p--) {
+            for(uint32_t p = FORMAT_AMOUNT; p != 0; p--) {
                 if(format[p - 1] == pSwapChainCapabilities->pSurfaceFormat[f - 1].format) {
                     currentPriority = p - 1;
                     break;
@@ -639,10 +639,10 @@ static VEngineResult allocateSwapChain() {
     foundPriority = PRESENT_MODE_AMOUNT;
     currentPriority = PRESENT_MODE_AMOUNT;
 
-    for(Uint32 f = pSwapChainCapabilities->presentModeCount; f != 0; f--) {
+    for(uint32_t f = pSwapChainCapabilities->presentModeCount; f != 0; f--) {
         currentPriority = PRESENT_MODE_AMOUNT;
 
-        for(Uint32 p = PRESENT_MODE_AMOUNT; p != 0; p--) {
+        for(uint32_t p = PRESENT_MODE_AMOUNT; p != 0; p--) {
             if(presentModes[p - 1] == pSwapChainCapabilities->pPresentMode[f - 1]) {
                 currentPriority = p - 1;
                 break;
@@ -656,20 +656,18 @@ static VEngineResult allocateSwapChain() {
     }
 
     // Find VkExtent2D
-    const Uint32 MAX_U32 = (Uint32) - 1;
-
-    if(pSwapChainCapabilities->surfaceCapabilities.currentExtent.width != MAX_U32)
+    if(pSwapChainCapabilities->surfaceCapabilities.currentExtent.width != UINT32_MAX)
         context.vk.swapExtent = pSwapChainCapabilities->surfaceCapabilities.currentExtent;
     else {
         int width, height;
 
         SDL_Vulkan_GetDrawableSize(context.pWindow, &width, &height);
 
-        context.vk.swapExtent.width  = (Uint32)Clamp( width, pSwapChainCapabilities->surfaceCapabilities.minImageExtent.width,  pSwapChainCapabilities->surfaceCapabilities.maxImageExtent.width);
-        context.vk.swapExtent.height = (Uint32)Clamp(height, pSwapChainCapabilities->surfaceCapabilities.minImageExtent.height, pSwapChainCapabilities->surfaceCapabilities.maxImageExtent.height);
+        context.vk.swapExtent.width  = (uint32_t)Clamp( width, pSwapChainCapabilities->surfaceCapabilities.minImageExtent.width,  pSwapChainCapabilities->surfaceCapabilities.maxImageExtent.width);
+        context.vk.swapExtent.height = (uint32_t)Clamp(height, pSwapChainCapabilities->surfaceCapabilities.minImageExtent.height, pSwapChainCapabilities->surfaceCapabilities.maxImageExtent.height);
     }
 
-    Uint32 imageCount = pSwapChainCapabilities->surfaceCapabilities.minImageCount + 1;
+    uint32_t imageCount = pSwapChainCapabilities->surfaceCapabilities.minImageCount + 1;
 
     if(pSwapChainCapabilities->surfaceCapabilities.maxImageCount != 0 && imageCount > pSwapChainCapabilities->surfaceCapabilities.maxImageCount)
         imageCount = pSwapChainCapabilities->surfaceCapabilities.maxImageCount;
@@ -684,7 +682,7 @@ static VEngineResult allocateSwapChain() {
     swapchainCreateInfo.imageArrayLayers = 1;
     swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-    const Uint32 familyIndex[] = {context.vk.graphicsQueueFamilyIndex, context.vk.presentationQueueFamilyIndex};
+    const uint32_t familyIndex[] = {context.vk.graphicsQueueFamilyIndex, context.vk.presentationQueueFamilyIndex};
     const unsigned FAMILY_INDEX_AMOUNT = sizeof(familyIndex) / sizeof(familyIndex[0]);
 
     if(context.vk.graphicsQueueFamilyIndex == context.vk.presentationQueueFamilyIndex) {
@@ -735,7 +733,7 @@ static VEngineResult allocateSwapChain() {
         RETURN_RESULT_CODE(VE_ALLOC_SWAP_CHAIN_FAILURE, 3)
     }
 
-    for(Uint32 i = context.vk.swapChainFrameCount; i != 0; i--) {
+    for(uint32_t i = context.vk.swapChainFrameCount; i != 0; i--) {
         context.vk.pSwapChainFrames[i - 1].image = swapChainImages[i - 1];
     }
 
@@ -745,7 +743,7 @@ static VEngineResult allocateSwapChain() {
 static VEngineResult allocateSwapChainImageViews() {
     VEngineResult engineResult;
 
-    for(Uint32 i = 0; i < context.vk.swapChainFrameCount; i++) {
+    for(uint32_t i = 0; i < context.vk.swapChainFrameCount; i++) {
         engineResult = v_alloc_image_view(context.vk.pSwapChainFrames[i].image, context.vk.surfaceFormat.format, 0, VK_IMAGE_ASPECT_COLOR_BIT, &context.vk.pSwapChainFrames[i].imageView);
 
         if(engineResult.type != VE_SUCCESS) {
@@ -865,14 +863,14 @@ static VEngineResult allocateDescriptorSetLayout() {
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-static VkShaderModule allocateShaderModule(Uint8* data, size_t size) {
+static VkShaderModule allocateShaderModule(uint8_t* data, size_t size) {
     VkShaderModuleCreateInfo shaderModuleCreateInfo = {0};
     VkShaderModule shaderModule = NULL;
     VkResult result;
 
     shaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     shaderModuleCreateInfo.codeSize = size;
-    shaderModuleCreateInfo.pCode = (const Uint32*)(data);
+    shaderModuleCreateInfo.pCode = (const uint32_t*)(data);
 
     result = vkCreateShaderModule(context.vk.device, &shaderModuleCreateInfo, NULL, &shaderModule);
 
@@ -889,16 +887,16 @@ static VkShaderModule allocateShaderModule(Uint8* data, size_t size) {
 }
 
 static VEngineResult allocateGraphicsPipeline() {
-    Sint64 vertexShaderCodeLength;
-    Uint8* pVertexShaderCode = u_read_file("hello_world_vert.spv", &vertexShaderCodeLength);
+    int64_t vertexShaderCodeLength;
+    uint8_t* pVertexShaderCode = u_read_file("hello_world_vert.spv", &vertexShaderCodeLength);
 
     if(pVertexShaderCode == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to load vertex shader code");
         RETURN_RESULT_CODE(VE_ALLOC_GRAPH_PIPELINE_FAILURE, 0)
     }
 
-    Sint64 fragmentShaderCodeLength;
-    Uint8* pFragmentShaderCode = u_read_file("hello_world_frag.spv", &fragmentShaderCodeLength);
+    int64_t fragmentShaderCodeLength;
+    uint8_t* pFragmentShaderCode = u_read_file("hello_world_frag.spv", &fragmentShaderCodeLength);
 
     if(pFragmentShaderCode == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to load fragment shader code");
@@ -1110,7 +1108,7 @@ static VEngineResult allocateFrameBuffers() {
 
     int numberOfFailures = 0;
 
-    for(Uint32 i = context.vk.swapChainFrameCount; i != 0; i--) {
+    for(uint32_t i = context.vk.swapChainFrameCount; i != 0; i--) {
         imageViews[0] = context.vk.pSwapChainFrames[i - 1].imageView;
 
         result = vkCreateFramebuffer(context.vk.device, &framebufferCreateInfo, NULL, &context.vk.pSwapChainFrames[i - 1].framebuffer);
@@ -1287,7 +1285,7 @@ static VEngineResult createCommandBuffer() {
     commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     commandBufferAllocateInfo.commandBufferCount = 1;
 
-    for(Uint32 i = MAX_FRAMES_IN_FLIGHT; i != 0; i--) {
+    for(uint32_t i = MAX_FRAMES_IN_FLIGHT; i != 0; i--) {
         result = vkAllocateCommandBuffers(context.vk.device, &commandBufferAllocateInfo, &context.vk.frames[i - 1].commandBuffer);
 
         if(result != VK_SUCCESS) {
@@ -1308,7 +1306,7 @@ static VEngineResult allocateSyncObjects() {
     fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    for(Uint32 i = MAX_FRAMES_IN_FLIGHT; i != 0; i--) {
+    for(uint32_t i = MAX_FRAMES_IN_FLIGHT; i != 0; i--) {
         result = vkCreateSemaphore(context.vk.device, &semaphoreCreateInfo, NULL, &context.vk.frames[i - 1].imageAvailableSemaphore);
         if(result != VK_SUCCESS) {
             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "imageAvailableSemaphore at index %i creation failed with result: %i", i - 1, result);
@@ -1388,7 +1386,7 @@ static VEngineResult allocateDescriptorSets() {
     writeDescriptorSets[1].descriptorCount = 1;
     writeDescriptorSets[1].pImageInfo = &descriptorImageInfo;
 
-    for(Uint32 i = MAX_FRAMES_IN_FLIGHT; i != 0; i--) {
+    for(uint32_t i = MAX_FRAMES_IN_FLIGHT; i != 0; i--) {
         result = vkAllocateDescriptorSets(context.vk.device, &descriptorSetAllocateInfo, &context.vk.frames[i - 1].descriptorSet);
 
         if(result != VK_SUCCESS) {
@@ -1411,7 +1409,7 @@ static void cleanupSwapChain() {
     vkDestroyImage(     context.vk.device, context.vk.depthImage,       NULL);
     vkFreeMemory(       context.vk.device, context.vk.depthImageMemory, NULL);
 
-    for(Uint32 i = context.vk.swapChainFrameCount; i != 0; i--) {
+    for(uint32_t i = context.vk.swapChainFrameCount; i != 0; i--) {
         vkDestroyImageView(  context.vk.device, context.vk.pSwapChainFrames[i - 1].imageView,   NULL);
         vkDestroyFramebuffer(context.vk.device, context.vk.pSwapChainFrames[i - 1].framebuffer, NULL);
     }

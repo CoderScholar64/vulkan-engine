@@ -10,7 +10,7 @@ struct Context {
     char title[64];
     int x, y;
     int w, h;
-    Uint32 flags;
+    uint32_t flags;
     SDL_Window *pWindow;
     int forceSwapChainRegen;
 
@@ -20,11 +20,11 @@ struct Context {
         VkPhysicalDevice physicalDevice;
         VkQueueFamilyProperties *pQueueFamilyProperties;
         VkSurfaceKHR surface;
-        Uint32 queueFamilyPropertyCount;
+        uint32_t queueFamilyPropertyCount;
 
-        Uint32  graphicsQueueFamilyIndex;
+        uint32_t  graphicsQueueFamilyIndex;
         VkQueue graphicsQueue;
-        Uint32  presentationQueueFamilyIndex;
+        uint32_t  presentationQueueFamilyIndex;
         VkQueue presentationQueue;
 
         VkSurfaceFormatKHR surfaceFormat;
@@ -32,7 +32,7 @@ struct Context {
         VkExtent2D swapExtent;
 
         VkSwapchainKHR swapChain;
-        Uint32 swapChainFrameCount;
+        uint32_t swapChainFrameCount;
         struct {
             VkImage       image;
             VkImageView   imageView;

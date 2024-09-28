@@ -1,7 +1,7 @@
 #ifndef READ_UTILITY_29
 #define READ_UTILITY_29
 
-#include "SDL_stdinc.h"
+#include <stdint.h>
 
 #define QOI_NO_STDIO // Use u_qoi_read instead.
 #include "qoi.h"
@@ -13,7 +13,7 @@
  * @param pFileSize The file's size in bytes.
  * @return A valid pointer to the buffer that YOU MUST free() or a null on failure.
  */
-Uint8* u_read_file(const char *const pUTF8Filepath, Sint64 *pFileSize);
+uint8_t* u_read_file(const char *const pUTF8Filepath, int64_t *pFileSize);
 
 /**
  * Read an image file and place into into a buffer.

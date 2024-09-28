@@ -21,7 +21,7 @@ typedef struct {
 
 
 extern const Vertex builtin_vertices[8];
-extern const Uint16 builtin_indexes[12];
+extern const uint16_t builtin_indexes[12];
 
 extern const VkVertexInputBindingDescription vertexBindingDescription;
 extern const VkVertexInputAttributeDescription vertexInputAttributeDescriptions[3];
@@ -84,7 +84,7 @@ VEngineResult v_alloc_builtin_uniform_buffers();
  * @param pImageMemory The memory where the image would reside. @warning This must point to a VkDeviceMemory that is not initialized yet.
  * @return A VEngineResult. If its type is VE_SUCCESS then srcBuffer is successfully copied to dstBuffer. If VE_ALLOC_IMAGE_FAILURE then Vulkan had found a problem
  */
-VEngineResult v_alloc_image(Uint32 width, Uint32 height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage *pImage, VkDeviceMemory *pImageMemory);
+VEngineResult v_alloc_image(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage *pImage, VkDeviceMemory *pImageMemory);
 
 /**
  * This function copies the srcBuffer to dstBuffer via Vulkan.
@@ -133,7 +133,7 @@ VEngineResult v_transition_image_layout(VkImage image, VkFormat format, VkImageL
  * @param width The width of the image in pixel units.
  * @param height The height of the image in pixel units.
  */
-VEngineResult v_copy_buffer_to_image(VkBuffer buffer, VkImage image, Uint32 width, Uint32 height);
+VEngineResult v_copy_buffer_to_image(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 
 /**
  * This function allocates an image view.
@@ -153,7 +153,7 @@ VEngineResult v_alloc_image_view(VkImage image, VkFormat format, VkImageViewCrea
  * @param properties The desired property flags of the memory index.
  * @return If zero then this function failed to find the memory type with the properties and typeFilter specificed.
  */
-Uint32 v_find_memory_type_index(Uint32 typeFilter, VkMemoryPropertyFlags properties);
+uint32_t v_find_memory_type_index(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
 /**
  * Find if the device supports a VkFormat with VkImageTiling and a certain VkFormatFeatureFlags.

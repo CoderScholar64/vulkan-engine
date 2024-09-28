@@ -6,7 +6,7 @@
 #define QOI_IMPLEMENTATION
 #include "qoi.h"
 
-Uint8* u_read_file(const char *const pFilepath, Sint64 *pFileSize) {
+uint8_t* u_read_file(const char *const pFilepath, int64_t *pFileSize) {
     *pFileSize = 0;
 
     SDL_RWops* pFile = SDL_RWFromFile(pFilepath, "r");
@@ -16,7 +16,7 @@ Uint8* u_read_file(const char *const pFilepath, Sint64 *pFileSize) {
         return NULL;
     }
 
-    Sint64 size = SDL_RWseek(pFile, 0, RW_SEEK_END);
+    int64_t size = SDL_RWseek(pFile, 0, RW_SEEK_END);
 
     if(size <= 0) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "u_read_file: Cannot read binary \"%s\".", pFilepath);
@@ -24,7 +24,7 @@ Uint8* u_read_file(const char *const pFilepath, Sint64 *pFileSize) {
         return NULL;
     }
 
-    Uint8 *pData = malloc(size * sizeof(Uint8));
+    uint8_t *pData = malloc(size * sizeof(uint8_t));
 
     if(pData == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "u_read_file: Failed to allocate data for \"%s\" with size %li.", pFilepath, size);
@@ -52,8 +52,8 @@ Uint8* u_read_file(const char *const pFilepath, Sint64 *pFileSize) {
 }
 
 void* u_qoi_read(const char *const pUTF8Filepath, qoi_desc *pDesc, int channels) {
-    Sint64 fileSize;
-    Uint8 *pData = u_read_file(pUTF8Filepath, &fileSize);
+    int64_t fileSize;
+    uint8_t *pData = u_read_file(pUTF8Filepath, &fileSize);
 
     if(pData == NULL)
         return NULL;

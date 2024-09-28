@@ -16,7 +16,7 @@ const Vertex builtin_vertices[8] = {
     {{-0.5f,  0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
 };
 
-const Uint16 builtin_indexes[12] = {
+const uint16_t builtin_indexes[12] = {
     0, 1, 2, 2, 3, 0,
     4, 5, 6, 6, 7, 4
 };
@@ -145,7 +145,7 @@ VEngineResult v_alloc_builtin_index_buffer() {
 VEngineResult v_alloc_builtin_uniform_buffers() {
     VEngineResult engineResult;
 
-    for(Uint32 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    for(uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         engineResult = v_alloc_buffer(
             sizeof(UniformBufferObject),
             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
@@ -163,7 +163,7 @@ VEngineResult v_alloc_builtin_uniform_buffers() {
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-VEngineResult v_alloc_image(Uint32 width, Uint32 height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage *pImage, VkDeviceMemory *pImageMemory) {
+VEngineResult v_alloc_image(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage *pImage, VkDeviceMemory *pImageMemory) {
     VkResult result;
 
     VkImageCreateInfo imageCreateInfo = {0};
@@ -405,7 +405,7 @@ VEngineResult v_transition_image_layout(VkImage image, VkFormat format, VkImageL
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-VEngineResult v_copy_buffer_to_image(VkBuffer buffer, VkImage image, Uint32 width, Uint32 height) {
+VEngineResult v_copy_buffer_to_image(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) {
     VEngineResult engineResult;
 
     VkCommandBuffer commandBuffer;
@@ -481,11 +481,11 @@ VEngineResult v_alloc_image_view(VkImage image, VkFormat format, VkImageViewCrea
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-Uint32 v_find_memory_type_index(Uint32 typeFilter, VkMemoryPropertyFlags properties) {
+uint32_t v_find_memory_type_index(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
     VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties;
     vkGetPhysicalDeviceMemoryProperties(context.vk.physicalDevice, &physicalDeviceMemoryProperties);
 
-    for(Uint32 i = 0; i < physicalDeviceMemoryProperties.memoryTypeCount; i++) {
+    for(uint32_t i = 0; i < physicalDeviceMemoryProperties.memoryTypeCount; i++) {
         if((typeFilter & (1 << i)) != 0 && (physicalDeviceMemoryProperties.memoryTypes[i].propertyFlags & properties) == properties)
             return i + 1;
     }

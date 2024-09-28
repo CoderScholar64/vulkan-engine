@@ -6,10 +6,10 @@
 #include <stdio.h>
 
 VEngineResult v_draw_frame(float delta) {
-    const Uint64 TIME_OUT_NS = 25000000;
+    const uint64_t TIME_OUT_NS = 25000000;
 
     VkResult result;
-    Uint32 imageIndex;
+    uint32_t imageIndex;
     VEngineResult returnCode;
     returnCode.type  = VE_TIME_OUT;
     returnCode.point = 0;
