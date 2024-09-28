@@ -813,8 +813,7 @@ static VEngineResult createRenderPass() {
     subpassDependency.dstStageMask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
     subpassDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
-    VkRenderPassCreateInfo renderPassCreateInfo;
-    memset(&renderPassCreateInfo, 0, sizeof(renderPassCreateInfo));
+    VkRenderPassCreateInfo renderPassCreateInfo = {0};
     renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
     renderPassCreateInfo.attachmentCount = sizeof(attachmentDescriptions) / sizeof(attachmentDescriptions[0]);
     renderPassCreateInfo.pAttachments = attachmentDescriptions;
@@ -867,11 +866,10 @@ static VEngineResult allocateDescriptorSetLayout() {
 }
 
 static VkShaderModule allocateShaderModule(Uint8* data, size_t size) {
-    VkShaderModuleCreateInfo shaderModuleCreateInfo;
+    VkShaderModuleCreateInfo shaderModuleCreateInfo = {0};
     VkShaderModule shaderModule = NULL;
     VkResult result;
 
-    memset(&shaderModuleCreateInfo, 0, sizeof(shaderModuleCreateInfo));
     shaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     shaderModuleCreateInfo.codeSize = size;
     shaderModuleCreateInfo.pCode = (const Uint32*)(data);
@@ -1135,8 +1133,7 @@ static VEngineResult allocateFrameBuffers() {
 static VEngineResult allocateCommandPool() {
     VkResult result;
 
-    VkCommandPoolCreateInfo commandPoolCreateInfo;
-    memset(&commandPoolCreateInfo, 0, sizeof(commandPoolCreateInfo));
+    VkCommandPoolCreateInfo commandPoolCreateInfo = {0};
     commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     commandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
     commandPoolCreateInfo.queueFamilyIndex = context.vk.graphicsQueueFamilyIndex;
@@ -1287,8 +1284,7 @@ static VEngineResult allocateDefaultTextureSampler() {
 static VEngineResult createCommandBuffer() {
     VkResult result;
 
-    VkCommandBufferAllocateInfo commandBufferAllocateInfo;
-    memset(&commandBufferAllocateInfo, 0, sizeof(commandBufferAllocateInfo));
+    VkCommandBufferAllocateInfo commandBufferAllocateInfo = {0};
     commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     commandBufferAllocateInfo.commandPool = context.vk.commandPool;
     commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -1308,12 +1304,10 @@ static VEngineResult createCommandBuffer() {
 static VEngineResult allocateSyncObjects() {
     VkResult result;
 
-    VkSemaphoreCreateInfo semaphoreCreateInfo;
-    memset(&semaphoreCreateInfo, 0, sizeof(semaphoreCreateInfo));
+    VkSemaphoreCreateInfo semaphoreCreateInfo = {0};
     semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-    VkFenceCreateInfo fenceCreateInfo;
-    memset(&fenceCreateInfo, 0, sizeof(fenceCreateInfo));
+    VkFenceCreateInfo fenceCreateInfo = {0};
     fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
@@ -1348,8 +1342,7 @@ static VEngineResult allocateDescriptorPool() {
     descriptorPoolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     descriptorPoolSizes[1].descriptorCount = MAX_FRAMES_IN_FLIGHT;
 
-    VkDescriptorPoolCreateInfo descriptorPoolCreateInfo;
-    memset(&descriptorPoolCreateInfo, 0, sizeof(descriptorPoolCreateInfo));
+    VkDescriptorPoolCreateInfo descriptorPoolCreateInfo = {0};
     descriptorPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     descriptorPoolCreateInfo.poolSizeCount = sizeof(descriptorPoolSizes) / sizeof(descriptorPoolSizes[0]);
     descriptorPoolCreateInfo.pPoolSizes = descriptorPoolSizes;
@@ -1383,8 +1376,7 @@ static VEngineResult allocateDescriptorSets() {
     descriptorImageInfo.imageView = context.vk.textureImageView;
     descriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-    VkWriteDescriptorSet writeDescriptorSets[2];
-    memset(writeDescriptorSets, 0, sizeof(writeDescriptorSets));
+    VkWriteDescriptorSet writeDescriptorSets[2] = {{0}, {0}};
     writeDescriptorSets[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     writeDescriptorSets[0].dstBinding = 0;
     writeDescriptorSets[0].dstArrayElement = 0;
