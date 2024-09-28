@@ -1,3 +1,4 @@
 *.vert linguist-language=glsl
 *.frag linguist-language=glsl
+included_subprojects/* linguist-vendored
 *.qoi -diff
