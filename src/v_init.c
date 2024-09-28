@@ -350,8 +350,7 @@ static VEngineResult querySwapChainCapabilities(VkPhysicalDevice physicalDevice,
 }
 
 static VEngineResult initInstance() {
-    VkApplicationInfo applicationInfo;
-    memset(&applicationInfo, 0, sizeof(applicationInfo));
+    VkApplicationInfo applicationInfo = {0};
     applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     applicationInfo.pNext = NULL;
     applicationInfo.pApplicationName = context.title;
@@ -389,8 +388,7 @@ static VEngineResult initInstance() {
     }
     const char ** names = &name;
 
-    VkInstanceCreateInfo instanceCreateInfo;
-    memset(&instanceCreateInfo, 0, sizeof(instanceCreateInfo));
+    VkInstanceCreateInfo instanceCreateInfo = {0};
     instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     instanceCreateInfo.pNext = NULL;
     instanceCreateInfo.pApplicationInfo = &applicationInfo;
@@ -559,11 +557,9 @@ static VEngineResult allocateLogicalDevice(const char * const* ppRequiredExtensi
     SDL_Log( "Queue Family index %i selected for GRAPHICS_FAMILY_INDEX", deviceQueueCreateInfos[GRAPHICS_FAMILY_INDEX].queueFamilyIndex);
     SDL_Log( "Queue Family index %i selected for PRESENT_FAMILY_INDEX",  deviceQueueCreateInfos[ PRESENT_FAMILY_INDEX].queueFamilyIndex);
 
-    VkPhysicalDeviceFeatures physicalDeviceFeatures;
-    memset(&physicalDeviceFeatures, 0, sizeof(physicalDeviceFeatures));
+    VkPhysicalDeviceFeatures physicalDeviceFeatures = {0};
 
-    VkDeviceCreateInfo deviceCreateInfo;
-    memset(&deviceCreateInfo, 0, sizeof(deviceCreateInfo));
+    VkDeviceCreateInfo deviceCreateInfo = {0};
     deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     deviceCreateInfo.pNext = NULL;
 
@@ -679,8 +675,7 @@ static VEngineResult allocateSwapChain() {
     if(pSwapChainCapabilities->surfaceCapabilities.maxImageCount != 0 && imageCount > pSwapChainCapabilities->surfaceCapabilities.maxImageCount)
         imageCount = pSwapChainCapabilities->surfaceCapabilities.maxImageCount;
 
-    VkSwapchainCreateInfoKHR swapchainCreateInfo;
-    memset(&swapchainCreateInfo, 0, sizeof(swapchainCreateInfo));
+    VkSwapchainCreateInfoKHR swapchainCreateInfo = {0};
     swapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     swapchainCreateInfo.surface = context.vk.surface;
     swapchainCreateInfo.minImageCount = imageCount;
@@ -775,28 +770,29 @@ static VEngineResult createRenderPass() {
         RETURN_RESULT_CODE(VE_CREATE_RENDER_PASS_FAILURE, 0)
     }
 
-    VkAttachmentDescription colorAttachmentDescription = {0};
-    colorAttachmentDescription.format  = context.vk.surfaceFormat.format;
-    colorAttachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
-    colorAttachmentDescription.loadOp  = VK_ATTACHMENT_LOAD_OP_CLEAR; // I guess it means clear buffer every frame.
-    colorAttachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    colorAttachmentDescription.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE; // No stencil buffer.
-    colorAttachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    colorAttachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    colorAttachmentDescription.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    VkAttachmentDescription attachmentDescriptions[] = {{0}, {0}};
+    const unsigned COLOR_INDEX = 0;
+    const unsigned DEPTH_INDEX = 1;
 
-    VkAttachmentDescription depthAttachmentDescription = {0};
-    depthAttachmentDescription.format  = context.vk.depthFormat;
-    depthAttachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
-    depthAttachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR; // I guess it means clear buffer every frame.
-    depthAttachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    depthAttachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE; // No stencil buffer.
-    depthAttachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    depthAttachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    depthAttachmentDescription.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    attachmentDescriptions[COLOR_INDEX].format  = context.vk.surfaceFormat.format;
+    attachmentDescriptions[COLOR_INDEX].samples = VK_SAMPLE_COUNT_1_BIT;
+    attachmentDescriptions[COLOR_INDEX].loadOp  = VK_ATTACHMENT_LOAD_OP_CLEAR; // I guess it means clear buffer every frame.
+    attachmentDescriptions[COLOR_INDEX].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    attachmentDescriptions[COLOR_INDEX].stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE; // No stencil buffer.
+    attachmentDescriptions[COLOR_INDEX].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    attachmentDescriptions[COLOR_INDEX].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    attachmentDescriptions[COLOR_INDEX].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
-    VkAttachmentReference colorAttachmentReference;
-    memset(&colorAttachmentReference, 0, sizeof(colorAttachmentReference));
+    attachmentDescriptions[DEPTH_INDEX].format  = context.vk.depthFormat;
+    attachmentDescriptions[DEPTH_INDEX].samples = VK_SAMPLE_COUNT_1_BIT;
+    attachmentDescriptions[DEPTH_INDEX].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR; // I guess it means clear buffer every frame.
+    attachmentDescriptions[DEPTH_INDEX].storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    attachmentDescriptions[DEPTH_INDEX].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE; // No stencil buffer.
+    attachmentDescriptions[DEPTH_INDEX].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    attachmentDescriptions[DEPTH_INDEX].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    attachmentDescriptions[DEPTH_INDEX].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+    VkAttachmentReference colorAttachmentReference = {0};
     colorAttachmentReference.attachment = 0;
     colorAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
@@ -804,23 +800,19 @@ static VEngineResult createRenderPass() {
     depthAttachmentReference.attachment = 1;
     depthAttachmentReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-    VkSubpassDescription subpassDescription;
-    memset(&subpassDescription, 0, sizeof(subpassDescription));
+    VkSubpassDescription subpassDescription = {0};
     subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
     subpassDescription.colorAttachmentCount = 1;
     subpassDescription.pColorAttachments = &colorAttachmentReference;
     subpassDescription.pDepthStencilAttachment = &depthAttachmentReference;
 
-    VkSubpassDependency subpassDependency;
-    memset(&subpassDependency, 0, sizeof(subpassDependency));
+    VkSubpassDependency subpassDependency = {0};
     subpassDependency.srcSubpass    = VK_SUBPASS_EXTERNAL;
     subpassDependency.dstSubpass    = 0;
     subpassDependency.srcStageMask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
     subpassDependency.srcAccessMask = 0;
     subpassDependency.dstStageMask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
     subpassDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-
-    VkAttachmentDescription attachmentDescriptions[] = {colorAttachmentDescription, depthAttachmentDescription};
 
     VkRenderPassCreateInfo renderPassCreateInfo;
     memset(&renderPassCreateInfo, 0, sizeof(renderPassCreateInfo));
