@@ -24,6 +24,12 @@ VEngineResult v_record_command_buffer(VkCommandBuffer commandBuffer, uint32_t im
 
 void v_print_mod_vertices();
 
+/**
+ * Update the uniform buffer.
+ * @warning Make sure that v_init() is called first.
+ * @param delta The amount of seconds that passed in one frame.
+ * @param imageIndex Which frame index to write to.
+ */
 void v_update_uniform_buffer(float delta, uint32_t imageIndex);
 
 #endif // V_RENDER_29
