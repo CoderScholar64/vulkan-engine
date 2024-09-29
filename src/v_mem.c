@@ -1,6 +1,7 @@
 #include "v_mem.h"
 
 #include "context.h"
+#include "u_read.h"
 
 #include "SDL_log.h"
 
@@ -160,6 +161,140 @@ VEngineResult v_alloc_builtin_uniform_buffers() {
 
         vkMapMemory(context.vk.device, context.vk.frames[i].uniformBufferMemory, 0, sizeof(UniformBufferObject), 0, &context.vk.frames[i].uniformBufferMapped);
     }
+    RETURN_RESULT_CODE(VE_SUCCESS, 0)
+}
+
+VEngineResult v_load_model(const char *const pUTF8Filepath) {
+    cgltf_result result;
+    cgltf_data *pModel = u_gltf_read(pUTF8Filepath, &result);
+
+    if(result != cgltf_result_success) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to find model!");
+        RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 0)
+    }
+
+    if(pModel->meshes_count == 0) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "This glTF file has no meshes contained in it to read!");
+        cgltf_free(pModel);
+        RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 1)
+    }
+
+    if(pModel->meshes[0].primitives_count == 0) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "This glTF file has no primitives stored in it!");
+        cgltf_free(pModel);
+        RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 2)
+    }
+
+    if(pModel->buffers_count == 0) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "This glTF file has no buffers!");
+        cgltf_free(pModel);
+        RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 3)
+    }
+
+    if(pModel->meshes[0].primitives[0].attributes_count == 0) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "This glTF file has no attributes!");
+        cgltf_free(pModel);
+        RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 4)
+    }
+
+    cgltf_attribute *pPositionAttribute = NULL;
+    cgltf_attribute *pColorAttribute    = NULL;
+    cgltf_attribute *pTexCoordAttribute = NULL;
+
+    for(size_t i = 0; i < pModel->meshes[0].primitives[0].attributes_count; i++) {
+        switch(pModel->meshes[0].primitives[0].attributes[i].type) {
+            case cgltf_attribute_type_position:
+                pPositionAttribute = &pModel->meshes[0].primitives[0].attributes[i];
+                break;
+            case cgltf_attribute_type_normal:
+                pColorAttribute = &pModel->meshes[0].primitives[0].attributes[i];
+                break;
+            case cgltf_attribute_type_texcoord:
+                pTexCoordAttribute = &pModel->meshes[0].primitives[0].attributes[i];
+                break;
+            default:
+                // Just do nothing for unrecognized attributes.
+        }
+        SDL_Log("Attribute %li\n  name = %s\n  type = %i\n  index = %i\n", i, pModel->meshes[0].primitives[0].attributes[i].name, pModel->meshes[0].primitives[0].attributes[i].type, pModel->meshes[0].primitives[0].attributes[i].index);
+    }
+
+    if(pPositionAttribute == NULL) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "No position attribute found!");
+        cgltf_free(pModel);
+        RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 5)
+    }
+
+    if(pModel->meshes[0].primitives[0].indices != NULL) {
+        cgltf_accessor* pAccessor = pModel->meshes[0].primitives[0].indices;
+
+        if(pAccessor->type != cgltf_type_scalar) {
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "This model has component_type = %i", pAccessor->type);
+            cgltf_free(pModel);
+            RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 6)
+        }
+
+        switch(pAccessor->component_type) {
+            case cgltf_component_type_r_16u:
+                SDL_Log("This model has component_type = cgltf_component_type_r_16u");
+                break;
+            case cgltf_component_type_r_32u:
+                SDL_Log("This model has component_type = cgltf_component_type_r_32u");
+                break;
+            default:
+                SDL_Log("This model has invalid component_type = %i", pAccessor->component_type);
+                cgltf_free(pModel);
+                RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 7)
+        }
+
+        SDL_Log("This model has indices = %li.\n", pAccessor->count);
+
+        cgltf_buffer_view *pBufferView = pAccessor->buffer_view;
+
+        if(pBufferView == NULL) {
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "This model's indice buffer view does not exist!");
+            cgltf_free(pModel);
+            RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 8)
+        }
+
+        cgltf_buffer *pBuffer = pBufferView->buffer;
+
+        if(pBuffer == NULL) {
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "This model's indice buffer view does not exist!");
+            cgltf_free(pModel);
+            RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 9)
+        }
+
+        if(pBuffer->data == NULL) {
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "This model's indice buffer data does not exist!");
+            cgltf_free(pModel);
+            RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 10)
+        }
+
+        if(pBuffer->name != NULL)
+            SDL_Log("Buffer name = %s", pBuffer->name);
+
+        if(pBuffer->uri != NULL)
+            SDL_Log("Buffer uri = %s", pBuffer->uri);
+
+        SDL_Log("BufferView offset = 0x%lx", pBufferView->offset);
+        SDL_Log("BufferView size = 0x%lx", pBufferView->size);
+        SDL_Log("Buffer size = 0x%lx", pBuffer->size);
+
+        uint16_t *pIndexes = malloc(pBufferView->size);
+
+        if(pIndexes == NULL) {
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "pIndexes failed to allocate");
+            cgltf_free(pModel);
+            RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 9)
+        }
+
+        cgltf_accessor_unpack_indices(pAccessor, pIndexes, cgltf_component_size(pAccessor->component_type), pAccessor->count);
+
+        free(pIndexes);
+    }
+
+    cgltf_free(pModel);
+
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
