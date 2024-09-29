@@ -181,8 +181,11 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
     cgltf_size loadBufferSize = 0;
 
     cgltf_attribute *pPositionAttribute = NULL;
+    cgltf_size       positionNumComponent;
     cgltf_attribute *pColorAttribute    = NULL;
+    cgltf_size       colorNumComponent;
     cgltf_attribute *pTexCoordAttribute = NULL;
+    cgltf_size       texCoordNumComponent;
 
     cgltf_size vertexAmount;
 
@@ -193,23 +196,29 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
 
                 vertexAmount = pPositionAttribute->data->count;
 
-                SDL_Log("Position Buffer size = %li", sizeof(cgltf_float) * cgltf_accessor_unpack_floats(pPositionAttribute->data, NULL, cgltf_num_components(pPositionAttribute->data->type) * pPositionAttribute->data->count));
+                vertexNumComponent = cgltf_num_components(pPositionAttribute->data->type);
 
-                loadBufferSize = fmax(loadBufferSize, sizeof(cgltf_float) * cgltf_accessor_unpack_floats(pPositionAttribute->data, NULL, cgltf_num_components(pPositionAttribute->data->type) * pPositionAttribute->data->count));
+                SDL_Log("Position Buffer size = %li", sizeof(cgltf_float) * cgltf_accessor_unpack_floats(pPositionAttribute->data, NULL, vertexNumComponent * pPositionAttribute->data->count));
+
+                loadBufferSize = fmax(loadBufferSize, sizeof(cgltf_float) * cgltf_accessor_unpack_floats(pPositionAttribute->data, NULL, vertexNumComponent * pPositionAttribute->data->count));
                 break;
             case cgltf_attribute_type_color:
                 pColorAttribute = &pModel->meshes[0].primitives[0].attributes[i];
 
-                SDL_Log("Color Buffer size = %li", sizeof(cgltf_float) * cgltf_accessor_unpack_floats(pColorAttribute->data, NULL, cgltf_num_components(pColorAttribute->data->type) * pColorAttribute->data->count));
+                colorNumComponent = cgltf_num_components(pColorAttribute->data->type);
 
-                loadBufferSize = fmax(loadBufferSize, sizeof(cgltf_float) * cgltf_accessor_unpack_floats(pColorAttribute->data, NULL, cgltf_num_components(pColorAttribute->data->type) * pColorAttribute->data->count));
+                SDL_Log("Color Buffer size = %li", sizeof(cgltf_float) * cgltf_accessor_unpack_floats(pColorAttribute->data, NULL, colorNumComponent * pColorAttribute->data->count));
+
+                loadBufferSize = fmax(loadBufferSize, sizeof(cgltf_float) * cgltf_accessor_unpack_floats(pColorAttribute->data, NULL, colorNumComponent * pColorAttribute->data->count));
                 break;
             case cgltf_attribute_type_texcoord:
                 pTexCoordAttribute = &pModel->meshes[0].primitives[0].attributes[i];
 
-                SDL_Log("Texture Buffer size = %li", sizeof(cgltf_float) * cgltf_accessor_unpack_floats(pTexCoordAttribute->data, NULL, cgltf_num_components(pTexCoordAttribute->data->type) * pTexCoordAttribute->data->count));
+                texCoordNumComponent = cgltf_num_components(pTexCoordAttribute->data->type);
 
-                loadBufferSize = fmax(loadBufferSize, sizeof(cgltf_float) * cgltf_accessor_unpack_floats(pTexCoordAttribute->data, NULL, cgltf_num_components(pTexCoordAttribute->data->type) * pTexCoordAttribute->data->count));
+                SDL_Log("Texture Buffer size = %li", sizeof(cgltf_float) * cgltf_accessor_unpack_floats(pTexCoordAttribute->data, NULL, texCoordNumComponent * pTexCoordAttribute->data->count));
+
+                loadBufferSize = fmax(loadBufferSize, sizeof(cgltf_float) * cgltf_accessor_unpack_floats(pTexCoordAttribute->data, NULL, texCoordNumComponent * pTexCoordAttribute->data->count));
                 break;
             default:
                 // Just do nothing for unrecognized attributes.
@@ -278,25 +287,21 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
         v_alloc_static_buffer(pLoadBuffer, cgltf_component_size(pIndices->component_type) * pIndices->count, &context.vk.indexBuffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, &context.vk.indexBufferMemory);
     }
 
-    cgltf_size vertexNumComponent = cgltf_num_components(pPositionAttribute->data->type);
+    cgltf_accessor_unpack_floats(pPositionAttribute->data, pLoadBuffer, positionNumComponent * pPositionAttribute->data->count);
 
-    cgltf_accessor_unpack_floats(pPositionAttribute->data, pLoadBuffer, vertexNumComponent * pPositionAttribute->data->count);
-
-    SDL_Log( "components = %li", vertexNumComponent);
+    SDL_Log( "components = %li", positionNumComponent);
 
     const Vertex defaultVertex = {{0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}};
     for(cgltf_size v = 0; v < vertexAmount; v++) {
-        pInterlacedBuffer[v].pos.x = ((float*)pLoadBuffer)[vertexNumComponent * v + 0];
-        pInterlacedBuffer[v].pos.y = ((float*)pLoadBuffer)[vertexNumComponent * v + 1];
-        pInterlacedBuffer[v].pos.z = ((float*)pLoadBuffer)[vertexNumComponent * v + 2];
+        pInterlacedBuffer[v].pos.x = ((float*)pLoadBuffer)[positionNumComponent * v + 0];
+        pInterlacedBuffer[v].pos.y = ((float*)pLoadBuffer)[positionNumComponent * v + 1];
+        pInterlacedBuffer[v].pos.z = ((float*)pLoadBuffer)[positionNumComponent * v + 2];
 
         pInterlacedBuffer[v].color    = defaultVertex.color;
         pInterlacedBuffer[v].texCoord = defaultVertex.texCoord;
     }
 
     if(pColorAttribute != NULL) {
-        cgltf_size colorNumComponent = cgltf_num_components(pColorAttribute->data->type);
-
         cgltf_accessor_unpack_floats(pColorAttribute->data, pLoadBuffer, colorNumComponent * pColorAttribute->data->count);
 
         for(cgltf_size v = 0; v < vertexAmount; v++) {
@@ -307,8 +312,6 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
     }
 
     if(pTexCoordAttribute != NULL) {
-        cgltf_size texCoordNumComponent = cgltf_num_components(pTexCoordAttribute->data->type);
-
         cgltf_accessor_unpack_floats(pTexCoordAttribute->data, pLoadBuffer, texCoordNumComponent * pTexCoordAttribute->data->count);
 
         for(cgltf_size v = 0; v < vertexAmount; v++) {
