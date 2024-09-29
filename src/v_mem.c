@@ -172,6 +172,12 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
         RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 4)
     }
 
+    if(pModel->meshes[0].primitives[0].type != cgltf_primitive_type_triangles) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "This glTF file has unsupported triangle type!");
+        cgltf_free(pModel);
+        RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 5)
+    }
+
     cgltf_size loadBufferSize = 0;
 
     cgltf_attribute *pPositionAttribute = NULL;
@@ -214,7 +220,7 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
     if(pPositionAttribute == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "No position attribute found!");
         cgltf_free(pModel);
-        RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 5)
+        RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 6)
     }
 
     cgltf_accessor* pIndices = NULL;;
@@ -225,7 +231,7 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
         if(pIndices->type != cgltf_type_scalar) {
             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "This model has component_type = %i", pIndices->type);
             cgltf_free(pModel);
-            RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 6)
+            RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 7)
         }
 
         switch(pIndices->component_type) {
@@ -240,7 +246,7 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
             default:
                 SDL_Log("This model has invalid component_type = %i", pIndices->component_type);
                 cgltf_free(pModel);
-                RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 7)
+                RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 8)
         }
 
         SDL_Log("This model has indices = %li.\n", pIndices->count);
