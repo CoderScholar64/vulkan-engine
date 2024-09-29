@@ -196,11 +196,11 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
 
                 vertexAmount = pPositionAttribute->data->count;
 
-                vertexNumComponent = cgltf_num_components(pPositionAttribute->data->type);
+                positionNumComponent = cgltf_num_components(pPositionAttribute->data->type);
 
-                SDL_Log("Position Buffer size = %li", sizeof(cgltf_float) * cgltf_accessor_unpack_floats(pPositionAttribute->data, NULL, vertexNumComponent * pPositionAttribute->data->count));
+                SDL_Log("Position Buffer size = %li", sizeof(cgltf_float) * cgltf_accessor_unpack_floats(pPositionAttribute->data, NULL, positionNumComponent * pPositionAttribute->data->count));
 
-                loadBufferSize = fmax(loadBufferSize, sizeof(cgltf_float) * cgltf_accessor_unpack_floats(pPositionAttribute->data, NULL, vertexNumComponent * pPositionAttribute->data->count));
+                loadBufferSize = fmax(loadBufferSize, sizeof(cgltf_float) * cgltf_accessor_unpack_floats(pPositionAttribute->data, NULL, positionNumComponent * pPositionAttribute->data->count));
                 break;
             case cgltf_attribute_type_color:
                 pColorAttribute = &pModel->meshes[0].primitives[0].attributes[i];
@@ -262,7 +262,7 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
     }
     SDL_Log("Buffer size = %li", loadBufferSize);
 
-    void *pLoadBuffer = malloc(loadBufferSize);
+    void *pLoadBuffer = malloc(loadBufferSize + sizeof(Vertex) * vertexAmount);
 
     if(pLoadBuffer == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to allocate a %li large buffer", loadBufferSize);
@@ -270,14 +270,7 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
         RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 8)
     }
 
-    Vertex *pInterlacedBuffer = malloc(sizeof(Vertex) * vertexAmount);
-
-    if(pInterlacedBuffer == NULL) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to allocate a %li large buffer", loadBufferSize);
-        free(pLoadBuffer);
-        cgltf_free(pModel);
-        RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 9)
-    }
+    Vertex *pInterlacedBuffer = pLoadBuffer + loadBufferSize;
 
     if(pIndices != NULL) {
         cgltf_accessor_unpack_indices(pIndices, pLoadBuffer, cgltf_component_size(pIndices->component_type), pIndices->count);
@@ -325,7 +318,6 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
     v_alloc_static_buffer(pInterlacedBuffer, sizeof(Vertex) * vertexAmount, &context.vk.vertexBuffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, &context.vk.vertexBufferMemory);
 
     free(pLoadBuffer);
-    free(pInterlacedBuffer);
     cgltf_free(pModel);
 
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
