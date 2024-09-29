@@ -130,14 +130,6 @@ VEngineResult v_init() {
     if( returnCode.type < 0 )
         return returnCode;
 
-    returnCode = v_alloc_builtin_vertex_buffer();
-    if( returnCode.type < 0 )
-        return returnCode;
-
-    returnCode = v_alloc_builtin_index_buffer();
-    if( returnCode.type < 0 )
-        return returnCode;
-
     returnCode = v_alloc_builtin_uniform_buffers();
     if( returnCode.type < 0 )
         return returnCode;

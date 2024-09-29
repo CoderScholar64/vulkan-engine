@@ -19,10 +19,6 @@ typedef struct {
     Matrix proj;
 } UniformBufferObject;
 
-
-extern const Vertex builtin_vertices[8];
-extern const uint16_t builtin_indexes[12];
-
 extern const VkVertexInputBindingDescription vertexBindingDescription;
 extern const VkVertexInputAttributeDescription vertexInputAttributeDescriptions[3];
 
@@ -49,20 +45,6 @@ VEngineResult v_alloc_buffer(VkDeviceSize size, VkBufferUsageFlags usageFlags, V
  * @return A VEngineResult. If its type is VE_SUCCESS then this buffer is successfully created
  */
 VEngineResult v_alloc_static_buffer(const void *pData, size_t sizeOfData, VkBuffer *pBuffer, VkBufferUsageFlags usageFlags, VkDeviceMemory *pBufferMemory);
-
-/**
- * This function allocates a built-in vertex buffer to the context.
- * @warning Make sure that v_init() is called first.
- * @return A VEngineResult. If its type is VE_SUCCESS then this buffer is successfully created. If VE_ALLOC_MEMORY_V_BUFFER_FAILURE then the buffer had failed to generate.
- */
-VEngineResult v_alloc_builtin_vertex_buffer();
-
-/**
- * This function allocates a built-in index buffer to the context.
- * @warning Make sure that v_init() is called first.
- * @return A VEngineResult. If its type is VE_SUCCESS then this buffer is successfully created. If VE_ALLOC_MEMORY_V_BUFFER_FAILURE then the buffer had failed to generate.
- */
-VEngineResult v_alloc_builtin_index_buffer();
 
 /**
  * This function allocates a built-in uniform buffer to the context.

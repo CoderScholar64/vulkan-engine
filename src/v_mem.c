@@ -5,23 +5,6 @@
 
 #include "SDL_log.h"
 
-const Vertex builtin_vertices[8] = {
-    {{-0.5f, -0.5f,  0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-    {{ 0.5f, -0.5f,  0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
-    {{ 0.5f,  0.5f,  0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
-    {{-0.5f,  0.5f,  0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},
-
-    {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-    {{ 0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
-    {{ 0.5f,  0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
-    {{-0.5f,  0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
-};
-
-const uint16_t builtin_indexes[12] = {
-    0, 1, 2, 2, 3, 0,
-    4, 5, 6, 6, 7, 4
-};
-
 const VkVertexInputBindingDescription vertexBindingDescription = {
 //  binding,         stride,                   inputRate
           0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX
@@ -135,18 +118,6 @@ VEngineResult v_alloc_static_buffer(const void *pData, size_t sizeOfData, VkBuff
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-VEngineResult v_alloc_builtin_vertex_buffer() {
-    context.vk.vertexAmount = sizeof(builtin_vertices) / sizeof(builtin_vertices[0]);
-
-    return v_alloc_static_buffer(&builtin_vertices, sizeof(builtin_vertices), &context.vk.vertexBuffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, &context.vk.vertexBufferMemory);
-}
-
-VEngineResult v_alloc_builtin_index_buffer() {
-    context.vk.indexAmount = sizeof(builtin_indexes) / sizeof(builtin_indexes[0]);
-
-    return v_alloc_static_buffer(&builtin_indexes, sizeof(builtin_indexes), &context.vk.indexBuffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, &context.vk.indexBufferMemory);
-}
-
 VEngineResult v_alloc_builtin_uniform_buffers() {
     VEngineResult engineResult;
 
@@ -207,10 +178,14 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
     cgltf_attribute *pColorAttribute    = NULL;
     cgltf_attribute *pTexCoordAttribute = NULL;
 
+    cgltf_size vertexAmount;
+
     for(size_t i = 0; i < pModel->meshes[0].primitives[0].attributes_count; i++) {
         switch(pModel->meshes[0].primitives[0].attributes[i].type) {
             case cgltf_attribute_type_position:
                 pPositionAttribute = &pModel->meshes[0].primitives[0].attributes[i];
+
+                vertexAmount = cgltf_accessor_unpack_floats(pPositionAttribute->data, NULL, 0) / cgltf_num_components(pPositionAttribute->type);
 
                 SDL_Log("Position Buffer size = %li", sizeof(cgltf_float) * cgltf_accessor_unpack_floats(pPositionAttribute->data, NULL, 0));
 
@@ -280,22 +255,66 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
         RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 8)
     }
 
+    Vertex *pInterlacedBuffer = malloc(sizeof(Vertex) * vertexAmount);
+
+    if(pInterlacedBuffer == NULL) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to allocate a %li large buffer", loadBufferSize);
+        free(pLoadBuffer);
+        cgltf_free(pModel);
+        RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 9)
+    }
+
     if(pIndices != NULL) {
-        cgltf_accessor_unpack_indices(pIndices, NULL, cgltf_component_size(pIndices->component_type), pIndices->count);
+        cgltf_accessor_unpack_indices(pIndices, pLoadBuffer, cgltf_component_size(pIndices->component_type), pIndices->count);
+
+        context.vk.indexAmount = pIndices->count;
+
+        v_alloc_static_buffer(pLoadBuffer, cgltf_component_size(pIndices->component_type) * pIndices->count, &context.vk.indexBuffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, &context.vk.indexBufferMemory);
     }
 
     cgltf_accessor_unpack_floats(pPositionAttribute->data, pLoadBuffer, pPositionAttribute->data->count);
 
+    cgltf_size vertexNumComponent = cgltf_num_components(pPositionAttribute->type);
+
+    const Vertex defaultVertex = {{0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}};
+    for(cgltf_size v = 0; v < vertexAmount; v++) {
+        pInterlacedBuffer[v].pos.x = ((float*)pLoadBuffer)[vertexNumComponent * v + 0];
+        pInterlacedBuffer[v].pos.y = ((float*)pLoadBuffer)[vertexNumComponent * v + 1];
+        pInterlacedBuffer[v].pos.z = ((float*)pLoadBuffer)[vertexNumComponent * v + 2];
+
+        pInterlacedBuffer[v].color    = defaultVertex.color;
+        pInterlacedBuffer[v].texCoord = defaultVertex.texCoord;
+    }
+
     if(pColorAttribute != NULL) {
         cgltf_accessor_unpack_floats(pColorAttribute->data, pLoadBuffer, pColorAttribute->data->count);
+
+        cgltf_size colorNumComponent = cgltf_num_components(pColorAttribute->data->type);
+
+        for(cgltf_size v = 0; v < vertexAmount; v++) {
+            pInterlacedBuffer[v].color.x = ((float*)pLoadBuffer)[colorNumComponent * v + 0];
+            pInterlacedBuffer[v].color.y = ((float*)pLoadBuffer)[colorNumComponent * v + 1];
+            pInterlacedBuffer[v].color.z = ((float*)pLoadBuffer)[colorNumComponent * v + 2];
+        }
     }
 
     if(pTexCoordAttribute != NULL) {
         cgltf_accessor_unpack_floats(pTexCoordAttribute->data, pLoadBuffer, pTexCoordAttribute->data->count);
+
+        cgltf_size texCoordNumComponent = cgltf_num_components(pTexCoordAttribute->data->type);
+
+        for(cgltf_size v = 0; v < vertexAmount; v++) {
+            pInterlacedBuffer[v].texCoord.x = ((float*)pLoadBuffer)[texCoordNumComponent * v + 0];
+            pInterlacedBuffer[v].texCoord.y = ((float*)pLoadBuffer)[texCoordNumComponent * v + 1];
+        }
     }
 
-    free(pLoadBuffer);
+    context.vk.vertexAmount = vertexAmount;
 
+    v_alloc_static_buffer(pInterlacedBuffer, sizeof(pInterlacedBuffer[0]) * vertexAmount, &context.vk.vertexBuffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, &context.vk.vertexBufferMemory);
+
+    free(pLoadBuffer);
+    free(pInterlacedBuffer);
     cgltf_free(pModel);
 
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
