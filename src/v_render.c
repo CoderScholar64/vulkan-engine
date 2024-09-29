@@ -196,6 +196,8 @@ void v_update_uniform_buffer(float delta, uint32_t imageIndex) {
     // TODO All of this is temporary.
     static float time = 0;
     static UniformBufferObject ubo;
+    const Vector3 gltfAxis = {1.0f, 0.0f, 0.0f};
+    const Matrix gltfAdjustment = MatrixRotate(gltfAxis, (90.0 * DEG2RAD));
 
     Vector3 axis   = {0.0f, 0.0f, 1.0f};
     Vector3 up     = {0.0f, 0.0f, 1.0f};
@@ -204,7 +206,7 @@ void v_update_uniform_buffer(float delta, uint32_t imageIndex) {
 
     time += delta;
 
-    ubo.model = MatrixTranspose(MatrixRotate(axis, (90.0 * DEG2RAD) * time));
+    ubo.model = MatrixTranspose(MatrixMultiply(gltfAdjustment, MatrixRotate(axis, (90.0 * DEG2RAD) * time)));
     ubo.view  = MatrixTranspose(MatrixLookAt(eye, target, up));
     ubo.proj  = MatrixTranspose(MatrixVulkanPerspective(45.0 * DEG2RAD, context.vk.swapExtent.width / (float) context.vk.swapExtent.height, 0.125f, 10.0f));
 
