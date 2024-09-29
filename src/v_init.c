@@ -1358,13 +1358,46 @@ static VEngineResult loadModel() {
         RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 3)
     }
 
+    if(pModel->meshes[0].primitives[0].attributes_count == 0) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "This glTF file has no attributes!");
+        cgltf_free(pModel);
+        RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 4)
+    }
+
+    cgltf_attribute *pPositionAttribute = NULL;
+    cgltf_attribute *pColorAttribute    = NULL;
+    cgltf_attribute *pTexCoordAttribute = NULL;
+
+    for(size_t i = 0; i < pModel->meshes[0].primitives[0].attributes_count; i++) {
+        switch(pModel->meshes[0].primitives[0].attributes[i].type) {
+            case cgltf_attribute_type_position:
+                pPositionAttribute = &pModel->meshes[0].primitives[0].attributes[i];
+                break;
+            case cgltf_attribute_type_normal:
+                pColorAttribute = &pModel->meshes[0].primitives[0].attributes[i];
+                break;
+            case cgltf_attribute_type_texcoord:
+                pTexCoordAttribute = &pModel->meshes[0].primitives[0].attributes[i];
+                break;
+            default:
+                // Just do nothing for unrecognized attributes.
+        }
+        SDL_Log("Attribute %li\n  name = %s\n  type = %i\n  index = %i\n", i, pModel->meshes[0].primitives[0].attributes[i].name, pModel->meshes[0].primitives[0].attributes[i].type, pModel->meshes[0].primitives[0].attributes[i].index);
+    }
+
+    if(pPositionAttribute == NULL) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "No position attribute found!");
+        cgltf_free(pModel);
+        RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 5)
+    }
+
     if(pModel->meshes[0].primitives[0].indices != NULL) {
         cgltf_accessor* pAccessor = pModel->meshes[0].primitives[0].indices;
 
         if(pAccessor->type != cgltf_type_scalar) {
             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "This model has component_type = %i", pAccessor->type);
             cgltf_free(pModel);
-            RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 4)
+            RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 6)
         }
 
         switch(pAccessor->component_type) {
@@ -1377,7 +1410,7 @@ static VEngineResult loadModel() {
             default:
                 SDL_Log("This model has invalid component_type = %i", pAccessor->component_type);
                 cgltf_free(pModel);
-                RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 5)
+                RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 7)
         }
 
         SDL_Log("This model has indices = %li.\n", pAccessor->count);
@@ -1387,21 +1420,21 @@ static VEngineResult loadModel() {
         if(pBufferView == NULL) {
             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "This model's indice buffer view does not exist!");
             cgltf_free(pModel);
-            RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 6)
+            RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 8)
         }
 
         cgltf_buffer *pBuffer = pBufferView->buffer;
 
         if(pBuffer == NULL) {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "This model's indice buffer does not exist!");
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "This model's indice buffer view does not exist!");
             cgltf_free(pModel);
-            RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 7)
+            RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 9)
         }
 
         if(pBuffer->data == NULL) {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "This model's indice buffer does not exist!");
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "This model's indice buffer data does not exist!");
             cgltf_free(pModel);
-            RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 8)
+            RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 10)
         }
 
         if(pBuffer->name != NULL)
@@ -1416,8 +1449,8 @@ static VEngineResult loadModel() {
 
         uint16_t *pIndexes = malloc(pBufferView->size);
 
-        if(pIndexes != NULL) {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "This model's indice buffer does not exist!");
+        if(pIndexes == NULL) {
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "pIndexes failed to allocate");
             cgltf_free(pModel);
             RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 9)
         }
