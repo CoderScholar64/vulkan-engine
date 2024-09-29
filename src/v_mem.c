@@ -197,7 +197,7 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
 
                 loadBufferSize = fmax(loadBufferSize, sizeof(cgltf_float) * cgltf_accessor_unpack_floats(pPositionAttribute->data, NULL, cgltf_num_components(pPositionAttribute->data->type) * pPositionAttribute->data->count));
                 break;
-            case cgltf_attribute_type_normal:
+            case cgltf_attribute_type_color:
                 pColorAttribute = &pModel->meshes[0].primitives[0].attributes[i];
 
                 SDL_Log("Color Buffer size = %li", sizeof(cgltf_float) * cgltf_accessor_unpack_floats(pColorAttribute->data, NULL, cgltf_num_components(pColorAttribute->data->type) * pColorAttribute->data->count));
