@@ -86,9 +86,20 @@ cgltf_data* u_gltf_read(const char *const pUTF8Filepath, cgltf_result *pCGLTFRes
     if(pCGLTFResult != NULL)
         *pCGLTFResult = result;
 
-    if (result == cgltf_result_success)
-        return data;
-    return NULL;
+    if (result != cgltf_result_success)
+        return NULL;
+
+    result = cgltf_load_buffers(&options, data, pUTF8Filepath);
+
+    if(pCGLTFResult != NULL)
+        *pCGLTFResult = result;
+
+    if (result != cgltf_result_success) {
+        cgltf_free(data);
+        return NULL;
+    }
+
+    return data;
 }
 
 static void* cgltfAllocFunc(void* user, cgltf_size size) {
