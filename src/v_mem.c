@@ -197,6 +197,8 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
         RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 4)
     }
 
+    cgltf_size loadBufferSize = 0;
+
     cgltf_attribute *pPositionAttribute = NULL;
     cgltf_attribute *pColorAttribute    = NULL;
     cgltf_attribute *pTexCoordAttribute = NULL;
@@ -205,18 +207,31 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
         switch(pModel->meshes[0].primitives[0].attributes[i].type) {
             case cgltf_attribute_type_position:
                 pPositionAttribute = &pModel->meshes[0].primitives[0].attributes[i];
+
+                SDL_Log("Position Buffer size = %li", sizeof(cgltf_float) * cgltf_accessor_unpack_floats(pPositionAttribute->data, NULL, 0));
+
+                loadBufferSize = fmax(loadBufferSize, sizeof(cgltf_float) * cgltf_accessor_unpack_floats(pPositionAttribute->data, NULL, 0));
                 break;
             case cgltf_attribute_type_normal:
                 pColorAttribute = &pModel->meshes[0].primitives[0].attributes[i];
+
+                SDL_Log("Color Buffer size = %li", sizeof(cgltf_float) * cgltf_accessor_unpack_floats(pColorAttribute->data, NULL, 0));
+
+                loadBufferSize = fmax(loadBufferSize, sizeof(cgltf_float) * cgltf_accessor_unpack_floats(pColorAttribute->data, NULL, 0));
                 break;
             case cgltf_attribute_type_texcoord:
                 pTexCoordAttribute = &pModel->meshes[0].primitives[0].attributes[i];
+
+                SDL_Log("Texture Buffer size = %li", sizeof(cgltf_float) * cgltf_accessor_unpack_floats(pTexCoordAttribute->data, NULL, 0));
+
+                loadBufferSize = fmax(loadBufferSize, sizeof(cgltf_float) * cgltf_accessor_unpack_floats(pTexCoordAttribute->data, NULL, 0));
                 break;
             default:
                 // Just do nothing for unrecognized attributes.
         }
         SDL_Log("Attribute %li\n  name = %s\n  type = %i\n  index = %i\n", i, pModel->meshes[0].primitives[0].attributes[i].name, pModel->meshes[0].primitives[0].attributes[i].type, pModel->meshes[0].primitives[0].attributes[i].index);
     }
+    SDL_Log("Buffer size = %li", loadBufferSize);
 
     if(pPositionAttribute == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "No position attribute found!");
@@ -224,16 +239,18 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
         RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 5)
     }
 
-    if(pModel->meshes[0].primitives[0].indices != NULL) {
-        cgltf_accessor* pAccessor = pModel->meshes[0].primitives[0].indices;
+    cgltf_accessor* pIndices = NULL;;
 
-        if(pAccessor->type != cgltf_type_scalar) {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "This model has component_type = %i", pAccessor->type);
+    if(pModel->meshes[0].primitives[0].indices != NULL) {
+        pIndices = pModel->meshes[0].primitives[0].indices;
+
+        if(pIndices->type != cgltf_type_scalar) {
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "This model has component_type = %i", pIndices->type);
             cgltf_free(pModel);
             RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 6)
         }
 
-        switch(pAccessor->component_type) {
+        switch(pIndices->component_type) {
             case cgltf_component_type_r_16u:
                 SDL_Log("This model has component_type = cgltf_component_type_r_16u");
                 break;
@@ -241,14 +258,14 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
                 SDL_Log("This model has component_type = cgltf_component_type_r_32u");
                 break;
             default:
-                SDL_Log("This model has invalid component_type = %i", pAccessor->component_type);
+                SDL_Log("This model has invalid component_type = %i", pIndices->component_type);
                 cgltf_free(pModel);
                 RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 7)
         }
 
-        SDL_Log("This model has indices = %li.\n", pAccessor->count);
+        SDL_Log("This model has indices = %li.\n", pIndices->count);
 
-        cgltf_buffer_view *pBufferView = pAccessor->buffer_view;
+        cgltf_buffer_view *pBufferView = pIndices->buffer_view;
 
         if(pBufferView == NULL) {
             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "This model's indice buffer view does not exist!");
@@ -279,19 +296,8 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
         SDL_Log("BufferView offset = 0x%lx", pBufferView->offset);
         SDL_Log("BufferView size = 0x%lx", pBufferView->size);
         SDL_Log("Buffer size = 0x%lx", pBuffer->size);
-
-        uint16_t *pIndexes = malloc(pBufferView->size);
-
-        if(pIndexes == NULL) {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "pIndexes failed to allocate");
-            cgltf_free(pModel);
-            RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 9)
-        }
-
-        cgltf_accessor_unpack_indices(pAccessor, pIndexes, cgltf_component_size(pAccessor->component_type), pAccessor->count);
-
-        free(pIndexes);
     }
+    //cgltf_accessor_unpack_indices(pIndices, NULL, cgltf_component_size(pIndices->component_type), pIndices->count);
 
     cgltf_free(pModel);
 
