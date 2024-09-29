@@ -231,7 +231,6 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
         }
         SDL_Log("Attribute %li\n  name = %s\n  type = %i\n  index = %i\n", i, pModel->meshes[0].primitives[0].attributes[i].name, pModel->meshes[0].primitives[0].attributes[i].type, pModel->meshes[0].primitives[0].attributes[i].index);
     }
-    SDL_Log("Buffer size = %li", loadBufferSize);
 
     if(pPositionAttribute == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "No position attribute found!");
@@ -253,9 +252,11 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
         switch(pIndices->component_type) {
             case cgltf_component_type_r_16u:
                 SDL_Log("This model has component_type = cgltf_component_type_r_16u");
+                loadBufferSize = fmax(loadBufferSize, sizeof(uint16_t) * cgltf_accessor_unpack_indices(pIndices, NULL, cgltf_component_size(pIndices->component_type), pIndices->count));
                 break;
             case cgltf_component_type_r_32u:
                 SDL_Log("This model has component_type = cgltf_component_type_r_32u");
+                loadBufferSize = fmax(loadBufferSize, sizeof(uint32_t) * cgltf_accessor_unpack_indices(pIndices, NULL, cgltf_component_size(pIndices->component_type), pIndices->count));
                 break;
             default:
                 SDL_Log("This model has invalid component_type = %i", pIndices->component_type);
@@ -264,40 +265,32 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
         }
 
         SDL_Log("This model has indices = %li.\n", pIndices->count);
-
-        cgltf_buffer_view *pBufferView = pIndices->buffer_view;
-
-        if(pBufferView == NULL) {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "This model's indice buffer view does not exist!");
-            cgltf_free(pModel);
-            RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 8)
-        }
-
-        cgltf_buffer *pBuffer = pBufferView->buffer;
-
-        if(pBuffer == NULL) {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "This model's indice buffer view does not exist!");
-            cgltf_free(pModel);
-            RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 9)
-        }
-
-        if(pBuffer->data == NULL) {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "This model's indice buffer data does not exist!");
-            cgltf_free(pModel);
-            RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 10)
-        }
-
-        if(pBuffer->name != NULL)
-            SDL_Log("Buffer name = %s", pBuffer->name);
-
-        if(pBuffer->uri != NULL)
-            SDL_Log("Buffer uri = %s", pBuffer->uri);
-
-        SDL_Log("BufferView offset = 0x%lx", pBufferView->offset);
-        SDL_Log("BufferView size = 0x%lx", pBufferView->size);
-        SDL_Log("Buffer size = 0x%lx", pBuffer->size);
     }
-    //cgltf_accessor_unpack_indices(pIndices, NULL, cgltf_component_size(pIndices->component_type), pIndices->count);
+    SDL_Log("Buffer size = %li", loadBufferSize);
+
+    void *pLoadBuffer = malloc(loadBufferSize);
+
+    if(pLoadBuffer == NULL) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to allocate a %li large buffer", loadBufferSize);
+        cgltf_free(pModel);
+        RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 8)
+    }
+
+    if(pIndices != NULL) {
+        cgltf_accessor_unpack_indices(pIndices, NULL, cgltf_component_size(pIndices->component_type), pIndices->count);
+    }
+
+    cgltf_accessor_unpack_floats(pPositionAttribute->data, pLoadBuffer, pPositionAttribute->data->count);
+
+    if(pColorAttribute != NULL) {
+        cgltf_accessor_unpack_floats(pColorAttribute->data, pLoadBuffer, pColorAttribute->data->count);
+    }
+
+    if(pTexCoordAttribute != NULL) {
+        cgltf_accessor_unpack_floats(pTexCoordAttribute->data, pLoadBuffer, pTexCoordAttribute->data->count);
+    }
+
+    free(pLoadBuffer);
 
     cgltf_free(pModel);
 
