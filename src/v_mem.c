@@ -252,7 +252,7 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
 
     cgltf_accessor* pIndices = NULL;
     VkIndexType indexType;
-    cgltf_size indiceSize = 0;
+    cgltf_size indexComponentSize = 0;
 
     if(pModel->meshes[0].primitives[0].indices != NULL) {
         pIndices = pModel->meshes[0].primitives[0].indices;
@@ -269,18 +269,18 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
             case cgltf_component_type_r_16u:
                 SDL_Log("This model has component_type = cgltf_component_type_r_16u");
 
-                indiceSize = cgltf_component_size(cgltf_component_type_r_16u);
+                indexComponentSize = cgltf_component_size(cgltf_component_type_r_16u);
                 indexType = VK_INDEX_TYPE_UINT16;
 
-                loadBufferSize = fmax(loadBufferSize, sizeof(uint16_t) * cgltf_accessor_unpack_indices(pIndices, NULL, indiceSize, pIndices->count));
+                loadBufferSize = fmax(loadBufferSize, sizeof(uint16_t) * cgltf_accessor_unpack_indices(pIndices, NULL, indexComponentSize, pIndices->count));
                 break;
             case cgltf_component_type_r_32u:
                 SDL_Log("This model has component_type = cgltf_component_type_r_32u");
 
-                indiceSize = cgltf_component_size(cgltf_component_type_r_32u);
+                indexComponentSize = cgltf_component_size(cgltf_component_type_r_32u);
                 indexType = VK_INDEX_TYPE_UINT32;
 
-                loadBufferSize = fmax(loadBufferSize, sizeof(uint32_t) * cgltf_accessor_unpack_indices(pIndices, NULL, indiceSize, pIndices->count));
+                loadBufferSize = fmax(loadBufferSize, sizeof(uint32_t) * cgltf_accessor_unpack_indices(pIndices, NULL, indexComponentSize, pIndices->count));
                 break;
             default:
                 SDL_Log("This model has invalid component_type = %i", pIndices->component_type);
@@ -303,11 +303,11 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
     Vertex *pInterlacedBuffer = pLoadBuffer + loadBufferSize;
 
     if(pIndices != NULL) {
-        cgltf_accessor_unpack_indices(pIndices, pLoadBuffer, indiceSize, pIndices->count);
+        cgltf_accessor_unpack_indices(pIndices, pLoadBuffer, indexComponentSize, pIndices->count);
 
         context.vk.indexType = indexType;
 
-        v_alloc_static_buffer(pLoadBuffer, indiceSize * pIndices->count, &context.vk.indexBuffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, &context.vk.indexBufferMemory);
+        v_alloc_static_buffer(pLoadBuffer, indexComponentSize * pIndices->count, &context.vk.indexBuffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, &context.vk.indexBufferMemory);
     }
 
     cgltf_accessor_unpack_floats(pPositionAttribute->data, pLoadBuffer, positionNumComponent * pPositionAttribute->data->count);
