@@ -47,9 +47,9 @@ struct Context {
         struct {
             unsigned vertexAmount;
             VkDeviceSize vertexOffset;
-            VkBuffer vertexBuffer;
-            VkDeviceMemory vertexBufferMemory;
             VkIndexType indexType;
+            VkBuffer buffer;
+            VkDeviceMemory bufferMemory;
         } model;
 
         VkCommandPool commandPool;

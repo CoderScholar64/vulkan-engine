@@ -348,7 +348,7 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
 
     context.vk.model.vertexOffset = indexBufferSize;
 
-    v_alloc_static_buffer(pIndexedBuffer, indexBufferSize + sizeof(Vertex) * vertexAmount, &context.vk.model.vertexBuffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, &context.vk.model.vertexBufferMemory);
+    v_alloc_static_buffer(pIndexedBuffer, indexBufferSize + sizeof(Vertex) * vertexAmount, &context.vk.model.buffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, &context.vk.model.bufferMemory);
 
     free(pLoadBuffer);
     cgltf_free(pModel);
