@@ -252,7 +252,8 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
 
     cgltf_accessor* pIndices = NULL;
     VkIndexType indexType;
-    cgltf_size indexComponentSize = 0;
+    cgltf_size indexComponentSize;
+    cgltf_size indexBufferSize = 0;
 
     if(pModel->meshes[0].primitives[0].indices != NULL) {
         pIndices = pModel->meshes[0].primitives[0].indices;
@@ -271,16 +272,12 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
 
                 indexComponentSize = cgltf_component_size(cgltf_component_type_r_16u);
                 indexType = VK_INDEX_TYPE_UINT16;
-
-                loadBufferSize = fmax(loadBufferSize, sizeof(uint16_t) * cgltf_accessor_unpack_indices(pIndices, NULL, indexComponentSize, pIndices->count));
                 break;
             case cgltf_component_type_r_32u:
                 SDL_Log("This model has component_type = cgltf_component_type_r_32u");
 
                 indexComponentSize = cgltf_component_size(cgltf_component_type_r_32u);
                 indexType = VK_INDEX_TYPE_UINT32;
-
-                loadBufferSize = fmax(loadBufferSize, sizeof(uint32_t) * cgltf_accessor_unpack_indices(pIndices, NULL, indexComponentSize, pIndices->count));
                 break;
             default:
                 SDL_Log("This model has invalid component_type = %i", pIndices->component_type);
@@ -288,11 +285,13 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
                 RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 8)
         }
 
+        indexBufferSize = indexComponentSize * cgltf_accessor_unpack_indices(pIndices, NULL, indexComponentSize, pIndices->count);
+
         SDL_Log("This model has indices = %li.\n", pIndices->count);
     }
     SDL_Log("Buffer size = %li", loadBufferSize);
 
-    void *pLoadBuffer = malloc(loadBufferSize + sizeof(Vertex) * vertexAmount);
+    void *pLoadBuffer = malloc(loadBufferSize + indexBufferSize + sizeof(Vertex) * vertexAmount);
 
     if(pLoadBuffer == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to allocate a %li large buffer", loadBufferSize);
@@ -300,14 +299,15 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
         RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 8)
     }
 
-    Vertex *pInterlacedBuffer = pLoadBuffer + loadBufferSize;
+    void   *pIndexedBuffer    = pLoadBuffer + (loadBufferSize);
+    Vertex *pInterlacedBuffer = pLoadBuffer + (loadBufferSize + indexBufferSize);
 
     if(pIndices != NULL) {
-        cgltf_accessor_unpack_indices(pIndices, pLoadBuffer, indexComponentSize, pIndices->count);
+        cgltf_accessor_unpack_indices(pIndices, pIndexedBuffer, indexComponentSize, pIndices->count);
 
         context.vk.indexType = indexType;
 
-        v_alloc_static_buffer(pLoadBuffer, indexComponentSize * pIndices->count, &context.vk.indexBuffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, &context.vk.indexBufferMemory);
+        v_alloc_static_buffer(pIndexedBuffer, indexBufferSize, &context.vk.indexBuffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, &context.vk.indexBufferMemory);
     }
 
     cgltf_accessor_unpack_floats(pPositionAttribute->data, pLoadBuffer, positionNumComponent * pPositionAttribute->data->count);
