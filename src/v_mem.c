@@ -194,9 +194,15 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
             case cgltf_attribute_type_position:
                 pPositionAttribute = &pModel->meshes[0].primitives[0].attributes[i];
 
-                vertexAmount = pPositionAttribute->data->count;
-
                 positionNumComponent = cgltf_num_components(pPositionAttribute->data->type);
+
+                if(positionNumComponent < 3) {
+                    pPositionAttribute = NULL;
+                    SDL_Log("Position does not have enough components = %li", positionNumComponent);
+                    break;
+                }
+
+                vertexAmount = pPositionAttribute->data->count;
 
                 SDL_Log("Position Buffer size = %li", sizeof(cgltf_float) * cgltf_accessor_unpack_floats(pPositionAttribute->data, NULL, positionNumComponent * pPositionAttribute->data->count));
 
@@ -207,6 +213,12 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
 
                 colorNumComponent = cgltf_num_components(pColorAttribute->data->type);
 
+                if(colorNumComponent < 3) {
+                    pColorAttribute = NULL;
+                    SDL_Log("Color does not have enough components = %li", colorNumComponent);
+                    break;
+                }
+
                 SDL_Log("Color Buffer size = %li", sizeof(cgltf_float) * cgltf_accessor_unpack_floats(pColorAttribute->data, NULL, colorNumComponent * pColorAttribute->data->count));
 
                 loadBufferSize = fmax(loadBufferSize, sizeof(cgltf_float) * cgltf_accessor_unpack_floats(pColorAttribute->data, NULL, colorNumComponent * pColorAttribute->data->count));
@@ -215,6 +227,12 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
                 pTexCoordAttribute = &pModel->meshes[0].primitives[0].attributes[i];
 
                 texCoordNumComponent = cgltf_num_components(pTexCoordAttribute->data->type);
+
+                if(texCoordNumComponent < 2) {
+                    pTexCoordAttribute = NULL;
+                    SDL_Log("Texture coordinates does not have enough components = %li", texCoordNumComponent);
+                    break;
+                }
 
                 SDL_Log("Texture Buffer size = %li", sizeof(cgltf_float) * cgltf_accessor_unpack_floats(pTexCoordAttribute->data, NULL, texCoordNumComponent * pTexCoordAttribute->data->count));
 
