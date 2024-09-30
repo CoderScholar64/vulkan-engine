@@ -356,7 +356,7 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-VEngineResult v_alloc_image(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage *pImage, VkDeviceMemory *pImageMemory) {
+VEngineResult v_alloc_image(uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage *pImage, VkDeviceMemory *pImageMemory) {
     VkResult result;
 
     VkImageCreateInfo imageCreateInfo = {0};
@@ -365,7 +365,7 @@ VEngineResult v_alloc_image(uint32_t width, uint32_t height, VkFormat format, Vk
     imageCreateInfo.extent.width = width;
     imageCreateInfo.extent.height = height;
     imageCreateInfo.extent.depth = 1;
-    imageCreateInfo.mipLevels = 1;
+    imageCreateInfo.mipLevels = mipLevels;
     imageCreateInfo.arrayLayers = 1;
     imageCreateInfo.format = format;
     imageCreateInfo.tiling = tiling;
@@ -522,7 +522,7 @@ VEngineResult v_end_one_time_command_buffer(VkCommandBuffer *pCommandBuffer) {
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-VEngineResult v_transition_image_layout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) {
+VEngineResult v_transition_image_layout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels) {
     VEngineResult engineResult;
     VkImageMemoryBarrier imageMemoryBarrier = {0};
     VkPipelineStageFlags sourceStage;
@@ -543,7 +543,7 @@ VEngineResult v_transition_image_layout(VkImage image, VkFormat format, VkImageL
     else
         imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     imageMemoryBarrier.subresourceRange.baseMipLevel = 0;
-    imageMemoryBarrier.subresourceRange.levelCount = 1;
+    imageMemoryBarrier.subresourceRange.levelCount = mipLevels;
     imageMemoryBarrier.subresourceRange.baseArrayLayer = 0;
     imageMemoryBarrier.subresourceRange.layerCount = 1;
 
@@ -598,7 +598,7 @@ VEngineResult v_transition_image_layout(VkImage image, VkFormat format, VkImageL
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-VEngineResult v_copy_buffer_to_image(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) {
+VEngineResult v_copy_buffer_to_image(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t mipLevel) {
     VEngineResult engineResult;
 
     VkCommandBuffer commandBuffer;
@@ -615,7 +615,7 @@ VEngineResult v_copy_buffer_to_image(VkBuffer buffer, VkImage image, uint32_t wi
     bufferImageCopy.bufferImageHeight = 0;
 
     bufferImageCopy.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    bufferImageCopy.imageSubresource.mipLevel = 0;
+    bufferImageCopy.imageSubresource.mipLevel = mipLevel;
     bufferImageCopy.imageSubresource.baseArrayLayer = 0;
     bufferImageCopy.imageSubresource.layerCount = 1;
 
@@ -644,7 +644,7 @@ VEngineResult v_copy_buffer_to_image(VkBuffer buffer, VkImage image, uint32_t wi
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-VEngineResult v_alloc_image_view(VkImage image, VkFormat format, VkImageViewCreateFlags createFlags, VkImageAspectFlags aspectFlags, VkImageView *pImageView) {
+VEngineResult v_alloc_image_view(VkImage image, VkFormat format, VkImageViewCreateFlags createFlags, VkImageAspectFlags aspectFlags, VkImageView *pImageView, uint32_t mipLevels) {
     VkImageViewCreateInfo imageViewCreateInfo;
     imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     imageViewCreateInfo.pNext = NULL;
@@ -660,7 +660,7 @@ VEngineResult v_alloc_image_view(VkImage image, VkFormat format, VkImageViewCrea
 
     imageViewCreateInfo.subresourceRange.aspectMask     = aspectFlags;
     imageViewCreateInfo.subresourceRange.baseMipLevel   = 0;
-    imageViewCreateInfo.subresourceRange.levelCount     = 1;
+    imageViewCreateInfo.subresourceRange.levelCount     = mipLevels;
     imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
     imageViewCreateInfo.subresourceRange.layerCount     = 1;
 

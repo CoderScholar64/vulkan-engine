@@ -55,6 +55,7 @@ struct Context {
         VkCommandPool commandPool;
 
         struct {
+            uint32_t mipLevels;
             VkImage image;
             VkImageView imageView;
             VkDeviceMemory imageMemory;
