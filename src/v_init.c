@@ -1168,7 +1168,7 @@ static VEngineResult allocateDepthResources() {
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-static uint32_t mipLevel(uint32_t width, uint32_t height) {
+static uint32_t getMipLevel(uint32_t width, uint32_t height) {
     uint32_t dimension = height;
 
     if(width > height)
@@ -1183,6 +1183,7 @@ static uint32_t mipLevel(uint32_t width, uint32_t height) {
 
 static VEngineResult allocateTextureImage() {
     qoi_desc QOIdescription;
+    qoi_desc mipQOIdescription;
     const char FILENAME[] = "test_texture_%i.qoi";
     char filename[64];
 
@@ -1190,7 +1191,8 @@ static VEngineResult allocateTextureImage() {
 
     void *pPixels = u_qoi_read(filename, &QOIdescription, 4);
 
-    VkDeviceSize imageSize = 4 * QOIdescription.width * QOIdescription.height;
+    VkDeviceSize firstImageSizeSq = 4 * QOIdescription.width * QOIdescription.height;
+    VkDeviceSize mipmapSizeSq = firstImageSizeSq + firstImageSizeSq / 3;
 
     if(pPixels == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Could not read file with name \"%s\"", FILENAME);
@@ -1200,21 +1202,40 @@ static VEngineResult allocateTextureImage() {
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
 
-    VEngineResult engineResult = v_alloc_buffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, &stagingBufferMemory);
+    VEngineResult engineResult = v_alloc_buffer(mipmapSizeSq, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, &stagingBufferMemory);
 
     if(engineResult.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to make staging buffer for allocateTextureImage");
         RETURN_RESULT_CODE(VE_ALLOC_TEXTURE_IMAGE_FAILURE, 1)
     }
 
+    uint32_t mipLevel = getMipLevel(QOIdescription.width, QOIdescription.height);
+    context.vk.texture.mipLevels = mipLevel;
+
+    mipQOIdescription = QOIdescription;
+
     void* data;
-    vkMapMemory(context.vk.device, stagingBufferMemory, 0, imageSize, 0, &data);
-    memcpy(data, pPixels, (size_t)imageSize);
+    vkMapMemory(context.vk.device, stagingBufferMemory, 0, mipmapSizeSq, 0, &data);
+    for(uint32_t m = 0; m < mipLevel; m++) {
+        VkDeviceSize imageSizeSq = 4 * mipQOIdescription.width * mipQOIdescription.height;
+
+        memcpy(data, pPixels, (size_t)imageSizeSq);
+
+        data += imageSizeSq;
+
+        free(pPixels);
+
+        if(m + 1 == mipLevel)
+            break;
+
+        snprintf(filename, sizeof(filename) / sizeof(filename[0]), FILENAME, m + 1);
+
+        SDL_Log("%s for %i", filename, m);
+
+        pPixels = u_qoi_read(filename, &mipQOIdescription, 4);
+    }
     vkUnmapMemory(context.vk.device, stagingBufferMemory);
 
-    free(pPixels);
-
-    context.vk.texture.mipLevels = mipLevel(QOIdescription.width, QOIdescription.height);
 
     engineResult = v_alloc_image(QOIdescription.width, QOIdescription.height, context.vk.texture.mipLevels, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &context.vk.texture.image, &context.vk.texture.imageMemory);
 
