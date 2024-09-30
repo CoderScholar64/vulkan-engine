@@ -232,7 +232,9 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
         RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 6)
     }
 
-    cgltf_accessor* pIndices = NULL;;
+    cgltf_accessor* pIndices = NULL;
+    VkIndexType indexType;
+    cgltf_size indiceSize = 0;
 
     if(pModel->meshes[0].primitives[0].indices != NULL) {
         pIndices = pModel->meshes[0].primitives[0].indices;
@@ -244,13 +246,23 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
         }
 
         switch(pIndices->component_type) {
+            case cgltf_component_type_r_8u:
+                SDL_Log("This model actually stores cgltf_component_type_r_8u. It will be converted to 16u");
             case cgltf_component_type_r_16u:
                 SDL_Log("This model has component_type = cgltf_component_type_r_16u");
-                loadBufferSize = fmax(loadBufferSize, sizeof(uint16_t) * cgltf_accessor_unpack_indices(pIndices, NULL, cgltf_component_size(pIndices->component_type), pIndices->count));
+
+                indiceSize = cgltf_component_size(cgltf_component_type_r_16u);
+                indexType = VK_INDEX_TYPE_UINT16;
+
+                loadBufferSize = fmax(loadBufferSize, sizeof(uint16_t) * cgltf_accessor_unpack_indices(pIndices, NULL, indiceSize, pIndices->count));
                 break;
             case cgltf_component_type_r_32u:
                 SDL_Log("This model has component_type = cgltf_component_type_r_32u");
-                loadBufferSize = fmax(loadBufferSize, sizeof(uint32_t) * cgltf_accessor_unpack_indices(pIndices, NULL, cgltf_component_size(pIndices->component_type), pIndices->count));
+
+                indiceSize = cgltf_component_size(cgltf_component_type_r_32u);
+                indexType = VK_INDEX_TYPE_UINT32;
+
+                loadBufferSize = fmax(loadBufferSize, sizeof(uint32_t) * cgltf_accessor_unpack_indices(pIndices, NULL, indiceSize, pIndices->count));
                 break;
             default:
                 SDL_Log("This model has invalid component_type = %i", pIndices->component_type);
@@ -273,11 +285,12 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
     Vertex *pInterlacedBuffer = pLoadBuffer + loadBufferSize;
 
     if(pIndices != NULL) {
-        cgltf_accessor_unpack_indices(pIndices, pLoadBuffer, cgltf_component_size(pIndices->component_type), pIndices->count);
+        cgltf_accessor_unpack_indices(pIndices, pLoadBuffer, indiceSize, pIndices->count);
 
         context.vk.indexAmount = pIndices->count;
+        context.vk.indexType = indexType;
 
-        v_alloc_static_buffer(pLoadBuffer, cgltf_component_size(pIndices->component_type) * pIndices->count, &context.vk.indexBuffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, &context.vk.indexBufferMemory);
+        v_alloc_static_buffer(pLoadBuffer, indiceSize * pIndices->count, &context.vk.indexBuffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, &context.vk.indexBufferMemory);
     }
 
     cgltf_accessor_unpack_floats(pPositionAttribute->data, pLoadBuffer, positionNumComponent * pPositionAttribute->data->count);

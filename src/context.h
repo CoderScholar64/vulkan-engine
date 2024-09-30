@@ -50,6 +50,8 @@ struct Context {
         unsigned indexAmount;
         VkBuffer indexBuffer;
         VkDeviceMemory indexBufferMemory;
+        VkIndexType indexType;
+
         VkCommandPool commandPool;
 
         VkImage textureImage;

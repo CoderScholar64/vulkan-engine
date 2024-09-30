@@ -159,7 +159,7 @@ VEngineResult v_record_command_buffer(VkCommandBuffer commandBuffer, uint32_t im
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
     if(context.vk.indexBuffer != NULL) {
-        vkCmdBindIndexBuffer(commandBuffer, context.vk.indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+        vkCmdBindIndexBuffer(commandBuffer, context.vk.indexBuffer, 0, context.vk.indexType);
         vkCmdDrawIndexed(commandBuffer, context.vk.indexAmount, 1, 0, 0, 0);
     }
     else
