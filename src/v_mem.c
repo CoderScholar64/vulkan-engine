@@ -305,7 +305,6 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
     if(pIndices != NULL) {
         cgltf_accessor_unpack_indices(pIndices, pLoadBuffer, indiceSize, pIndices->count);
 
-        context.vk.indexAmount = pIndices->count;
         context.vk.indexType = indexType;
 
         v_alloc_static_buffer(pLoadBuffer, indiceSize * pIndices->count, &context.vk.indexBuffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, &context.vk.indexBufferMemory);
@@ -344,7 +343,10 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
         }
     }
 
-    context.vk.vertexAmount = vertexAmount;
+    if(pIndices != NULL)
+        context.vk.vertexAmount = pIndices->count;
+    else
+        context.vk.vertexAmount = vertexAmount;
 
     v_alloc_static_buffer(pInterlacedBuffer, sizeof(Vertex) * vertexAmount, &context.vk.vertexBuffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, &context.vk.vertexBufferMemory);
 

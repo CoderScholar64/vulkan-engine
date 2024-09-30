@@ -160,7 +160,7 @@ VEngineResult v_record_command_buffer(VkCommandBuffer commandBuffer, uint32_t im
 
     if(context.vk.indexBuffer != NULL) {
         vkCmdBindIndexBuffer(commandBuffer, context.vk.indexBuffer, 0, context.vk.indexType);
-        vkCmdDrawIndexed(commandBuffer, context.vk.indexAmount, 1, 0, 0, 0);
+        vkCmdDrawIndexed(commandBuffer, context.vk.vertexAmount, 1, 0, 0, 0);
     }
     else
         vkCmdDraw(commandBuffer, context.vk.vertexAmount, 1, 0, 0);

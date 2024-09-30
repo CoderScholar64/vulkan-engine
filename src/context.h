@@ -47,7 +47,6 @@ struct Context {
         unsigned vertexAmount;
         VkBuffer vertexBuffer;
         VkDeviceMemory vertexBufferMemory;
-        unsigned indexAmount;
         VkBuffer indexBuffer;
         VkDeviceMemory indexBufferMemory;
         VkIndexType indexType;
