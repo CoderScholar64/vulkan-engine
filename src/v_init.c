@@ -168,8 +168,8 @@ void v_deinit() {
         vkFreeMemory(      context.vk.device, context.vk.frames[i - 1].uniformBufferMemory,     NULL);
     }
 
-    vkDestroyBuffer(context.vk.device, context.vk.vertexBuffer, NULL);
-    vkFreeMemory(context.vk.device, context.vk.vertexBufferMemory, NULL);
+    vkDestroyBuffer(context.vk.device, context.vk.model.vertexBuffer, NULL);
+    vkFreeMemory(context.vk.device, context.vk.model.vertexBufferMemory, NULL);
     vkDestroyCommandPool(context.vk.device, context.vk.commandPool, NULL);
     vkDestroyPipeline(context.vk.device, context.vk.graphicsPipeline, NULL);
     vkDestroyPipelineLayout(context.vk.device, context.vk.pipelineLayout, NULL);

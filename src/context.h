@@ -44,11 +44,13 @@ struct Context {
         VkPipelineLayout pipelineLayout;
         VkPipeline graphicsPipeline;
 
-        unsigned vertexAmount;
-        VkDeviceSize vertexOffset;
-        VkBuffer vertexBuffer;
-        VkDeviceMemory vertexBufferMemory;
-        VkIndexType indexType;
+        struct {
+            unsigned vertexAmount;
+            VkDeviceSize vertexOffset;
+            VkBuffer vertexBuffer;
+            VkDeviceMemory vertexBufferMemory;
+            VkIndexType indexType;
+        } model;
 
         VkCommandPool commandPool;
 

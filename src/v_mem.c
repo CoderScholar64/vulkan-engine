@@ -305,7 +305,7 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
     if(pIndices != NULL) {
         cgltf_accessor_unpack_indices(pIndices, pIndexedBuffer, indexComponentSize, pIndices->count);
 
-        context.vk.indexType = indexType;
+        context.vk.model.indexType = indexType;
     }
 
     cgltf_accessor_unpack_floats(pPositionAttribute->data, pLoadBuffer, positionNumComponent * pPositionAttribute->data->count);
@@ -342,13 +342,13 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
     }
 
     if(pIndices != NULL)
-        context.vk.vertexAmount = pIndices->count;
+        context.vk.model.vertexAmount = pIndices->count;
     else
-        context.vk.vertexAmount = vertexAmount;
+        context.vk.model.vertexAmount = vertexAmount;
 
-    context.vk.vertexOffset = indexBufferSize;
+    context.vk.model.vertexOffset = indexBufferSize;
 
-    v_alloc_static_buffer(pIndexedBuffer, indexBufferSize + sizeof(Vertex) * vertexAmount, &context.vk.vertexBuffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, &context.vk.vertexBufferMemory);
+    v_alloc_static_buffer(pIndexedBuffer, indexBufferSize + sizeof(Vertex) * vertexAmount, &context.vk.model.vertexBuffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, &context.vk.model.vertexBufferMemory);
 
     free(pLoadBuffer);
     cgltf_free(pModel);
