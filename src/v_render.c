@@ -155,11 +155,11 @@ VEngineResult v_record_command_buffer(VkCommandBuffer commandBuffer, uint32_t im
     vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, context.vk.pipelineLayout, 0, 1, &context.vk.frames[context.vk.currentFrame].descriptorSet, 0, NULL);
 
     VkBuffer vertexBuffers[] = {context.vk.vertexBuffer};
-    VkDeviceSize offsets[] = {0};
+    VkDeviceSize offsets[] = {context.vk.vertexOffset};
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-    if(context.vk.indexBuffer != NULL) {
-        vkCmdBindIndexBuffer(commandBuffer, context.vk.indexBuffer, 0, context.vk.indexType);
+    if(context.vk.vertexOffset != 0) {
+        vkCmdBindIndexBuffer(commandBuffer, context.vk.vertexBuffer, 0, context.vk.indexType);
         vkCmdDrawIndexed(commandBuffer, context.vk.vertexAmount, 1, 0, 0, 0);
     }
     else

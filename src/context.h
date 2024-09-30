@@ -45,10 +45,9 @@ struct Context {
         VkPipeline graphicsPipeline;
 
         unsigned vertexAmount;
+        unsigned vertexOffset;
         VkBuffer vertexBuffer;
         VkDeviceMemory vertexBufferMemory;
-        VkBuffer indexBuffer;
-        VkDeviceMemory indexBufferMemory;
         VkIndexType indexType;
 
         VkCommandPool commandPool;
