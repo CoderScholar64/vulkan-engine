@@ -151,9 +151,9 @@ void v_deinit() {
     cleanupSwapChain();
 
     vkDestroySampler(context.vk.device, context.vk.defaultTextureSampler, NULL);
-    vkDestroyImageView(context.vk.device, context.vk.textureImageView, NULL);
-    vkDestroyImage(context.vk.device, context.vk.textureImage, NULL);
-    vkFreeMemory(context.vk.device, context.vk.textureImageMemory, NULL);
+    vkDestroyImageView(context.vk.device, context.vk.texture.imageView, NULL);
+    vkDestroyImage(context.vk.device, context.vk.texture.image, NULL);
+    vkFreeMemory(context.vk.device, context.vk.texture.imageMemory, NULL);
     vkDestroyDescriptorPool(context.vk.device, context.vk.descriptorPool, NULL);
     vkDestroyDescriptorSetLayout(context.vk.device, context.vk.descriptorSetLayout, NULL);
 
@@ -1197,26 +1197,26 @@ static VEngineResult allocateTextureImage() {
 
     free(pPixels);
 
-    engineResult = v_alloc_image(QOIdescription.width, QOIdescription.height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &context.vk.textureImage, &context.vk.textureImageMemory);
+    engineResult = v_alloc_image(QOIdescription.width, QOIdescription.height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &context.vk.texture.image, &context.vk.texture.imageMemory);
 
     if(engineResult.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_alloc_image had failed with %i", engineResult.point);
         RETURN_RESULT_CODE(VE_ALLOC_TEXTURE_IMAGE_FAILURE, 2)
     }
 
-    engineResult = v_transition_image_layout(context.vk.textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    engineResult = v_transition_image_layout(context.vk.texture.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     if(engineResult.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_transition_image_layout had failed with %i", engineResult.point);
         RETURN_RESULT_CODE(VE_ALLOC_TEXTURE_IMAGE_FAILURE, 3)
     }
 
-    engineResult = v_copy_buffer_to_image(stagingBuffer, context.vk.textureImage, QOIdescription.width, QOIdescription.height);
+    engineResult = v_copy_buffer_to_image(stagingBuffer, context.vk.texture.image, QOIdescription.width, QOIdescription.height);
     if(engineResult.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_copy_buffer_to_image had failed with %i", engineResult.point);
         RETURN_RESULT_CODE(VE_ALLOC_TEXTURE_IMAGE_FAILURE, 4)
     }
 
-    engineResult = v_transition_image_layout(context.vk.textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    engineResult = v_transition_image_layout(context.vk.texture.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     if(engineResult.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_transition_image_layout had failed with %i", engineResult.point);
         RETURN_RESULT_CODE(VE_ALLOC_TEXTURE_IMAGE_FAILURE, 5)
@@ -1229,7 +1229,7 @@ static VEngineResult allocateTextureImage() {
 }
 
 static VEngineResult allocateTextureImageView() {
-    VEngineResult engineResult = v_alloc_image_view(context.vk.textureImage, VK_FORMAT_R8G8B8A8_SRGB, 0, VK_IMAGE_ASPECT_COLOR_BIT, &context.vk.textureImageView);
+    VEngineResult engineResult = v_alloc_image_view(context.vk.texture.image, VK_FORMAT_R8G8B8A8_SRGB, 0, VK_IMAGE_ASPECT_COLOR_BIT, &context.vk.texture.imageView);
 
     if(engineResult.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_alloc_image_view failed for allocate returned %i", engineResult.point);
@@ -1360,7 +1360,7 @@ static VEngineResult allocateDescriptorSets() {
 
     VkDescriptorImageInfo descriptorImageInfo;
     descriptorImageInfo.sampler = context.vk.defaultTextureSampler;
-    descriptorImageInfo.imageView = context.vk.textureImageView;
+    descriptorImageInfo.imageView = context.vk.texture.imageView;
     descriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
     VkWriteDescriptorSet writeDescriptorSets[2] = {{0}, {0}};

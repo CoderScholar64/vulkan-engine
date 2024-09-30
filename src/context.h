@@ -54,9 +54,11 @@ struct Context {
 
         VkCommandPool commandPool;
 
-        VkImage textureImage;
-        VkImageView textureImageView;
-        VkDeviceMemory textureImageMemory;
+        struct {
+            VkImage image;
+            VkImageView imageView;
+            VkDeviceMemory imageMemory;
+        } texture;
 
         VkImage depthImage;
         VkFormat depthFormat;
