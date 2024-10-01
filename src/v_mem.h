@@ -60,7 +60,8 @@ VEngineResult v_load_model(const char *const pUTF8Filepath);
  * @warning Make sure that v_init() is called first.
  * @param width The width of the new image in pixel units.
  * @param height The height of the new image in pixel units.
- * @param mipLevels
+ * @param mipLevels The amount of mipmap levels that the mipmap in the buffer has. If the image has no mipmaps then set this to one.
+ * @param numSamples The number of samples that this image supports
  * @param format The format of the new image. @warning Be sure that it is valid for the device.
  * @param tiling How would the image be laid out. @warning Be sure that it is valid for the device and format.
  * @param usage What would the image be used for in the flags. @note See VkImageUsageFlags for details
@@ -69,7 +70,7 @@ VEngineResult v_load_model(const char *const pUTF8Filepath);
  * @param pImageMemory The memory where the image would reside. @warning This must point to a VkDeviceMemory that is not initialized yet.
  * @return A VEngineResult. If its type is VE_SUCCESS then srcBuffer is successfully copied to dstBuffer. If VE_ALLOC_IMAGE_FAILURE then Vulkan had found a problem
  */
-VEngineResult v_alloc_image(uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage *pImage, VkDeviceMemory *pImageMemory);
+VEngineResult v_alloc_image(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage *pImage, VkDeviceMemory *pImageMemory);
 
 /**
  * This function copies the srcBuffer to dstBuffer via Vulkan.

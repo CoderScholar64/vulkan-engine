@@ -356,7 +356,7 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-VEngineResult v_alloc_image(uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage *pImage, VkDeviceMemory *pImageMemory) {
+VEngineResult v_alloc_image(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage *pImage, VkDeviceMemory *pImageMemory) {
     VkResult result;
 
     VkImageCreateInfo imageCreateInfo = {0};
@@ -372,7 +372,7 @@ VEngineResult v_alloc_image(uint32_t width, uint32_t height, uint32_t mipLevels,
     imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     imageCreateInfo.usage = usage;
     imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+    imageCreateInfo.samples = numSamples;
     imageCreateInfo.flags = 0;
 
     result = vkCreateImage(context.vk.device, &imageCreateInfo, NULL, pImage);
