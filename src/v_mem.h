@@ -106,7 +106,7 @@ VEngineResult v_end_one_time_command_buffer(VkCommandBuffer *pCommandBuffer);
  * @param format the format of the image to be converted.
  * @param oldLayout the old layout being used by the image.
  * @param newLayout The new layout that the image should be using.
- * @param mipLevels
+ * @param mipLevels The amount of mipmap levels that the mipmap in the buffer has. If the image has no mipmaps then set this to one.
  * @return A VEngineResult. If its type is VE_SUCCESS then the image uses the newLayout. If VE_TRANSIT_IMAGE_LAYOUT_FAILURE then a problem occured. If point is zero then this function does not support the specific oldLayout and newLayout configuration.
  */
 VEngineResult v_transition_image_layout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);
@@ -118,10 +118,11 @@ VEngineResult v_transition_image_layout(VkImage image, VkFormat format, VkImageL
  * @param image An image where the buffer would be copied to.
  * @param width The width of the image in pixel units.
  * @param height The height of the image in pixel units.
- * @param primeImageSize
- * @param mipLevel
+ * @param primeImageSize The size of the first image in the mip map.
+ * @param mipLevels The amount of mipmap levels that the mipmap in the buffer has. If the image has no mipmaps then set this to one.
+ * @return A VEngineResult. If its type is VE_SUCCESS then the image has been copied to the image. If VE_COPY_BUFFER_TO_IMAGE_FAILURE then Vulkan had found a problem.
  */
-VEngineResult v_copy_buffer_to_image(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, VkDeviceSize primeImageSize, uint32_t mipLevel);
+VEngineResult v_copy_buffer_to_image(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, VkDeviceSize primeImageSize, uint32_t mipLevels);
 
 /**
  * This function allocates an image view.
@@ -129,7 +130,7 @@ VEngineResult v_copy_buffer_to_image(VkBuffer buffer, VkImage image, uint32_t wi
  * @param createFlags These are additional flags for the image view. Setting this value other than 0 will require extensions, so the suggested value 0. @note See VkImageViewCreateFlags for details
  * @param aspectFlags This specifies how the image in the view would be used. E.g. VK_IMAGE_ASPECT_COLOR_BIT for color or VK_IMAGE_ASPECT_DEPTH_BIT. @note See VkImageAspectFlags for details.
  * @param pImageView The image view that would be generated. @warning This must point to a VkImageView that is not initialized yet.
- * @param mipLevels
+ * @param mipLevels The amount of mipmap levels that the mipmap in the buffer has. If the image has no mipmaps then set this to one.
  * @return A VEngineResult. If its type is VE_SUCCESS then the image view is successfully created. If VE_ALLOC_IMAGE_VIEW_FAILURE then Vulkan had found a problem
  */
 VEngineResult v_alloc_image_view(VkImage image, VkFormat format, VkImageViewCreateFlags createFlags, VkImageAspectFlags aspectFlags, VkImageView *pImageView, uint32_t mipLevels);
