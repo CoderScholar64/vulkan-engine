@@ -118,9 +118,10 @@ VEngineResult v_transition_image_layout(VkImage image, VkFormat format, VkImageL
  * @param image An image where the buffer would be copied to.
  * @param width The width of the image in pixel units.
  * @param height The height of the image in pixel units.
+ * @param primeImageSize
  * @param mipLevel
  */
-VEngineResult v_copy_buffer_to_image(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t mipLevel);
+VEngineResult v_copy_buffer_to_image(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, VkDeviceSize primeImageSize, uint32_t mipLevel);
 
 /**
  * This function allocates an image view.

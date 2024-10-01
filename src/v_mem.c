@@ -598,7 +598,7 @@ VEngineResult v_transition_image_layout(VkImage image, VkFormat format, VkImageL
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-VEngineResult v_copy_buffer_to_image(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t mipLevel) {
+VEngineResult v_copy_buffer_to_image(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, VkDeviceSize primeImageSize, uint32_t mipLevels) {
     VEngineResult engineResult;
 
     VkCommandBuffer commandBuffer;
@@ -609,13 +609,18 @@ VEngineResult v_copy_buffer_to_image(VkBuffer buffer, VkImage image, uint32_t wi
         RETURN_RESULT_CODE(VE_COPY_BUFFER_TO_IMAGE_FAILURE, 0)
     }
 
+    VkDeviceSize currentImageSize = primeImageSize;
+
     VkBufferImageCopy bufferImageCopy = {0};
-    bufferImageCopy.bufferOffset = 0;
     bufferImageCopy.bufferRowLength = 0;
     bufferImageCopy.bufferImageHeight = 0;
+    bufferImageCopy.bufferOffset = 0;
+
+    bufferImageCopy.imageExtent.width  = width;
+    bufferImageCopy.imageExtent.height = height;
+    bufferImageCopy.imageExtent.depth  = 1;
 
     bufferImageCopy.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    bufferImageCopy.imageSubresource.mipLevel = mipLevel;
     bufferImageCopy.imageSubresource.baseArrayLayer = 0;
     bufferImageCopy.imageSubresource.layerCount = 1;
 
@@ -623,18 +628,24 @@ VEngineResult v_copy_buffer_to_image(VkBuffer buffer, VkImage image, uint32_t wi
     bufferImageCopy.imageOffset.y = 0;
     bufferImageCopy.imageOffset.z = 0;
 
-    bufferImageCopy.imageExtent.width  = width;
-    bufferImageCopy.imageExtent.height = height;
-    bufferImageCopy.imageExtent.depth  = 1;
+    for(uint32_t m = 0; m < mipLevels; m++) {
+        bufferImageCopy.imageSubresource.mipLevel = m;
 
-    vkCmdCopyBufferToImage(
-        commandBuffer,
-        buffer,
-        image,
-        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-        1,
-        &bufferImageCopy
-    );
+        vkCmdCopyBufferToImage(
+            commandBuffer,
+            buffer,
+            image,
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            1,
+            &bufferImageCopy
+        );
+
+        bufferImageCopy.bufferOffset += currentImageSize;
+        bufferImageCopy.imageExtent.width /= 2;
+        bufferImageCopy.imageExtent.height /= 2;
+
+        currentImageSize /= 4;
+    }
 
     engineResult = v_end_one_time_command_buffer(&commandBuffer);
     if(engineResult.type != VE_SUCCESS) {
