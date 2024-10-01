@@ -506,6 +506,8 @@ static VEngineResult findPhysicalDevice(const char * const* ppRequiredExtensions
         RETURN_RESULT_CODE(VE_FIND_PHYSICAL_DEVICE_FAILURE, 4)
     }
 
+    context.vk.mmaa.samples = v_find_closet_flag_bit(VK_SAMPLE_COUNT_64_BIT);
+
     free(pPhysicalDevices);
 
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
@@ -1435,6 +1437,9 @@ static VEngineResult allocateDescriptorSets() {
 }
 
 static void cleanupSwapChain() {
+    vkDestroyImageView( context.vk.device, context.vk.mmaa.imageView,   NULL);
+    vkDestroyImage(     context.vk.device, context.vk.mmaa.image,       NULL);
+    vkFreeMemory(       context.vk.device, context.vk.mmaa.imageMemory, NULL);
     vkDestroyImageView( context.vk.device, context.vk.depthImageView,   NULL);
     vkDestroyImage(     context.vk.device, context.vk.depthImage,       NULL);
     vkFreeMemory(       context.vk.device, context.vk.depthImageMemory, NULL);

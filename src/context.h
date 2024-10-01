@@ -61,8 +61,15 @@ struct Context {
             VkDeviceMemory imageMemory;
         } texture;
 
-        VkImage depthImage;
+        struct {
+            VkSampleCountFlagBits samples;
+            VkImage image;
+            VkDeviceMemory imageMemory;
+            VkImageView imageView;
+        } mmaa;
+
         VkFormat depthFormat;
+        VkImage depthImage;
         VkDeviceMemory depthImageMemory;
         VkImageView depthImageView;
 
