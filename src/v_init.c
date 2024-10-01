@@ -37,6 +37,7 @@ static VEngineResult allocateDescriptorSetLayout();
 static VEngineResult allocateGraphicsPipeline();
 static VEngineResult allocateFrameBuffers();
 static VEngineResult allocateCommandPool();
+static VEngineResult allocateColorResources();
 static VEngineResult allocateDepthResources();
 static VEngineResult allocateTextureImage();
 static VEngineResult allocateTextureImageView();
@@ -95,6 +96,10 @@ VEngineResult v_init() {
         return returnCode;
 
     returnCode = allocateCommandPool();
+    if( returnCode.type < 0 )
+        return returnCode;
+
+    returnCode = allocateColorResources();
     if( returnCode.type < 0 )
         return returnCode;
 
@@ -191,6 +196,10 @@ VEngineResult v_recreate_swap_chain() {
         return returnCode;
 
     returnCode = allocateSwapChainImageViews();
+    if( returnCode.type < 0 )
+        return returnCode;
+
+    returnCode = allocateColorResources();
     if( returnCode.type < 0 )
         return returnCode;
 
@@ -761,27 +770,43 @@ static VEngineResult createRenderPass() {
         RETURN_RESULT_CODE(VE_CREATE_RENDER_PASS_FAILURE, 0)
     }
 
-    VkAttachmentDescription attachmentDescriptions[] = {{0}, {0}};
+    VkAttachmentDescription attachmentDescriptions[] = {{0}, {0}, {0}};
     const unsigned COLOR_INDEX = 0;
     const unsigned DEPTH_INDEX = 1;
+    const unsigned COLOR_RESOLVE_INDEX = 2;
 
     attachmentDescriptions[COLOR_INDEX].format  = context.vk.surfaceFormat.format;
-    attachmentDescriptions[COLOR_INDEX].samples = VK_SAMPLE_COUNT_1_BIT;
+    attachmentDescriptions[COLOR_INDEX].samples = context.vk.mmaa.samples;
     attachmentDescriptions[COLOR_INDEX].loadOp  = VK_ATTACHMENT_LOAD_OP_CLEAR; // I guess it means clear buffer every frame.
     attachmentDescriptions[COLOR_INDEX].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     attachmentDescriptions[COLOR_INDEX].stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE; // No stencil buffer.
     attachmentDescriptions[COLOR_INDEX].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
     attachmentDescriptions[COLOR_INDEX].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    attachmentDescriptions[COLOR_INDEX].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+    if(context.vk.mmaa.samples == VK_SAMPLE_COUNT_1_BIT)
+        attachmentDescriptions[COLOR_INDEX].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    else
+        attachmentDescriptions[COLOR_INDEX].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
     attachmentDescriptions[DEPTH_INDEX].format  = context.vk.depthFormat;
-    attachmentDescriptions[DEPTH_INDEX].samples = VK_SAMPLE_COUNT_1_BIT;
+    attachmentDescriptions[DEPTH_INDEX].samples = context.vk.mmaa.samples;
     attachmentDescriptions[DEPTH_INDEX].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR; // I guess it means clear buffer every frame.
     attachmentDescriptions[DEPTH_INDEX].storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
     attachmentDescriptions[DEPTH_INDEX].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE; // No stencil buffer.
     attachmentDescriptions[DEPTH_INDEX].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
     attachmentDescriptions[DEPTH_INDEX].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     attachmentDescriptions[DEPTH_INDEX].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+    if(context.vk.mmaa.samples != VK_SAMPLE_COUNT_1_BIT) {
+        attachmentDescriptions[COLOR_RESOLVE_INDEX].format  = context.vk.surfaceFormat.format;
+        attachmentDescriptions[COLOR_RESOLVE_INDEX].samples = VK_SAMPLE_COUNT_1_BIT;
+        attachmentDescriptions[COLOR_RESOLVE_INDEX].loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        attachmentDescriptions[COLOR_RESOLVE_INDEX].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        attachmentDescriptions[COLOR_RESOLVE_INDEX].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        attachmentDescriptions[COLOR_RESOLVE_INDEX].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        attachmentDescriptions[COLOR_RESOLVE_INDEX].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        attachmentDescriptions[COLOR_RESOLVE_INDEX].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    }
 
     VkAttachmentReference colorAttachmentReference = {0};
     colorAttachmentReference.attachment = 0;
@@ -791,11 +816,18 @@ static VEngineResult createRenderPass() {
     depthAttachmentReference.attachment = 1;
     depthAttachmentReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
+    VkAttachmentReference colorResolveAttachmentReference = {0};
+    colorResolveAttachmentReference.attachment = 2;
+    colorResolveAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
     VkSubpassDescription subpassDescription = {0};
     subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
     subpassDescription.colorAttachmentCount = 1;
     subpassDescription.pColorAttachments = &colorAttachmentReference;
     subpassDescription.pDepthStencilAttachment = &depthAttachmentReference;
+
+    if(context.vk.mmaa.samples != VK_SAMPLE_COUNT_1_BIT)
+        subpassDescription.pResolveAttachments = &colorResolveAttachmentReference;
 
     VkSubpassDependency subpassDependency = {0};
     subpassDependency.srcSubpass    = VK_SUBPASS_EXTERNAL;
@@ -807,7 +839,12 @@ static VEngineResult createRenderPass() {
 
     VkRenderPassCreateInfo renderPassCreateInfo = {0};
     renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-    renderPassCreateInfo.attachmentCount = sizeof(attachmentDescriptions) / sizeof(attachmentDescriptions[0]);
+
+    if(context.vk.mmaa.samples == VK_SAMPLE_COUNT_1_BIT)
+        renderPassCreateInfo.attachmentCount = 2;
+    else
+        renderPassCreateInfo.attachmentCount = 3;
+
     renderPassCreateInfo.pAttachments = attachmentDescriptions;
     renderPassCreateInfo.subpassCount = 1;
     renderPassCreateInfo.pSubpasses = &subpassDescription;
@@ -991,7 +1028,7 @@ static VEngineResult allocateGraphicsPipeline() {
     VkPipelineMultisampleStateCreateInfo pipelineMultisampleStateCreateInfo = {0};
     pipelineMultisampleStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     pipelineMultisampleStateCreateInfo.sampleShadingEnable = VK_FALSE;
-    pipelineMultisampleStateCreateInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+    pipelineMultisampleStateCreateInfo.rasterizationSamples = context.vk.mmaa.samples;
     pipelineMultisampleStateCreateInfo.minSampleShading = 1.0f; // OPTIONAL
     pipelineMultisampleStateCreateInfo.pSampleMask = NULL; // OPTIONAL
     pipelineMultisampleStateCreateInfo.alphaToCoverageEnable = VK_FALSE; // OPTIONAL
@@ -1088,13 +1125,21 @@ static VEngineResult allocateGraphicsPipeline() {
 static VEngineResult allocateFrameBuffers() {
     VkResult result;
 
-    VkImageView imageViews[2];
+    VkImageView imageViews[3] = { NULL };
+
+    if(context.vk.mmaa.samples != VK_SAMPLE_COUNT_1_BIT)
+        imageViews[0] = context.vk.mmaa.imageView;
+
     imageViews[1] = context.vk.depthImageView;
 
     VkFramebufferCreateInfo framebufferCreateInfo = {0};
     framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
     framebufferCreateInfo.renderPass = context.vk.renderPass;
+
     framebufferCreateInfo.attachmentCount = sizeof(imageViews) / sizeof(imageViews[0]);
+    if(context.vk.mmaa.samples == VK_SAMPLE_COUNT_1_BIT)
+        framebufferCreateInfo.attachmentCount--;
+
     framebufferCreateInfo.pAttachments = imageViews;
     framebufferCreateInfo.width  = context.vk.swapExtent.width;
     framebufferCreateInfo.height = context.vk.swapExtent.height;
@@ -1103,7 +1148,10 @@ static VEngineResult allocateFrameBuffers() {
     int numberOfFailures = 0;
 
     for(uint32_t i = context.vk.swapChainFrameCount; i != 0; i--) {
-        imageViews[0] = context.vk.pSwapChainFrames[i - 1].imageView;
+        if(context.vk.mmaa.samples == VK_SAMPLE_COUNT_1_BIT)
+            imageViews[0] = context.vk.pSwapChainFrames[i - 1].imageView;
+        else
+            imageViews[2] = context.vk.pSwapChainFrames[i - 1].imageView;
 
         result = vkCreateFramebuffer(context.vk.device, &framebufferCreateInfo, NULL, &context.vk.pSwapChainFrames[i - 1].framebuffer);
 
@@ -1136,13 +1184,38 @@ static VEngineResult allocateCommandPool() {
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
+static VEngineResult allocateColorResources() {
+    VEngineResult engineResult;
+
+    if(context.vk.mmaa.samples == VK_SAMPLE_COUNT_1_BIT)
+        RETURN_RESULT_CODE(VE_SUCCESS, 0)
+
+    VkFormat colorFormat = context.vk.surfaceFormat.format;
+
+    engineResult = v_alloc_image(context.vk.swapExtent.width, context.vk.swapExtent.height, 1, context.vk.mmaa.samples, colorFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &context.vk.mmaa.image, &context.vk.mmaa.imageMemory);
+
+    if(engineResult.type != VE_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_alloc_image creation failed with result: %i", engineResult.point);
+        RETURN_RESULT_CODE(VE_ALLOC_COLOR_BUFFER_FAILURE, 0)
+    }
+
+    engineResult = v_alloc_image_view(context.vk.mmaa.image, colorFormat, 0, VK_IMAGE_ASPECT_COLOR_BIT, &context.vk.mmaa.imageView, 1);
+
+    if(engineResult.type != VE_SUCCESS) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_alloc_image_view creation failed with result: %i", engineResult.point);
+        RETURN_RESULT_CODE(VE_ALLOC_COLOR_BUFFER_FAILURE, 1)
+    }
+
+    RETURN_RESULT_CODE(VE_SUCCESS, 1)
+}
+
 static VEngineResult allocateDepthResources() {
     VEngineResult engineResult;
 
     engineResult = v_alloc_image(
         context.vk.swapExtent.width, context.vk.swapExtent.height,
         1,
-        VK_SAMPLE_COUNT_1_BIT,
+        context.vk.mmaa.samples,
         context.vk.depthFormat,
         VK_IMAGE_TILING_OPTIMAL,
         VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
