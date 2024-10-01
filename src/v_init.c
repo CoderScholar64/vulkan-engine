@@ -1230,8 +1230,6 @@ static VEngineResult allocateTextureImage() {
 
         snprintf(filename, sizeof(filename) / sizeof(filename[0]), FILENAME, m + 1);
 
-        SDL_Log("%s for %i", filename, m);
-
         pPixels = u_qoi_read(filename, &mipQOIdescription, 4);
     }
     vkUnmapMemory(context.vk.device, stagingBufferMemory);
