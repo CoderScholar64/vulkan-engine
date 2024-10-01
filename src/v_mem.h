@@ -161,4 +161,6 @@ VkFormat v_find_supported_format(const VkFormat *const pCandidates, unsigned can
  */
 VkBool32 v_has_stencil_component(VkFormat format);
 
+VkSampleCountFlagBits v_find_closet_flag_bit(VkSampleCountFlagBits flags);
+
 #endif // V_MEMORY_29
