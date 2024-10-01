@@ -1296,7 +1296,7 @@ static VEngineResult allocateDefaultTextureSampler() {
     samplerCreateInfo.compareEnable = VK_FALSE;
     samplerCreateInfo.compareOp = VK_COMPARE_OP_ALWAYS;
     samplerCreateInfo.minLod = 0.0f;
-    samplerCreateInfo.maxLod = 0.0f;
+    samplerCreateInfo.maxLod = (float)context.vk.texture.mipLevels;
     samplerCreateInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
     samplerCreateInfo.unnormalizedCoordinates = VK_FALSE;
 
