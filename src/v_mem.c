@@ -742,15 +742,11 @@ VkSampleCountFlagBits v_find_closet_flag_bit(VkSampleCountFlagBits flags) {
 
     VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts & physicalDeviceProperties.limits.framebufferDepthSampleCounts;
 
-    if((flags & counts) != 0)
-        return flags & counts;
-    else {
-        for(unsigned i = 0; (flags >> i) != 0; i++) {
-            VkSampleCountFlags flag = ((flags >> i) & counts);
+    for(unsigned i = 0; (flags >> i) != 0; i++) {
+        VkSampleCountFlags flag = ((flags >> i) & counts);
 
-            if( flag != 0 )
-                return flag;
-        }
+        if( flag != 0 )
+            return flag;
     }
 
     return VK_SAMPLE_COUNT_1_BIT;
