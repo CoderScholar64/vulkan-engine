@@ -14,9 +14,7 @@ typedef struct {
 } Vertex;
 
 typedef struct {
-    Matrix model;
-    Matrix view;
-    Matrix proj;
+    Matrix matrix;
 } UniformBufferObject;
 
 extern const VkVertexInputBindingDescription vertexBindingDescription;
