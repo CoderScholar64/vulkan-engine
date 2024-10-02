@@ -158,7 +158,7 @@ VEngineResult v_record_command_buffer(VkCommandBuffer commandBuffer, uint32_t im
     VkDeviceSize offsets[] = {context.vk.model.vertexOffset};
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-    vkCmdPushConstants(commandBuffer, context.vk.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConstantObject), &context.vk.frames[context.vk.currentFrame].pushConstantObject);
+    vkCmdPushConstants(commandBuffer, context.vk.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConstantObject), &context.vk.pushConstantObject);
 
     if(context.vk.model.vertexOffset != 0) {
         vkCmdBindIndexBuffer(commandBuffer, context.vk.model.buffer, 0, context.vk.model.indexType);
@@ -205,5 +205,5 @@ void v_update_uniform_buffer(float delta, uint32_t imageIndex) {
 
     time += delta;
 
-    context.vk.frames[imageIndex].pushConstantObject.matrix = MatrixTranspose(MatrixMultiply(MatrixMultiply(MatrixRotate(axis, (90.0 * DEG2RAD) * time), MatrixLookAt(eye, target, up)), MatrixVulkanPerspective(45.0 * DEG2RAD, context.vk.swapExtent.width / (float) context.vk.swapExtent.height, 0.125f, 10.0f)));
+    context.vk.pushConstantObject.matrix = MatrixTranspose(MatrixMultiply(MatrixMultiply(MatrixRotate(axis, (90.0 * DEG2RAD) * time), MatrixLookAt(eye, target, up)), MatrixVulkanPerspective(45.0 * DEG2RAD, context.vk.swapExtent.width / (float) context.vk.swapExtent.height, 0.125f, 10.0f)));
 }
