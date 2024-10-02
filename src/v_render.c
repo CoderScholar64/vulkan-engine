@@ -158,6 +158,8 @@ VEngineResult v_record_command_buffer(VkCommandBuffer commandBuffer, uint32_t im
     VkDeviceSize offsets[] = {context.vk.model.vertexOffset};
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
+    vkCmdPushConstants(commandBuffer, context.vk.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConstantObject), &context.vk.frames[context.vk.currentFrame].pushConstantObject);
+
     if(context.vk.model.vertexOffset != 0) {
         vkCmdBindIndexBuffer(commandBuffer, context.vk.model.buffer, 0, context.vk.model.indexType);
         vkCmdDrawIndexed(commandBuffer, context.vk.model.vertexAmount, 1, 0, 0, 0);

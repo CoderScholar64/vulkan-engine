@@ -86,7 +86,7 @@ struct Context {
             VkBuffer uniformBuffer;
             VkDeviceMemory uniformBufferMemory;
             void* uniformBufferMapped;
-            UniformBufferObject pushConstantObject;
+            PushConstantObject pushConstantObject;
         } frames[MAX_FRAMES_IN_FLIGHT];
         VkDescriptorPool descriptorPool;
         unsigned currentFrame;

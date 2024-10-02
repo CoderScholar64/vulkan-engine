@@ -14,8 +14,12 @@ typedef struct {
 } Vertex;
 
 typedef struct {
-    Matrix matrix;
+    Vector4 color;
 } UniformBufferObject;
+
+typedef struct {
+    Matrix matrix;
+} PushConstantObject;
 
 extern const VkVertexInputBindingDescription vertexBindingDescription;
 extern const VkVertexInputAttributeDescription vertexInputAttributeDescriptions[3];

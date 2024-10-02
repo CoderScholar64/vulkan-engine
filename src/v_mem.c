@@ -136,13 +136,7 @@ VEngineResult v_alloc_builtin_uniform_buffers() {
 
         vkMapMemory(context.vk.device, context.vk.frames[i].uniformBufferMemory, 0, sizeof(UniformBufferObject), 0, &context.vk.frames[i].uniformBufferMapped);
 
-        Vector3 up     = {0.0f, 0.0f, 1.0f};
-        Vector3 eye    = {2.0f, 2.0f, 2.0f};
-        Vector3 target = {0.0f, 0.0f, 0.0f};
-
-        UniformBufferObject ubo;
-
-        ubo.matrix = MatrixTranspose(MatrixMultiply(MatrixLookAt(eye, target, up), MatrixPerspective(45.0 * DEG2RAD, context.vk.swapExtent.width / (float) context.vk.swapExtent.height, 0.125f, 10.0f)));
+        UniformBufferObject ubo = { {1, 1, 1, 1} };
 
         memcpy(context.vk.frames[i].uniformBufferMapped, &ubo, sizeof(ubo));
     }
