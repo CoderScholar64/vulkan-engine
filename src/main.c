@@ -13,10 +13,14 @@ void loop() {
     int run = 1;
     int isWindowMinimized = 0;
     Uint64 currentTime = SDL_GetTicks64();
-    Uint64 nextTime = currentTime;
+    Uint64 lastTime = currentTime;
     float delta = 0;
 
     while(run) {
+        currentTime = lastTime;
+        lastTime = SDL_GetTicks64();
+        delta = (lastTime - currentTime) * 0.001;
+
         while(SDL_PollEvent(&event)) {
             switch(event.type) {
             case SDL_QUIT:
@@ -48,10 +52,6 @@ void loop() {
             if(vResult.type < 0)
                 return;
         }
-
-        currentTime = nextTime;
-        nextTime = SDL_GetTicks64();
-        delta = (nextTime - currentTime) * 0.001;
     }
 }
 
