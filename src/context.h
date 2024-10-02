@@ -4,6 +4,8 @@
 #include "SDL.h"
 #include <vulkan/vulkan.h>
 
+#include "v_mem.h"
+
 #define MAX_FRAMES_IN_FLIGHT 2
 
 struct Context {
@@ -84,6 +86,7 @@ struct Context {
             VkBuffer uniformBuffer;
             VkDeviceMemory uniformBufferMemory;
             void* uniformBufferMapped;
+            UniformBufferObject pushConstantObject;
         } frames[MAX_FRAMES_IN_FLIGHT];
         VkDescriptorPool descriptorPool;
         unsigned currentFrame;

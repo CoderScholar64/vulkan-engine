@@ -195,7 +195,6 @@ static Matrix MatrixVulkanPerspective(double fovY, double aspect, double nearPla
 void v_update_uniform_buffer(float delta, uint32_t imageIndex) {
     // TODO All of this is temporary.
     static float time = 0;
-    static UniformBufferObject ubo;
 
     Vector3 axis   = {0.0f, 0.0f, 1.0f};
     Vector3 up     = {0.0f, 0.0f, 1.0f};
@@ -204,7 +203,5 @@ void v_update_uniform_buffer(float delta, uint32_t imageIndex) {
 
     time += delta;
 
-    ubo.matrix = MatrixTranspose(MatrixMultiply(MatrixMultiply(MatrixRotate(axis, (90.0 * DEG2RAD) * time), MatrixLookAt(eye, target, up)), MatrixVulkanPerspective(45.0 * DEG2RAD, context.vk.swapExtent.width / (float) context.vk.swapExtent.height, 0.125f, 10.0f)));
-
-    memcpy(context.vk.frames[imageIndex].uniformBufferMapped, &ubo, sizeof(ubo));
+    context.vk.frames[imageIndex].pushConstantObject.matrix = MatrixTranspose(MatrixMultiply(MatrixMultiply(MatrixRotate(axis, (90.0 * DEG2RAD) * time), MatrixLookAt(eye, target, up)), MatrixVulkanPerspective(45.0 * DEG2RAD, context.vk.swapExtent.width / (float) context.vk.swapExtent.height, 0.125f, 10.0f)));
 }
