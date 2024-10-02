@@ -315,8 +315,8 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
     const Vertex defaultVertex = {{0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}};
     for(cgltf_size v = 0; v < vertexAmount; v++) {
         pInterlacedBuffer[v].pos.x = ((float*)pLoadBuffer)[positionNumComponent * v + 0];
-        pInterlacedBuffer[v].pos.y = ((float*)pLoadBuffer)[positionNumComponent * v + 1];
-        pInterlacedBuffer[v].pos.z = ((float*)pLoadBuffer)[positionNumComponent * v + 2];
+        pInterlacedBuffer[v].pos.z = ((float*)pLoadBuffer)[positionNumComponent * v + 1];
+        pInterlacedBuffer[v].pos.y =-((float*)pLoadBuffer)[positionNumComponent * v + 2];
 
         pInterlacedBuffer[v].color    = defaultVertex.color;
         pInterlacedBuffer[v].texCoord = defaultVertex.texCoord;
