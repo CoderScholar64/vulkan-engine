@@ -44,7 +44,8 @@ VEngineResult v_draw_frame(float delta) {
 
     vkResetCommandBuffer(context.vk.frames[context.vk.currentFrame].commandBuffer, 0);
 
-    context.vk.pushConstantObject = v_get_test_pco(context.vk.time);
+    Vector3 position = {4.0 * cos(context.vk.time), 0, 0};
+    context.vk.pushConstantObject = v_get_test_pco(position, context.vk.time);
 
     v_record_command_buffer(context.vk.frames[context.vk.currentFrame].commandBuffer, imageIndex);
 
@@ -194,14 +195,14 @@ static Matrix MatrixVulkanPerspective(double fovY, double aspect, double nearPla
     return perspective;
 }
 
-PushConstantObject v_get_test_pco(float unit90Degrees) {
+PushConstantObject v_get_test_pco(Vector3 position, float unit90Degrees) {
     PushConstantObject pushConstantObject;
     Vector3 axis   = {0.0f, 0.0f, 1.0f};
     Vector3 up     = {0.0f, 0.0f, 1.0f};
     Vector3 eye    = {4.0f, 4.0f, 4.0f};
     Vector3 target = {0.0f, 0.0f, 0.0f};
 
-    pushConstantObject.matrix = MatrixTranspose(MatrixMultiply(MatrixMultiply(MatrixRotate(axis, (90.0 * DEG2RAD) * context.vk.time), MatrixLookAt(eye, target, up)), MatrixVulkanPerspective(45.0 * DEG2RAD, context.vk.swapExtent.width / (float) context.vk.swapExtent.height, 0.125f, 10.0f)));
+    pushConstantObject.matrix = MatrixTranspose(MatrixMultiply(MatrixMultiply(MatrixMultiply(MatrixRotate(axis, (90.0 * DEG2RAD) * context.vk.time), MatrixTranslate(position.x, position.y, position.z)), MatrixLookAt(eye, target, up)), MatrixVulkanPerspective(45.0 * DEG2RAD, context.vk.swapExtent.width / (float) context.vk.swapExtent.height, 0.125f, 10.0f)));
 
     return pushConstantObject;
 }
