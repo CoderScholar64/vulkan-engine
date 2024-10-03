@@ -22,6 +22,6 @@ VEngineResult v_draw_frame(float delta);
  */
 VEngineResult v_record_command_buffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
-PushConstantObject v_get_test_pco(Vector3 position, float unit90Degrees);
+PushConstantObject v_setup_pco(Vector3 position, float unit90Degrees);
 
 #endif // V_RENDER_29
