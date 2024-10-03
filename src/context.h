@@ -54,6 +54,7 @@ struct Context {
             VkDeviceMemory bufferMemory;
         } model;
 
+        float time;
         PushConstantObject pushConstantObject;
 
         VkCommandPool commandPool;

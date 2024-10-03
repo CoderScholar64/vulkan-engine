@@ -1,7 +1,7 @@
 #include "v_render.h"
 
 #include "context.h"
-#include "v_mem.h"
+#include "v_init.h"
 
 VEngineResult v_draw_frame(float delta) {
     const uint64_t TIME_OUT_NS = 25000000;
@@ -44,7 +44,7 @@ VEngineResult v_draw_frame(float delta) {
 
     vkResetCommandBuffer(context.vk.frames[context.vk.currentFrame].commandBuffer, 0);
 
-    v_update_uniform_buffer(delta, context.vk.currentFrame);
+    context.vk.pushConstantObject = v_get_test_pco(context.vk.time);
 
     v_record_command_buffer(context.vk.frames[context.vk.currentFrame].commandBuffer, imageIndex);
 
@@ -194,16 +194,14 @@ static Matrix MatrixVulkanPerspective(double fovY, double aspect, double nearPla
     return perspective;
 }
 
-void v_update_uniform_buffer(float delta, uint32_t imageIndex) {
-    // TODO All of this is temporary.
-    static float time = 0;
-
+PushConstantObject v_get_test_pco(float unit90Degrees) {
+    PushConstantObject pushConstantObject;
     Vector3 axis   = {0.0f, 0.0f, 1.0f};
     Vector3 up     = {0.0f, 0.0f, 1.0f};
-    Vector3 eye    = {2.0f, 2.0f, 2.0f};
+    Vector3 eye    = {4.0f, 4.0f, 4.0f};
     Vector3 target = {0.0f, 0.0f, 0.0f};
 
-    time += delta;
+    pushConstantObject.matrix = MatrixTranspose(MatrixMultiply(MatrixMultiply(MatrixRotate(axis, (90.0 * DEG2RAD) * context.vk.time), MatrixLookAt(eye, target, up)), MatrixVulkanPerspective(45.0 * DEG2RAD, context.vk.swapExtent.width / (float) context.vk.swapExtent.height, 0.125f, 10.0f)));
 
-    context.vk.pushConstantObject.matrix = MatrixTranspose(MatrixMultiply(MatrixMultiply(MatrixRotate(axis, (90.0 * DEG2RAD) * time), MatrixLookAt(eye, target, up)), MatrixVulkanPerspective(45.0 * DEG2RAD, context.vk.swapExtent.width / (float) context.vk.swapExtent.height, 0.125f, 10.0f)));
+    return pushConstantObject;
 }

@@ -1,7 +1,7 @@
 #ifndef V_RENDER_29
 #define V_RENDER_29
 
-#include "v_init.h"
+#include "v_mem.h"
 
 #include <vulkan/vulkan.h>
 
@@ -22,12 +22,6 @@ VEngineResult v_draw_frame(float delta);
  */
 VEngineResult v_record_command_buffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
-/**
- * Update the uniform buffer.
- * @warning Make sure that v_init() is called first.
- * @param delta The amount of seconds that passed in one frame.
- * @param imageIndex Which frame index to write to.
- */
-void v_update_uniform_buffer(float delta, uint32_t imageIndex);
+PushConstantObject v_get_test_pco(float unit90Degrees);
 
 #endif // V_RENDER_29

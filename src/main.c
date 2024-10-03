@@ -21,6 +21,8 @@ void loop() {
         lastTime = SDL_GetTicks64();
         delta = (lastTime - currentTime) * 0.001;
 
+        context.vk.time += delta;
+
         while(SDL_PollEvent(&event)) {
             switch(event.type) {
             case SDL_QUIT:
