@@ -44,9 +44,6 @@ VEngineResult v_draw_frame(float delta) {
 
     vkResetCommandBuffer(context.vk.frames[context.vk.currentFrame].commandBuffer, 0);
 
-    Vector3 position = {4.0 * cos(context.vk.time), 0, 0};
-    context.vk.pushConstantObject = v_setup_pco(position, context.vk.time);
-
     v_record_command_buffer(context.vk.frames[context.vk.currentFrame].commandBuffer, imageIndex);
 
     VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
@@ -159,7 +156,11 @@ VEngineResult v_record_command_buffer(VkCommandBuffer commandBuffer, uint32_t im
     VkDeviceSize offsets[] = {context.vk.model.vertexOffset};
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-    vkCmdPushConstants(commandBuffer, context.vk.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConstantObject), &context.vk.pushConstantObject);
+    {
+        Vector3 position = {4.0 * cos(context.vk.time), 0, 0};
+        context.vk.pushConstantObject = v_setup_pco(position, context.vk.time);
+        vkCmdPushConstants(commandBuffer, context.vk.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConstantObject), &context.vk.pushConstantObject);
+    }
 
     if(context.vk.model.vertexOffset != 0) {
         vkCmdBindIndexBuffer(commandBuffer, context.vk.model.buffer, 0, context.vk.model.indexType);
@@ -167,6 +168,20 @@ VEngineResult v_record_command_buffer(VkCommandBuffer commandBuffer, uint32_t im
     }
     else
         vkCmdDraw(commandBuffer, context.vk.model.vertexAmount, 1, 0, 0);
+
+    {
+        Vector3 position = {0, 4.0 * sin(context.vk.time), 0};
+        context.vk.pushConstantObject = v_setup_pco(position, context.vk.time);
+        vkCmdPushConstants(commandBuffer, context.vk.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConstantObject), &context.vk.pushConstantObject);
+    }
+
+    if(context.vk.model.vertexOffset != 0) {
+        vkCmdBindIndexBuffer(commandBuffer, context.vk.model.buffer, 0, context.vk.model.indexType);
+        vkCmdDrawIndexed(commandBuffer, context.vk.model.vertexAmount, 1, 0, 0, 0);
+    }
+    else
+        vkCmdDraw(commandBuffer, context.vk.model.vertexAmount, 1, 0, 0);
+
 
     vkCmdEndRenderPass(commandBuffer);
 
