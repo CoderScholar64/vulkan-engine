@@ -158,8 +158,8 @@ VEngineResult v_record_command_buffer(VkCommandBuffer commandBuffer, uint32_t im
 
     {
         Vector3 position = {4.0 * cos(context.vk.time), 0, 0};
-        context.vk.pushConstantObject = v_setup_pco(position, context.vk.time);
-        vkCmdPushConstants(commandBuffer, context.vk.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConstantObject), &context.vk.pushConstantObject);
+        PushConstantObject pushConstantObject = v_setup_pco(position, context.vk.time);
+        vkCmdPushConstants(commandBuffer, context.vk.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConstantObject), &pushConstantObject);
     }
 
     if(context.vk.model.vertexOffset != 0) {
@@ -171,8 +171,8 @@ VEngineResult v_record_command_buffer(VkCommandBuffer commandBuffer, uint32_t im
 
     {
         Vector3 position = {0, 4.0 * sin(context.vk.time), 0};
-        context.vk.pushConstantObject = v_setup_pco(position, context.vk.time);
-        vkCmdPushConstants(commandBuffer, context.vk.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConstantObject), &context.vk.pushConstantObject);
+        PushConstantObject pushConstantObject = v_setup_pco(position, context.vk.time);
+        vkCmdPushConstants(commandBuffer, context.vk.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConstantObject), &pushConstantObject);
     }
 
     if(context.vk.model.vertexOffset != 0) {
