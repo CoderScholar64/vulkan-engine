@@ -3,6 +3,14 @@
 
 #include "v_buffer.h"
 
+typedef struct VModelData {
+    unsigned vertexAmount;
+    VkDeviceSize vertexOffset;
+    VkIndexType indexType;
+    VkBuffer buffer;
+    VkDeviceMemory bufferMemory;
+} VModelData;
+
 VEngineResult v_load_model(const char *const pUTF8Filepath);
 
 #endif // V_MODEL_29

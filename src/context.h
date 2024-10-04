@@ -5,6 +5,7 @@
 #include <vulkan/vulkan.h>
 
 #include "v_buffer.h"
+#include "v_model.h"
 
 #define MAX_FRAMES_IN_FLIGHT 2
 
@@ -46,13 +47,7 @@ struct Context {
         VkPipelineLayout pipelineLayout;
         VkPipeline graphicsPipeline;
 
-        struct {
-            unsigned vertexAmount;
-            VkDeviceSize vertexOffset;
-            VkIndexType indexType;
-            VkBuffer buffer;
-            VkDeviceMemory bufferMemory;
-        } model;
+        VModelData model;
 
         float time; // TODO Remove this!
 
