@@ -5,11 +5,11 @@
 #include "v_mem.h"
 #include "v_render.h"
 #include "v_results.h"
+#include "v_raymath.h"
 
 #include <assert.h>
 #include <string.h>
 
-#include "raymath.h"
 #include "SDL_vulkan.h"
 #include "SDL.h"
 #include <vulkan/vulkan.h>

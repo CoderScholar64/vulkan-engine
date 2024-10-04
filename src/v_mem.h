@@ -3,7 +3,7 @@
 
 #include "v_results.h"
 
-#include "raymath.h"
+#include "v_raymath.h"
 #include "SDL_stdinc.h"
 #include <vulkan/vulkan.h>
 

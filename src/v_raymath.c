@@ -1,4 +1,5 @@
 #define RAYMATH_IMPLEMENTATION
-#include "raymath.h"
+#define V_RAYMATH_29_IMPLEMENTATION
+#include "v_raymath.h"
 
 // The object file that is generated will hold raymath's documentation.
