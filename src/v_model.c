@@ -10,8 +10,6 @@ VEngineResult v_load_model(const char *const pUTF8Filepath, unsigned *pModelAmou
     cgltf_result result;
     cgltf_data *pModel = u_gltf_read(pUTF8Filepath, &result);
 
-    VModelData *pVModel = *ppVModelData;
-
     if(result != cgltf_result_success) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to find model!");
         RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 0)
@@ -160,12 +158,15 @@ VEngineResult v_load_model(const char *const pUTF8Filepath, unsigned *pModelAmou
     }
     SDL_Log("Buffer size = %li", loadBufferSize);
 
+    VModelData *pVModel = malloc( sizeof(VModelData) );
+
     void *pLoadBuffer = malloc(loadBufferSize + indexBufferSize + sizeof(Vertex) * vertexAmount);
 
-    if(pLoadBuffer == NULL) {
+    if(pLoadBuffer == NULL || pVModel == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to allocate a %li large buffer", loadBufferSize);
         cgltf_free(pModel);
-        RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 8)
+        free(pVModel);
+        RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 9)
     }
 
     void   *pIndexedBuffer    = pLoadBuffer + (loadBufferSize);
@@ -222,5 +223,27 @@ VEngineResult v_load_model(const char *const pUTF8Filepath, unsigned *pModelAmou
     free(pLoadBuffer);
     cgltf_free(pModel);
 
+    *pModelAmount = 1;
+    *ppVModelData = pVModel;
+
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
+}
+
+void v_record_model_draw(VkCommandBuffer commandBuffer, VModelData *pModelData, unsigned numInstances, PushConstantObject *pPushConstantObjects) {
+    VkBuffer vertexBuffers[] = {pModelData->buffer};
+    VkDeviceSize offsets[] = {pModelData->vertexOffset};
+
+    vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+
+    if(pModelData->vertexOffset != 0)
+        vkCmdBindIndexBuffer(commandBuffer, pModelData->buffer, 0, pModelData->indexType);
+
+    for(unsigned i = 0; i < numInstances; i++) {
+        vkCmdPushConstants(commandBuffer, context.vk.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConstantObject), &pPushConstantObjects[i]);
+
+        if(pModelData->vertexOffset != 0)
+            vkCmdDrawIndexed(commandBuffer, pModelData->vertexAmount, 1, 0, 0, 0);
+        else
+            vkCmdDraw(commandBuffer, pModelData->vertexAmount, 1, 0, 0);
+    }
 }

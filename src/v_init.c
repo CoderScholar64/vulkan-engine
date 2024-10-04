@@ -134,10 +134,7 @@ VEngineResult v_init() {
     if( returnCode.type < 0 )
         return returnCode;
 
-    unsigned numberOfModels = 0;
-    VModelData *pVModelData = &context.vk.model;
-
-    returnCode = v_load_model("model.glb", &numberOfModels, &pVModelData);
+    returnCode = v_load_model("model.glb", &context.vk.modelAmount, &context.vk.pModels);
     if( returnCode.type < 0 )
         return returnCode;
 
@@ -179,8 +176,13 @@ void v_deinit() {
         vkFreeMemory(      context.vk.device, context.vk.frames[i - 1].uniformBufferMemory,     NULL);
     }
 
-    vkDestroyBuffer(context.vk.device, context.vk.model.buffer, NULL);
-    vkFreeMemory(context.vk.device, context.vk.model.bufferMemory, NULL);
+    if(context.vk.pModels != NULL) {
+        for(unsigned i = 0; i < context.vk.modelAmount; i++) {
+            vkDestroyBuffer(context.vk.device, context.vk.pModels[i].buffer, NULL);
+            vkFreeMemory(context.vk.device, context.vk.pModels[i].bufferMemory, NULL);
+        }
+        free(context.vk.pModels);
+    }
     vkDestroyCommandPool(context.vk.device, context.vk.commandPool, NULL);
     vkDestroyPipeline(context.vk.device, context.vk.graphicsPipeline, NULL);
     vkDestroyPipelineLayout(context.vk.device, context.vk.pipelineLayout, NULL);

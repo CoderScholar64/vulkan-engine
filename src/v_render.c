@@ -152,36 +152,19 @@ VEngineResult v_record_command_buffer(VkCommandBuffer commandBuffer, uint32_t im
 
     vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, context.vk.pipelineLayout, 0, 1, &context.vk.frames[context.vk.currentFrame].descriptorSet, 0, NULL);
 
-    VkBuffer vertexBuffers[] = {context.vk.model.buffer};
-    VkDeviceSize offsets[] = {context.vk.model.vertexOffset};
-    vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-
+    PushConstantObject pushConstantObjects[2];
     {
         Vector3 position = {4.0 * cos(context.vk.time), 0, 0};
         PushConstantObject pushConstantObject = v_setup_pco(position, context.vk.time);
-        vkCmdPushConstants(commandBuffer, context.vk.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConstantObject), &pushConstantObject);
+        pushConstantObjects[0] = pushConstantObject;
     }
-
-    if(context.vk.model.vertexOffset != 0) {
-        vkCmdBindIndexBuffer(commandBuffer, context.vk.model.buffer, 0, context.vk.model.indexType);
-        vkCmdDrawIndexed(commandBuffer, context.vk.model.vertexAmount, 1, 0, 0, 0);
-    }
-    else
-        vkCmdDraw(commandBuffer, context.vk.model.vertexAmount, 1, 0, 0);
-
     {
         Vector3 position = {0, 4.0 * sin(context.vk.time), 0};
         PushConstantObject pushConstantObject = v_setup_pco(position, context.vk.time);
-        vkCmdPushConstants(commandBuffer, context.vk.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConstantObject), &pushConstantObject);
+        pushConstantObjects[1] = pushConstantObject;
     }
 
-    if(context.vk.model.vertexOffset != 0) {
-        vkCmdBindIndexBuffer(commandBuffer, context.vk.model.buffer, 0, context.vk.model.indexType);
-        vkCmdDrawIndexed(commandBuffer, context.vk.model.vertexAmount, 1, 0, 0, 0);
-    }
-    else
-        vkCmdDraw(commandBuffer, context.vk.model.vertexAmount, 1, 0, 0);
-
+    v_record_model_draw(commandBuffer, &context.vk.pModels[0], sizeof(pushConstantObjects) / sizeof(pushConstantObjects[0]), pushConstantObjects);
 
     vkCmdEndRenderPass(commandBuffer);
 

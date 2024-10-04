@@ -47,7 +47,8 @@ struct Context {
         VkPipelineLayout pipelineLayout;
         VkPipeline graphicsPipeline;
 
-        VModelData model;
+        unsigned modelAmount;
+        VModelData *pModels;
 
         float time; // TODO Remove this!
 
