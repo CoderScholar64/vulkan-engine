@@ -11,8 +11,8 @@ typedef struct VModelData {
     VkDeviceMemory bufferMemory;
 } VModelData;
 
-VEngineResult v_load_model(const char *const pUTF8Filepath, unsigned *pModelAmount, VModelData **ppVModelData);
+VEngineResult v_load_models(const char *const pUTF8Filepath, unsigned *pModelAmount, VModelData **ppVModelData);
 
-void v_record_model_draw(VkCommandBuffer commandBuffer, VModelData *pModelData, unsigned numInstances, PushConstantObject *pPushConstantObjects);
+void v_record_model_draws(VkCommandBuffer commandBuffer, VModelData *pModelData, unsigned numInstances, PushConstantObject *pPushConstantObjects);
 
 #endif // V_MODEL_29

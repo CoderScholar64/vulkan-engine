@@ -6,7 +6,7 @@
 #include "u_read.h"
 #include "context.h"
 
-VEngineResult v_load_model(const char *const pUTF8Filepath, unsigned *pModelAmount, VModelData **ppVModelData) {
+VEngineResult v_load_models(const char *const pUTF8Filepath, unsigned *pModelAmount, VModelData **ppVModelData) {
     *pModelAmount = 0;
     *ppVModelData = NULL;
 
@@ -237,7 +237,7 @@ VEngineResult v_load_model(const char *const pUTF8Filepath, unsigned *pModelAmou
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-void v_record_model_draw(VkCommandBuffer commandBuffer, VModelData *pModelData, unsigned numInstances, PushConstantObject *pPushConstantObjects) {
+void v_record_model_draws(VkCommandBuffer commandBuffer, VModelData *pModelData, unsigned numInstances, PushConstantObject *pPushConstantObjects) {
     VkBuffer vertexBuffers[] = {pModelData->buffer};
     VkDeviceSize offsets[] = {pModelData->vertexOffset};
 

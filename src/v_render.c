@@ -164,7 +164,7 @@ VEngineResult v_record_command_buffer(VkCommandBuffer commandBuffer, uint32_t im
         pushConstantObjects[1] = pushConstantObject;
     }
 
-    v_record_model_draw(commandBuffer, &context.vk.pModels[0], sizeof(pushConstantObjects) / sizeof(pushConstantObjects[0]), pushConstantObjects);
+    v_record_model_draws(commandBuffer, &context.vk.pModels[0], sizeof(pushConstantObjects) / sizeof(pushConstantObjects[0]), pushConstantObjects);
 
     vkCmdEndRenderPass(commandBuffer);
 
