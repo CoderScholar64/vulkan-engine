@@ -6,7 +6,7 @@
 #include "u_read.h"
 #include "context.h"
 
-VEngineResult v_load_models(const char *const pUTF8Filepath, unsigned *pModelAmount, VModelData **ppVModelData) {
+VEngineResult v_load_models(Context *this, const char *const pUTF8Filepath, unsigned *pModelAmount, VModelData **ppVModelData) {
     *pModelAmount = 0;
     *ppVModelData = NULL;
 
@@ -224,7 +224,7 @@ VEngineResult v_load_models(const char *const pUTF8Filepath, unsigned *pModelAmo
 
         pVModel[mesh_index].vertexOffset = indexBufferSize;
 
-        v_alloc_static_buffer(pIndexedBuffer, indexBufferSize + sizeof(Vertex) * vertexAmount, &pVModel[mesh_index].buffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, &pVModel[mesh_index].bufferMemory);
+        v_alloc_static_buffer(this, pIndexedBuffer, indexBufferSize + sizeof(Vertex) * vertexAmount, &pVModel[mesh_index].buffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, &pVModel[mesh_index].bufferMemory);
 
         free(pLoadBuffer);
 
@@ -237,7 +237,7 @@ VEngineResult v_load_models(const char *const pUTF8Filepath, unsigned *pModelAmo
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-void v_record_model_draws(VkCommandBuffer commandBuffer, VModelData *pModelData, unsigned numInstances, PushConstantObject *pPushConstantObjects) {
+void v_record_model_draws(Context *this, VkCommandBuffer commandBuffer, VModelData *pModelData, unsigned numInstances, PushConstantObject *pPushConstantObjects) {
     VkBuffer vertexBuffers[] = {pModelData->buffer};
     VkDeviceSize offsets[] = {pModelData->vertexOffset};
 
@@ -247,7 +247,7 @@ void v_record_model_draws(VkCommandBuffer commandBuffer, VModelData *pModelData,
         vkCmdBindIndexBuffer(commandBuffer, pModelData->buffer, 0, pModelData->indexType);
 
     for(unsigned i = 0; i < numInstances; i++) {
-        vkCmdPushConstants(commandBuffer, context.vk.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConstantObject), &pPushConstantObjects[i]);
+        vkCmdPushConstants(commandBuffer, this->vk.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConstantObject), &pPushConstantObjects[i]);
 
         if(pModelData->vertexOffset != 0)
             vkCmdDrawIndexed(commandBuffer, pModelData->vertexAmount, 1, 0, 0, 0);

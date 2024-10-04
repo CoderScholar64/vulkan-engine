@@ -27,42 +27,42 @@ static VkQueueFamilyProperties* allocateQueueFamilyArray(VkPhysicalDevice device
 static VkLayerProperties* allocateLayerPropertiesArray(uint32_t *pPropertyCount);
 static int hasRequiredExtensions(VkPhysicalDevice physicalDevice, const char * const* ppRequiredExtension, uint32_t requiredExtensionCount);
 static VEngineResult querySwapChainCapabilities(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, SwapChainCapabilities **ppSwapChainCapabilities);
-static VEngineResult initInstance();
-static VEngineResult findPhysicalDevice(const char * const* ppRequiredExtensions, uint32_t requiredExtensionsAmount);
-static VEngineResult allocateLogicalDevice(const char * const* ppRequiredExtensions, uint32_t requiredExtensionsAmount);
-static VEngineResult allocateSwapChain();
-static VEngineResult allocateSwapChainImageViews();
-static VEngineResult createRenderPass();
-static VkShaderModule allocateShaderModule(uint8_t* data, size_t size);
-static VEngineResult allocateDescriptorSetLayout();
-static VEngineResult allocateGraphicsPipeline();
-static VEngineResult allocateFrameBuffers();
-static VEngineResult allocateCommandPool();
-static VEngineResult allocateColorResources();
-static VEngineResult allocateDepthResources();
-static VEngineResult allocateTextureImage();
-static VEngineResult allocateTextureImageView();
-static VEngineResult allocateDefaultTextureSampler();
-static VEngineResult createCommandBuffer();
-static VEngineResult allocateSyncObjects();
-static VEngineResult allocateDescriptorPool();
-static VEngineResult allocateDescriptorSets();
-static void cleanupSwapChain();
+static VEngineResult initInstance(Context *this);
+static VEngineResult findPhysicalDevice(Context *this, const char * const* ppRequiredExtensions, uint32_t requiredExtensionsAmount);
+static VEngineResult allocateLogicalDevice(Context *this, const char * const* ppRequiredExtensions, uint32_t requiredExtensionsAmount);
+static VEngineResult allocateSwapChain(Context *this);
+static VEngineResult allocateSwapChainImageViews(Context *this);
+static VEngineResult createRenderPass(Context *this);
+static VkShaderModule allocateShaderModule(Context *this, uint8_t* data, size_t size);
+static VEngineResult allocateDescriptorSetLayout(Context *this);
+static VEngineResult allocateGraphicsPipeline(Context *this);
+static VEngineResult allocateFrameBuffers(Context *this);
+static VEngineResult allocateCommandPool(Context *this);
+static VEngineResult allocateColorResources(Context *this);
+static VEngineResult allocateDepthResources(Context *this);
+static VEngineResult allocateTextureImage(Context *this);
+static VEngineResult allocateTextureImageView(Context *this);
+static VEngineResult allocateDefaultTextureSampler(Context *this);
+static VEngineResult createCommandBuffer(Context *this);
+static VEngineResult allocateSyncObjects(Context *this);
+static VEngineResult allocateDescriptorPool(Context *this);
+static VEngineResult allocateDescriptorSets(Context *this);
+static void cleanupSwapChain(Context *this);
 
 
-VEngineResult v_init() {
+VEngineResult v_init(Context *this) {
     // Clear the entire vulkan context.
-    memset(&context.vk, 0, sizeof(context.vk));
+    memset(&this->vk, 0, sizeof(this->vk));
 
-    context.vk.time = 0.0f;
+    this->vk.time = 0.0f;
 
     VEngineResult returnCode;
 
-    returnCode = initInstance();
+    returnCode = initInstance(this);
     if( returnCode.type < 0 )
         return returnCode;
 
-    if(SDL_Vulkan_CreateSurface(context.pWindow, context.vk.instance, &context.vk.surface) != SDL_TRUE) {
+    if(SDL_Vulkan_CreateSurface(this->pWindow, this->vk.instance, &this->vk.surface) != SDL_TRUE) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to create rendering device returned %s", SDL_GetError());
         returnCode.type  = -1;
         returnCode.point =  0;
@@ -70,152 +70,152 @@ VEngineResult v_init() {
 
     const char *const requiredExtensions[] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
-    returnCode = findPhysicalDevice(requiredExtensions, 1);
+    returnCode = findPhysicalDevice(this, requiredExtensions, 1);
     if( returnCode.type < 0 )
         return returnCode;
 
-    returnCode = allocateLogicalDevice(requiredExtensions, 1);
+    returnCode = allocateLogicalDevice(this, requiredExtensions, 1);
     if( returnCode.type < 0 )
         return returnCode;
 
-    returnCode = allocateSwapChain();
+    returnCode = allocateSwapChain(this);
     if( returnCode.type < 0 )
         return returnCode;
 
-    returnCode = allocateSwapChainImageViews();
+    returnCode = allocateSwapChainImageViews(this);
     if( returnCode.type < 0 )
         return returnCode;
 
-    returnCode = createRenderPass();
+    returnCode = createRenderPass(this);
     if( returnCode.type < 0 )
         return returnCode;
 
-    returnCode = allocateDescriptorSetLayout();
+    returnCode = allocateDescriptorSetLayout(this);
     if( returnCode.type < 0 )
         return returnCode;
 
-    returnCode = allocateGraphicsPipeline();
+    returnCode = allocateGraphicsPipeline(this);
     if( returnCode.type < 0 )
         return returnCode;
 
-    returnCode = allocateCommandPool();
+    returnCode = allocateCommandPool(this);
     if( returnCode.type < 0 )
         return returnCode;
 
-    returnCode = allocateColorResources();
+    returnCode = allocateColorResources(this);
     if( returnCode.type < 0 )
         return returnCode;
 
-    returnCode = allocateDepthResources();
+    returnCode = allocateDepthResources(this);
     if( returnCode.type < 0 )
         return returnCode;
 
-    returnCode = allocateFrameBuffers();
+    returnCode = allocateFrameBuffers(this);
     if( returnCode.type < 0 )
         return returnCode;
 
-    returnCode = allocateTextureImage();
+    returnCode = allocateTextureImage(this);
     if( returnCode.type < 0 )
         return returnCode;
 
-    returnCode = allocateTextureImageView();
+    returnCode = allocateTextureImageView(this);
     if( returnCode.type < 0 )
         return returnCode;
 
-    returnCode = allocateDefaultTextureSampler();
+    returnCode = allocateDefaultTextureSampler(this);
     if( returnCode.type < 0 )
         return returnCode;
 
-    returnCode = createCommandBuffer();
+    returnCode = createCommandBuffer(this);
     if( returnCode.type < 0 )
         return returnCode;
 
-    returnCode = allocateSyncObjects();
+    returnCode = allocateSyncObjects(this);
     if( returnCode.type < 0 )
         return returnCode;
 
-    returnCode = v_load_models("model.glb", &context.vk.modelAmount, &context.vk.pModels);
+    returnCode = v_load_models(this, "model.glb", &this->vk.modelAmount, &this->vk.pModels);
     if( returnCode.type < 0 )
         return returnCode;
 
-    returnCode = v_alloc_builtin_uniform_buffers();
+    returnCode = v_alloc_builtin_uniform_buffers(this);
     if( returnCode.type < 0 )
         return returnCode;
 
-    returnCode = allocateDescriptorPool();
+    returnCode = allocateDescriptorPool(this);
     if( returnCode.type < 0 )
         return returnCode;
 
-    returnCode = allocateDescriptorSets();
+    returnCode = allocateDescriptorSets(this);
     if( returnCode.type < 0 )
         return returnCode;
 
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-void v_deinit() {
-    vkDeviceWaitIdle(context.vk.device);
+void v_deinit(Context *this) {
+    vkDeviceWaitIdle(this->vk.device);
 
-    cleanupSwapChain();
+    cleanupSwapChain(this);
 
-    vkDestroySampler(context.vk.device, context.vk.defaultTextureSampler, NULL);
-    vkDestroyImageView(context.vk.device, context.vk.texture.imageView, NULL);
-    vkDestroyImage(context.vk.device, context.vk.texture.image, NULL);
-    vkFreeMemory(context.vk.device, context.vk.texture.imageMemory, NULL);
-    vkDestroyDescriptorPool(context.vk.device, context.vk.descriptorPool, NULL);
-    vkDestroyDescriptorSetLayout(context.vk.device, context.vk.descriptorSetLayout, NULL);
+    vkDestroySampler(this->vk.device, this->vk.defaultTextureSampler, NULL);
+    vkDestroyImageView(this->vk.device, this->vk.texture.imageView, NULL);
+    vkDestroyImage(this->vk.device, this->vk.texture.image, NULL);
+    vkFreeMemory(this->vk.device, this->vk.texture.imageMemory, NULL);
+    vkDestroyDescriptorPool(this->vk.device, this->vk.descriptorPool, NULL);
+    vkDestroyDescriptorSetLayout(this->vk.device, this->vk.descriptorSetLayout, NULL);
 
-    if(context.vk.pQueueFamilyProperties != NULL)
-        free(context.vk.pQueueFamilyProperties);
+    if(this->vk.pQueueFamilyProperties != NULL)
+        free(this->vk.pQueueFamilyProperties);
 
     for(uint32_t i = MAX_FRAMES_IN_FLIGHT; i != 0; i--) {
-        vkDestroySemaphore(context.vk.device, context.vk.frames[i - 1].imageAvailableSemaphore, NULL);
-        vkDestroySemaphore(context.vk.device, context.vk.frames[i - 1].renderFinishedSemaphore, NULL);
-        vkDestroyFence(    context.vk.device, context.vk.frames[i - 1].inFlightFence,           NULL);
-        vkDestroyBuffer(   context.vk.device, context.vk.frames[i - 1].uniformBuffer,           NULL);
-        vkFreeMemory(      context.vk.device, context.vk.frames[i - 1].uniformBufferMemory,     NULL);
+        vkDestroySemaphore(this->vk.device, this->vk.frames[i - 1].imageAvailableSemaphore, NULL);
+        vkDestroySemaphore(this->vk.device, this->vk.frames[i - 1].renderFinishedSemaphore, NULL);
+        vkDestroyFence(    this->vk.device, this->vk.frames[i - 1].inFlightFence,           NULL);
+        vkDestroyBuffer(   this->vk.device, this->vk.frames[i - 1].uniformBuffer,           NULL);
+        vkFreeMemory(      this->vk.device, this->vk.frames[i - 1].uniformBufferMemory,     NULL);
     }
 
-    if(context.vk.pModels != NULL) {
-        for(unsigned i = 0; i < context.vk.modelAmount; i++) {
-            vkDestroyBuffer(context.vk.device, context.vk.pModels[i].buffer, NULL);
-            vkFreeMemory(context.vk.device, context.vk.pModels[i].bufferMemory, NULL);
+    if(this->vk.pModels != NULL) {
+        for(unsigned i = 0; i < this->vk.modelAmount; i++) {
+            vkDestroyBuffer(this->vk.device, this->vk.pModels[i].buffer, NULL);
+            vkFreeMemory(this->vk.device, this->vk.pModels[i].bufferMemory, NULL);
         }
-        free(context.vk.pModels);
+        free(this->vk.pModels);
     }
-    vkDestroyCommandPool(context.vk.device, context.vk.commandPool, NULL);
-    vkDestroyPipeline(context.vk.device, context.vk.graphicsPipeline, NULL);
-    vkDestroyPipelineLayout(context.vk.device, context.vk.pipelineLayout, NULL);
-    vkDestroyRenderPass(context.vk.device, context.vk.renderPass, NULL);
-    vkDestroyDevice(context.vk.device, NULL);
-    vkDestroySurfaceKHR(context.vk.instance, context.vk.surface, NULL);
-    vkDestroyInstance(context.vk.instance, NULL);
+    vkDestroyCommandPool(this->vk.device, this->vk.commandPool, NULL);
+    vkDestroyPipeline(this->vk.device, this->vk.graphicsPipeline, NULL);
+    vkDestroyPipelineLayout(this->vk.device, this->vk.pipelineLayout, NULL);
+    vkDestroyRenderPass(this->vk.device, this->vk.renderPass, NULL);
+    vkDestroyDevice(this->vk.device, NULL);
+    vkDestroySurfaceKHR(this->vk.instance, this->vk.surface, NULL);
+    vkDestroyInstance(this->vk.instance, NULL);
 }
 
-VEngineResult v_recreate_swap_chain() {
+VEngineResult v_recreate_swap_chain(Context *this) {
     VEngineResult returnCode;
 
-    vkDeviceWaitIdle(context.vk.device);
+    vkDeviceWaitIdle(this->vk.device);
 
-    cleanupSwapChain();
+    cleanupSwapChain(this);
 
-    returnCode = allocateSwapChain();
+    returnCode = allocateSwapChain(this);
     if( returnCode.type < 0 )
         return returnCode;
 
-    returnCode = allocateSwapChainImageViews();
+    returnCode = allocateSwapChainImageViews(this);
     if( returnCode.type < 0 )
         return returnCode;
 
-    returnCode = allocateColorResources();
+    returnCode = allocateColorResources(this);
     if( returnCode.type < 0 )
         return returnCode;
 
-    returnCode = allocateDepthResources();
+    returnCode = allocateDepthResources(this);
     if( returnCode.type < 0 )
         return returnCode;
 
-    returnCode = allocateFrameBuffers();
+    returnCode = allocateFrameBuffers(this);
     if( returnCode.type < 0 )
         return returnCode;
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
@@ -358,11 +358,11 @@ static VEngineResult querySwapChainCapabilities(VkPhysicalDevice physicalDevice,
     }
 }
 
-static VEngineResult initInstance() {
+static VEngineResult initInstance(Context *this) {
     VkApplicationInfo applicationInfo = {0};
     applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     applicationInfo.pNext = NULL;
-    applicationInfo.pApplicationName = context.title;
+    applicationInfo.pApplicationName = this->title;
     applicationInfo.applicationVersion = 0;
     applicationInfo.pEngineName = NULL;
     applicationInfo.engineVersion = 0;
@@ -370,13 +370,13 @@ static VEngineResult initInstance() {
 
     unsigned int extensionCount = 0;
     const char **ppExtensionNames = NULL;
-    if(!SDL_Vulkan_GetInstanceExtensions(context.pWindow, &extensionCount, ppExtensionNames)) {
+    if(!SDL_Vulkan_GetInstanceExtensions(this->pWindow, &extensionCount, ppExtensionNames)) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Getting number of extensions had failed with %s", SDL_GetError());
         RETURN_RESULT_CODE(VE_INIT_INSTANCE_FAILURE, 0)
     }
     if(extensionCount != 0)
         ppExtensionNames = malloc(sizeof(char*) * extensionCount);
-    if(!SDL_Vulkan_GetInstanceExtensions(context.pWindow, &extensionCount, ppExtensionNames)) {
+    if(!SDL_Vulkan_GetInstanceExtensions(this->pWindow, &extensionCount, ppExtensionNames)) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Getting names of extensions had failed with %s", SDL_GetError());
         free(ppExtensionNames);
         RETURN_RESULT_CODE(VE_INIT_INSTANCE_FAILURE, 1)
@@ -411,7 +411,7 @@ static VEngineResult initInstance() {
     instanceCreateInfo.enabledExtensionCount = extensionCount;
     instanceCreateInfo.ppEnabledExtensionNames = ppExtensionNames;
 
-    VkResult result = vkCreateInstance(&instanceCreateInfo, NULL, &context.vk.instance);
+    VkResult result = vkCreateInstance(&instanceCreateInfo, NULL, &this->vk.instance);
 
     free(pEveryLayerPropertiesArray);
 
@@ -425,11 +425,11 @@ static VEngineResult initInstance() {
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-static VEngineResult findPhysicalDevice(const char * const* ppRequiredExtensions, uint32_t requiredExtensionsAmount) {
+static VEngineResult findPhysicalDevice(Context *this, const char * const* ppRequiredExtensions, uint32_t requiredExtensionsAmount) {
     uint32_t physicalDevicesCount = 0;
     VkPhysicalDevice *pPhysicalDevices = NULL;
 
-    VkResult result = vkEnumeratePhysicalDevices(context.vk.instance, &physicalDevicesCount, NULL);
+    VkResult result = vkEnumeratePhysicalDevices(this->vk.instance, &physicalDevicesCount, NULL);
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkEnumeratePhysicalDevices for amount returned %i", result);
         RETURN_RESULT_CODE(VE_FIND_PHYSICAL_DEVICE_FAILURE, 0)
@@ -447,7 +447,7 @@ static VEngineResult findPhysicalDevice(const char * const* ppRequiredExtensions
         RETURN_RESULT_CODE(VE_FIND_PHYSICAL_DEVICE_FAILURE, 2)
     }
 
-    result = vkEnumeratePhysicalDevices(context.vk.instance, &physicalDevicesCount, pPhysicalDevices);
+    result = vkEnumeratePhysicalDevices(this->vk.instance, &physicalDevicesCount, pPhysicalDevices);
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkEnumeratePhysicalDevices for devices returned %i", result);
         free(pPhysicalDevices);
@@ -475,7 +475,7 @@ static VEngineResult findPhysicalDevice(const char * const* ppRequiredExtensions
                 requiredParameters |= 1;
             }
 
-            result = vkGetPhysicalDeviceSurfaceSupportKHR(pPhysicalDevices[i - 1], p, context.vk.surface, &surfaceSupported);
+            result = vkGetPhysicalDeviceSurfaceSupportKHR(pPhysicalDevices[i - 1], p, this->vk.surface, &surfaceSupported);
 
             if(result != VK_SUCCESS) {
                 SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "At index %i for vkGetPhysicalDeviceSurfaceSupportKHR returned %i", p - 1, result);
@@ -487,7 +487,7 @@ static VEngineResult findPhysicalDevice(const char * const* ppRequiredExtensions
             if(hasRequiredExtensions(pPhysicalDevices[i - 1], ppRequiredExtensions, requiredExtensionsAmount)) {
                 SwapChainCapabilities *pSwapChainCapabilities = NULL;
 
-                if(querySwapChainCapabilities(pPhysicalDevices[i - 1], context.vk.surface, &pSwapChainCapabilities).type == VE_SUCCESS)
+                if(querySwapChainCapabilities(pPhysicalDevices[i - 1], this->vk.surface, &pSwapChainCapabilities).type == VE_SUCCESS)
                     requiredParameters |= 4;
 
                 if(pSwapChainCapabilities != NULL)
@@ -513,9 +513,9 @@ static VEngineResult findPhysicalDevice(const char * const* ppRequiredExtensions
     SDL_Log( "Index %i device selected", deviceIndex);
 
     if(deviceIndex != physicalDevicesCount) {
-        context.vk.physicalDevice = pPhysicalDevices[deviceIndex];
+        this->vk.physicalDevice = pPhysicalDevices[deviceIndex];
 
-        context.vk.pQueueFamilyProperties = allocateQueueFamilyArray(context.vk.physicalDevice, &context.vk.queueFamilyPropertyCount);
+        this->vk.pQueueFamilyProperties = allocateQueueFamilyArray(this->vk.physicalDevice, &this->vk.queueFamilyPropertyCount);
     }
     else {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to find suitable device!");
@@ -523,15 +523,15 @@ static VEngineResult findPhysicalDevice(const char * const* ppRequiredExtensions
         RETURN_RESULT_CODE(VE_FIND_PHYSICAL_DEVICE_FAILURE, 4)
     }
 
-    context.vk.mmaa.samples = v_find_closet_flag_bit(VK_SAMPLE_COUNT_64_BIT);
+    this->vk.mmaa.samples = v_find_closet_flag_bit(this, VK_SAMPLE_COUNT_64_BIT);
 
     free(pPhysicalDevices);
 
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-static VEngineResult allocateLogicalDevice(const char * const* ppRequiredExtensions, uint32_t requiredExtensionsAmount) {
-    context.vk.device = NULL;
+static VEngineResult allocateLogicalDevice(Context *this, const char * const* ppRequiredExtensions, uint32_t requiredExtensionsAmount) {
+    this->vk.device = NULL;
 
     float normal_priority = 1.0f;
     VkResult result;
@@ -549,12 +549,12 @@ static VEngineResult allocateLogicalDevice(const char * const* ppRequiredExtensi
         deviceQueueCreateInfos[i].queueCount = 1;
     }
 
-    for(uint32_t p = context.vk.queueFamilyPropertyCount; p != 0; p--) {
-        if( (context.vk.pQueueFamilyProperties[p - 1].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0 ) {
+    for(uint32_t p = this->vk.queueFamilyPropertyCount; p != 0; p--) {
+        if( (this->vk.pQueueFamilyProperties[p - 1].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0 ) {
             deviceQueueCreateInfos[GRAPHICS_FAMILY_INDEX].queueFamilyIndex = p - 1;
         }
 
-        result = vkGetPhysicalDeviceSurfaceSupportKHR(context.vk.physicalDevice, p - 1, context.vk.surface, &surfaceSupported);
+        result = vkGetPhysicalDeviceSurfaceSupportKHR(this->vk.physicalDevice, p - 1, this->vk.surface, &surfaceSupported);
 
         if(result != VK_SUCCESS) {
              SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "At index %i for vkGetPhysicalDeviceSurfaceSupportKHR returned %i", p - 1, result);
@@ -587,27 +587,27 @@ static VEngineResult allocateLogicalDevice(const char * const* ppRequiredExtensi
 
     deviceCreateInfo.enabledLayerCount = 0;
 
-    result = vkCreateDevice(context.vk.physicalDevice, &deviceCreateInfo, NULL, &context.vk.device);
+    result = vkCreateDevice(this->vk.physicalDevice, &deviceCreateInfo, NULL, &this->vk.device);
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to create rendering device returned %i", result);
         RETURN_RESULT_CODE(VE_ALLOC_LOGICAL_DEVICE_FAILURE, 0)
     }
 
-    vkGetDeviceQueue(context.vk.device, deviceQueueCreateInfos[GRAPHICS_FAMILY_INDEX].queueFamilyIndex, 0, &context.vk.graphicsQueue);
-    vkGetDeviceQueue(context.vk.device, deviceQueueCreateInfos[ PRESENT_FAMILY_INDEX].queueFamilyIndex, 0, &context.vk.presentationQueue);
+    vkGetDeviceQueue(this->vk.device, deviceQueueCreateInfos[GRAPHICS_FAMILY_INDEX].queueFamilyIndex, 0, &this->vk.graphicsQueue);
+    vkGetDeviceQueue(this->vk.device, deviceQueueCreateInfos[ PRESENT_FAMILY_INDEX].queueFamilyIndex, 0, &this->vk.presentationQueue);
 
-    context.vk.graphicsQueueFamilyIndex     = deviceQueueCreateInfos[GRAPHICS_FAMILY_INDEX].queueFamilyIndex;
-    context.vk.presentationQueueFamilyIndex = deviceQueueCreateInfos[ PRESENT_FAMILY_INDEX].queueFamilyIndex;
+    this->vk.graphicsQueueFamilyIndex     = deviceQueueCreateInfos[GRAPHICS_FAMILY_INDEX].queueFamilyIndex;
+    this->vk.presentationQueueFamilyIndex = deviceQueueCreateInfos[ PRESENT_FAMILY_INDEX].queueFamilyIndex;
 
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-static VEngineResult allocateSwapChain() {
+static VEngineResult allocateSwapChain(Context *this) {
     SwapChainCapabilities *pSwapChainCapabilities;
     int foundPriority;
     int currentPriority;
 
-    VEngineResult updateResult = querySwapChainCapabilities(context.vk.physicalDevice, context.vk.surface, &pSwapChainCapabilities);
+    VEngineResult updateResult = querySwapChainCapabilities(this->vk.physicalDevice, this->vk.surface, &pSwapChainCapabilities);
 
     if(updateResult.type < 0) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to update swap chain capabilities %i at point %i", updateResult.type, updateResult.point);
@@ -618,7 +618,7 @@ static VEngineResult allocateSwapChain() {
     const VkFormat format[] = {VK_FORMAT_B8G8R8A8_SRGB, VK_FORMAT_R8G8B8A8_SRGB, VK_FORMAT_B8G8R8_SRGB, VK_FORMAT_R8G8B8_SRGB};
     const unsigned FORMAT_AMOUNT = sizeof(format) / sizeof(VkFormat);
 
-    context.vk.surfaceFormat = pSwapChainCapabilities->pSurfaceFormat[0];
+    this->vk.surfaceFormat = pSwapChainCapabilities->pSurfaceFormat[0];
 
     foundPriority = FORMAT_AMOUNT;
     currentPriority = FORMAT_AMOUNT;
@@ -635,7 +635,7 @@ static VEngineResult allocateSwapChain() {
             }
 
             if(foundPriority > currentPriority) {
-                context.vk.surfaceFormat = pSwapChainCapabilities->pSurfaceFormat[f - 1];
+                this->vk.surfaceFormat = pSwapChainCapabilities->pSurfaceFormat[f - 1];
                 foundPriority = currentPriority;
             }
         }
@@ -645,7 +645,7 @@ static VEngineResult allocateSwapChain() {
     const VkPresentModeKHR presentModes[] = {VK_PRESENT_MODE_MAILBOX_KHR, VK_PRESENT_MODE_FIFO_KHR, VK_PRESENT_MODE_FIFO_RELAXED_KHR, VK_PRESENT_MODE_IMMEDIATE_KHR};
     const unsigned PRESENT_MODE_AMOUNT = sizeof(presentModes) / sizeof(VkPresentModeKHR);
 
-    context.vk.presentMode = pSwapChainCapabilities->pPresentMode[0];
+    this->vk.presentMode = pSwapChainCapabilities->pPresentMode[0];
 
     foundPriority = PRESENT_MODE_AMOUNT;
     currentPriority = PRESENT_MODE_AMOUNT;
@@ -661,21 +661,21 @@ static VEngineResult allocateSwapChain() {
         }
 
         if(foundPriority > currentPriority) {
-            context.vk.presentMode = pSwapChainCapabilities->pPresentMode[f - 1];
+            this->vk.presentMode = pSwapChainCapabilities->pPresentMode[f - 1];
             foundPriority = currentPriority;
         }
     }
 
     // Find VkExtent2D
     if(pSwapChainCapabilities->surfaceCapabilities.currentExtent.width != UINT32_MAX)
-        context.vk.swapExtent = pSwapChainCapabilities->surfaceCapabilities.currentExtent;
+        this->vk.swapExtent = pSwapChainCapabilities->surfaceCapabilities.currentExtent;
     else {
         int width, height;
 
-        SDL_Vulkan_GetDrawableSize(context.pWindow, &width, &height);
+        SDL_Vulkan_GetDrawableSize(this->pWindow, &width, &height);
 
-        context.vk.swapExtent.width  = (uint32_t)Clamp( width, pSwapChainCapabilities->surfaceCapabilities.minImageExtent.width,  pSwapChainCapabilities->surfaceCapabilities.maxImageExtent.width);
-        context.vk.swapExtent.height = (uint32_t)Clamp(height, pSwapChainCapabilities->surfaceCapabilities.minImageExtent.height, pSwapChainCapabilities->surfaceCapabilities.maxImageExtent.height);
+        this->vk.swapExtent.width  = (uint32_t)Clamp( width, pSwapChainCapabilities->surfaceCapabilities.minImageExtent.width,  pSwapChainCapabilities->surfaceCapabilities.maxImageExtent.width);
+        this->vk.swapExtent.height = (uint32_t)Clamp(height, pSwapChainCapabilities->surfaceCapabilities.minImageExtent.height, pSwapChainCapabilities->surfaceCapabilities.maxImageExtent.height);
     }
 
     uint32_t imageCount = pSwapChainCapabilities->surfaceCapabilities.minImageCount + 1;
@@ -685,18 +685,18 @@ static VEngineResult allocateSwapChain() {
 
     VkSwapchainCreateInfoKHR swapchainCreateInfo = {0};
     swapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    swapchainCreateInfo.surface = context.vk.surface;
+    swapchainCreateInfo.surface = this->vk.surface;
     swapchainCreateInfo.minImageCount = imageCount;
-    swapchainCreateInfo.imageFormat = context.vk.surfaceFormat.format;
-    swapchainCreateInfo.imageColorSpace = context.vk.surfaceFormat.colorSpace;
-    swapchainCreateInfo.imageExtent = context.vk.swapExtent;
+    swapchainCreateInfo.imageFormat = this->vk.surfaceFormat.format;
+    swapchainCreateInfo.imageColorSpace = this->vk.surfaceFormat.colorSpace;
+    swapchainCreateInfo.imageExtent = this->vk.swapExtent;
     swapchainCreateInfo.imageArrayLayers = 1;
     swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-    const uint32_t familyIndex[] = {context.vk.graphicsQueueFamilyIndex, context.vk.presentationQueueFamilyIndex};
+    const uint32_t familyIndex[] = {this->vk.graphicsQueueFamilyIndex, this->vk.presentationQueueFamilyIndex};
     const unsigned FAMILY_INDEX_AMOUNT = sizeof(familyIndex) / sizeof(familyIndex[0]);
 
-    if(context.vk.graphicsQueueFamilyIndex == context.vk.presentationQueueFamilyIndex) {
+    if(this->vk.graphicsQueueFamilyIndex == this->vk.presentationQueueFamilyIndex) {
         swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
         swapchainCreateInfo.queueFamilyIndexCount = 0;
         swapchainCreateInfo.pQueueFamilyIndices = NULL;
@@ -709,53 +709,53 @@ static VEngineResult allocateSwapChain() {
 
     swapchainCreateInfo.preTransform = pSwapChainCapabilities->surfaceCapabilities.currentTransform;
     swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-    swapchainCreateInfo.presentMode = context.vk.presentMode;
+    swapchainCreateInfo.presentMode = this->vk.presentMode;
     swapchainCreateInfo.clipped = VK_TRUE;
     swapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
 
     free(pSwapChainCapabilities);
 
-    VkResult result = vkCreateSwapchainKHR(context.vk.device, &swapchainCreateInfo, NULL, &context.vk.swapChain);
+    VkResult result = vkCreateSwapchainKHR(this->vk.device, &swapchainCreateInfo, NULL, &this->vk.swapChain);
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to create swap chain returned %i", result);
         RETURN_RESULT_CODE(VE_ALLOC_SWAP_CHAIN_FAILURE, 1)
     }
 
-    result = vkGetSwapchainImagesKHR(context.vk.device, context.vk.swapChain, &context.vk.swapChainFrameCount, NULL);
+    result = vkGetSwapchainImagesKHR(this->vk.device, this->vk.swapChain, &this->vk.swapChainFrameCount, NULL);
 
     if(result < VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to vkGetSwapchainImagesKHR for count returned %i", result);
         RETURN_RESULT_CODE(VE_ALLOC_SWAP_CHAIN_FAILURE, 2)
     }
 
-    context.vk.pSwapChainFrames = calloc(context.vk.swapChainFrameCount, sizeof(context.vk.pSwapChainFrames[0]));
+    this->vk.pSwapChainFrames = calloc(this->vk.swapChainFrameCount, sizeof(this->vk.pSwapChainFrames[0]));
 
-    VkImage swapChainImages[context.vk.swapChainFrameCount];
+    VkImage swapChainImages[this->vk.swapChainFrameCount];
 
-    result = vkGetSwapchainImagesKHR(context.vk.device, context.vk.swapChain, &context.vk.swapChainFrameCount, swapChainImages);
+    result = vkGetSwapchainImagesKHR(this->vk.device, this->vk.swapChain, &this->vk.swapChainFrameCount, swapChainImages);
 
-    if(result != VK_SUCCESS || context.vk.pSwapChainFrames == NULL) {
+    if(result != VK_SUCCESS || this->vk.pSwapChainFrames == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to vkGetSwapchainImagesKHR for allocation returned %i", result);
 
-        if(context.vk.pSwapChainFrames != NULL)
-            free(context.vk.pSwapChainFrames);
+        if(this->vk.pSwapChainFrames != NULL)
+            free(this->vk.pSwapChainFrames);
 
         RETURN_RESULT_CODE(VE_ALLOC_SWAP_CHAIN_FAILURE, 3)
     }
 
-    for(uint32_t i = context.vk.swapChainFrameCount; i != 0; i--) {
-        context.vk.pSwapChainFrames[i - 1].image = swapChainImages[i - 1];
+    for(uint32_t i = this->vk.swapChainFrameCount; i != 0; i--) {
+        this->vk.pSwapChainFrames[i - 1].image = swapChainImages[i - 1];
     }
 
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-static VEngineResult allocateSwapChainImageViews() {
+static VEngineResult allocateSwapChainImageViews(Context *this) {
     VEngineResult engineResult;
 
-    for(uint32_t i = 0; i < context.vk.swapChainFrameCount; i++) {
-        engineResult = v_alloc_image_view(context.vk.pSwapChainFrames[i].image, context.vk.surfaceFormat.format, 0, VK_IMAGE_ASPECT_COLOR_BIT, &context.vk.pSwapChainFrames[i].imageView, 1);
+    for(uint32_t i = 0; i < this->vk.swapChainFrameCount; i++) {
+        engineResult = v_alloc_image_view(this, this->vk.pSwapChainFrames[i].image, this->vk.surfaceFormat.format, 0, VK_IMAGE_ASPECT_COLOR_BIT, &this->vk.pSwapChainFrames[i].imageView, 1);
 
         if(engineResult.type != VE_SUCCESS) {
             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_alloc_image_view failed at index %i for allocate returned %i", i, engineResult.point);
@@ -766,14 +766,15 @@ static VEngineResult allocateSwapChainImageViews() {
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-static VEngineResult createRenderPass() {
+static VEngineResult createRenderPass(Context *this) {
     const VkFormat candidates[] = {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D24_UNORM_S8_UINT, VK_FORMAT_D16_UNORM_S8_UINT, VK_FORMAT_D16_UNORM, VK_FORMAT_D32_SFLOAT_S8_UINT};
 
-    context.vk.depthFormat = v_find_supported_format(
+    this->vk.depthFormat = v_find_supported_format(
+        this,
         candidates, sizeof(candidates) / sizeof(candidates[0]),
         VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 
-    if(context.vk.depthFormat == VK_FORMAT_UNDEFINED) {
+    if(this->vk.depthFormat == VK_FORMAT_UNDEFINED) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_find_supported_format failed to find any valid format");
         RETURN_RESULT_CODE(VE_CREATE_RENDER_PASS_FAILURE, 0)
     }
@@ -783,21 +784,21 @@ static VEngineResult createRenderPass() {
     const unsigned DEPTH_INDEX = 1;
     const unsigned COLOR_RESOLVE_INDEX = 2;
 
-    attachmentDescriptions[COLOR_INDEX].format  = context.vk.surfaceFormat.format;
-    attachmentDescriptions[COLOR_INDEX].samples = context.vk.mmaa.samples;
+    attachmentDescriptions[COLOR_INDEX].format  = this->vk.surfaceFormat.format;
+    attachmentDescriptions[COLOR_INDEX].samples = this->vk.mmaa.samples;
     attachmentDescriptions[COLOR_INDEX].loadOp  = VK_ATTACHMENT_LOAD_OP_CLEAR; // I guess it means clear buffer every frame.
     attachmentDescriptions[COLOR_INDEX].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     attachmentDescriptions[COLOR_INDEX].stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE; // No stencil buffer.
     attachmentDescriptions[COLOR_INDEX].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
     attachmentDescriptions[COLOR_INDEX].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
-    if(context.vk.mmaa.samples == VK_SAMPLE_COUNT_1_BIT)
+    if(this->vk.mmaa.samples == VK_SAMPLE_COUNT_1_BIT)
         attachmentDescriptions[COLOR_INDEX].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
     else
         attachmentDescriptions[COLOR_INDEX].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-    attachmentDescriptions[DEPTH_INDEX].format  = context.vk.depthFormat;
-    attachmentDescriptions[DEPTH_INDEX].samples = context.vk.mmaa.samples;
+    attachmentDescriptions[DEPTH_INDEX].format  = this->vk.depthFormat;
+    attachmentDescriptions[DEPTH_INDEX].samples = this->vk.mmaa.samples;
     attachmentDescriptions[DEPTH_INDEX].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR; // I guess it means clear buffer every frame.
     attachmentDescriptions[DEPTH_INDEX].storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
     attachmentDescriptions[DEPTH_INDEX].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE; // No stencil buffer.
@@ -805,8 +806,8 @@ static VEngineResult createRenderPass() {
     attachmentDescriptions[DEPTH_INDEX].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     attachmentDescriptions[DEPTH_INDEX].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-    if(context.vk.mmaa.samples != VK_SAMPLE_COUNT_1_BIT) {
-        attachmentDescriptions[COLOR_RESOLVE_INDEX].format  = context.vk.surfaceFormat.format;
+    if(this->vk.mmaa.samples != VK_SAMPLE_COUNT_1_BIT) {
+        attachmentDescriptions[COLOR_RESOLVE_INDEX].format  = this->vk.surfaceFormat.format;
         attachmentDescriptions[COLOR_RESOLVE_INDEX].samples = VK_SAMPLE_COUNT_1_BIT;
         attachmentDescriptions[COLOR_RESOLVE_INDEX].loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         attachmentDescriptions[COLOR_RESOLVE_INDEX].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -834,7 +835,7 @@ static VEngineResult createRenderPass() {
     subpassDescription.pColorAttachments = &colorAttachmentReference;
     subpassDescription.pDepthStencilAttachment = &depthAttachmentReference;
 
-    if(context.vk.mmaa.samples != VK_SAMPLE_COUNT_1_BIT)
+    if(this->vk.mmaa.samples != VK_SAMPLE_COUNT_1_BIT)
         subpassDescription.pResolveAttachments = &colorResolveAttachmentReference;
 
     VkSubpassDependency subpassDependency = {0};
@@ -848,7 +849,7 @@ static VEngineResult createRenderPass() {
     VkRenderPassCreateInfo renderPassCreateInfo = {0};
     renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 
-    if(context.vk.mmaa.samples == VK_SAMPLE_COUNT_1_BIT)
+    if(this->vk.mmaa.samples == VK_SAMPLE_COUNT_1_BIT)
         renderPassCreateInfo.attachmentCount = 2;
     else
         renderPassCreateInfo.attachmentCount = 3;
@@ -859,7 +860,7 @@ static VEngineResult createRenderPass() {
     renderPassCreateInfo.dependencyCount = 1;
     renderPassCreateInfo.pDependencies = &subpassDependency;
 
-    VkResult result = vkCreateRenderPass(context.vk.device, &renderPassCreateInfo, NULL, &context.vk.renderPass);
+    VkResult result = vkCreateRenderPass(this->vk.device, &renderPassCreateInfo, NULL, &this->vk.renderPass);
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkCreateRenderPass() Failed to allocate %i", result);
@@ -869,7 +870,7 @@ static VEngineResult createRenderPass() {
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-static VEngineResult allocateDescriptorSetLayout() {
+static VEngineResult allocateDescriptorSetLayout(Context *this) {
     VkResult result;
 
     VkDescriptorSetLayoutBinding descriptorSetBindings[2];
@@ -892,7 +893,7 @@ static VEngineResult allocateDescriptorSetLayout() {
     descriptorSetLayoutCreateInfo.bindingCount = sizeof(descriptorSetBindings) / sizeof(descriptorSetBindings[0]);
     descriptorSetLayoutCreateInfo.pBindings = descriptorSetBindings;
 
-    result = vkCreateDescriptorSetLayout(context.vk.device, &descriptorSetLayoutCreateInfo, NULL, &context.vk.descriptorSetLayout);
+    result = vkCreateDescriptorSetLayout(this->vk.device, &descriptorSetLayoutCreateInfo, NULL, &this->vk.descriptorSetLayout);
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkCreateRenderPass() Failed to allocate %i", result);
@@ -902,7 +903,7 @@ static VEngineResult allocateDescriptorSetLayout() {
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-static VkShaderModule allocateShaderModule(uint8_t* data, size_t size) {
+static VkShaderModule allocateShaderModule(Context *this, uint8_t* data, size_t size) {
     VkShaderModuleCreateInfo shaderModuleCreateInfo = {0};
     VkShaderModule shaderModule = NULL;
     VkResult result;
@@ -911,13 +912,13 @@ static VkShaderModule allocateShaderModule(uint8_t* data, size_t size) {
     shaderModuleCreateInfo.codeSize = size;
     shaderModuleCreateInfo.pCode = (const uint32_t*)(data);
 
-    result = vkCreateShaderModule(context.vk.device, &shaderModuleCreateInfo, NULL, &shaderModule);
+    result = vkCreateShaderModule(this->vk.device, &shaderModuleCreateInfo, NULL, &shaderModule);
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Shader Module Failed to allocate %i", result);
 
         if(shaderModule != NULL)
-            vkDestroyShaderModule(context.vk.device, shaderModule, NULL);
+            vkDestroyShaderModule(this->vk.device, shaderModule, NULL);
 
         shaderModule = NULL;
     }
@@ -925,7 +926,7 @@ static VkShaderModule allocateShaderModule(uint8_t* data, size_t size) {
     return shaderModule;
 }
 
-static VEngineResult allocateGraphicsPipeline() {
+static VEngineResult allocateGraphicsPipeline(Context *this) {
     int64_t vertexShaderCodeLength;
     uint8_t* pVertexShaderCode = u_read_file("hello_world_vert.spv", &vertexShaderCodeLength);
 
@@ -943,8 +944,8 @@ static VEngineResult allocateGraphicsPipeline() {
         RETURN_RESULT_CODE(VE_ALLOC_GRAPH_PIPELINE_FAILURE, 1)
     }
 
-    VkShaderModule   vertexShaderModule = allocateShaderModule(  pVertexShaderCode,   vertexShaderCodeLength);
-    VkShaderModule fragmentShaderModule = allocateShaderModule(pFragmentShaderCode, fragmentShaderCodeLength);
+    VkShaderModule   vertexShaderModule = allocateShaderModule(this, pVertexShaderCode,   vertexShaderCodeLength);
+    VkShaderModule fragmentShaderModule = allocateShaderModule(this, pFragmentShaderCode, fragmentShaderCodeLength);
 
     free(pVertexShaderCode);
     free(pFragmentShaderCode);
@@ -952,14 +953,14 @@ static VEngineResult allocateGraphicsPipeline() {
     if(vertexShaderModule == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Vulkan failed to parse vertex shader code!");
 
-        vkDestroyShaderModule(context.vk.device, fragmentShaderModule, NULL);
+        vkDestroyShaderModule(this->vk.device, fragmentShaderModule, NULL);
 
         RETURN_RESULT_CODE(VE_ALLOC_GRAPH_PIPELINE_FAILURE, 2)
     }
     else if(fragmentShaderModule == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Vulkan failed to parse fragment shader code!");
 
-        vkDestroyShaderModule(context.vk.device, vertexShaderModule, NULL);
+        vkDestroyShaderModule(this->vk.device, vertexShaderModule, NULL);
 
         RETURN_RESULT_CODE(VE_ALLOC_GRAPH_PIPELINE_FAILURE, 3)
     }
@@ -996,15 +997,15 @@ static VEngineResult allocateGraphicsPipeline() {
     VkViewport viewport = {0};
     viewport.x = 0.0f;
     viewport.y = 0.0f;
-    viewport.width  = (float) context.vk.swapExtent.width;
-    viewport.height = (float) context.vk.swapExtent.height;
+    viewport.width  = (float) this->vk.swapExtent.width;
+    viewport.height = (float) this->vk.swapExtent.height;
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
 
     VkRect2D scissor = {0};
     scissor.offset.x = 0.0f;
     scissor.offset.y = 0.0f;
-    scissor.extent = context.vk.swapExtent;
+    scissor.extent = this->vk.swapExtent;
 
     VkDynamicState dynamicStates[] = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
 
@@ -1036,7 +1037,7 @@ static VEngineResult allocateGraphicsPipeline() {
     VkPipelineMultisampleStateCreateInfo pipelineMultisampleStateCreateInfo = {0};
     pipelineMultisampleStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     pipelineMultisampleStateCreateInfo.sampleShadingEnable = VK_FALSE;
-    pipelineMultisampleStateCreateInfo.rasterizationSamples = context.vk.mmaa.samples;
+    pipelineMultisampleStateCreateInfo.rasterizationSamples = this->vk.mmaa.samples;
     pipelineMultisampleStateCreateInfo.minSampleShading = 1.0f; // OPTIONAL
     pipelineMultisampleStateCreateInfo.pSampleMask = NULL; // OPTIONAL
     pipelineMultisampleStateCreateInfo.alphaToCoverageEnable = VK_FALSE; // OPTIONAL
@@ -1079,7 +1080,7 @@ static VEngineResult allocateGraphicsPipeline() {
     VkPipelineLayoutCreateInfo pipelineLayoutInfo = {0};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutInfo.setLayoutCount = 1;
-    pipelineLayoutInfo.pSetLayouts = &context.vk.descriptorSetLayout;
+    pipelineLayoutInfo.pSetLayouts = &this->vk.descriptorSetLayout;
 
     VkPushConstantRange pushConstant = {0};
     pushConstant.offset = 0;
@@ -1089,13 +1090,13 @@ static VEngineResult allocateGraphicsPipeline() {
     pipelineLayoutInfo.pushConstantRangeCount = 1; // OPTIONAL
     pipelineLayoutInfo.pPushConstantRanges = &pushConstant; // OPTIONAL
 
-    VkResult result = vkCreatePipelineLayout(context.vk.device, &pipelineLayoutInfo, NULL, &context.vk.pipelineLayout);
+    VkResult result = vkCreatePipelineLayout(this->vk.device, &pipelineLayoutInfo, NULL, &this->vk.pipelineLayout);
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Pipeline Layout creation failed with result: %i", result);
 
-        vkDestroyShaderModule(context.vk.device,   vertexShaderModule, NULL);
-        vkDestroyShaderModule(context.vk.device, fragmentShaderModule, NULL);
+        vkDestroyShaderModule(this->vk.device,   vertexShaderModule, NULL);
+        vkDestroyShaderModule(this->vk.device, fragmentShaderModule, NULL);
 
         RETURN_RESULT_CODE(VE_ALLOC_GRAPH_PIPELINE_FAILURE, 4)
     }
@@ -1115,18 +1116,18 @@ static VEngineResult allocateGraphicsPipeline() {
     graphicsPipelineCreateInfo.pColorBlendState    = &pipelineColorBlendStateCreateInfo;
     graphicsPipelineCreateInfo.pDynamicState       = &pipelineDynamicStateInfo;
 
-    graphicsPipelineCreateInfo.layout = context.vk.pipelineLayout;
+    graphicsPipelineCreateInfo.layout = this->vk.pipelineLayout;
 
-    graphicsPipelineCreateInfo.renderPass = context.vk.renderPass;
+    graphicsPipelineCreateInfo.renderPass = this->vk.renderPass;
     graphicsPipelineCreateInfo.subpass    = 0;
 
     graphicsPipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE; // OPTIONAL
     graphicsPipelineCreateInfo.basePipelineIndex  = -1; // OPTIONAL
 
-    result = vkCreateGraphicsPipelines(context.vk.device, VK_NULL_HANDLE, 1, &graphicsPipelineCreateInfo, NULL, &context.vk.graphicsPipeline);
+    result = vkCreateGraphicsPipelines(this->vk.device, VK_NULL_HANDLE, 1, &graphicsPipelineCreateInfo, NULL, &this->vk.graphicsPipeline);
 
-    vkDestroyShaderModule(context.vk.device,   vertexShaderModule, NULL);
-    vkDestroyShaderModule(context.vk.device, fragmentShaderModule, NULL);
+    vkDestroyShaderModule(this->vk.device,   vertexShaderModule, NULL);
+    vkDestroyShaderModule(this->vk.device, fragmentShaderModule, NULL);
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkCreateGraphicsPipelines creation failed with result: %i", result);
@@ -1136,38 +1137,38 @@ static VEngineResult allocateGraphicsPipeline() {
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-static VEngineResult allocateFrameBuffers() {
+static VEngineResult allocateFrameBuffers(Context *this) {
     VkResult result;
 
     VkImageView imageViews[3] = { NULL };
 
-    if(context.vk.mmaa.samples != VK_SAMPLE_COUNT_1_BIT)
-        imageViews[0] = context.vk.mmaa.imageView;
+    if(this->vk.mmaa.samples != VK_SAMPLE_COUNT_1_BIT)
+        imageViews[0] = this->vk.mmaa.imageView;
 
-    imageViews[1] = context.vk.depthImageView;
+    imageViews[1] = this->vk.depthImageView;
 
     VkFramebufferCreateInfo framebufferCreateInfo = {0};
     framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-    framebufferCreateInfo.renderPass = context.vk.renderPass;
+    framebufferCreateInfo.renderPass = this->vk.renderPass;
 
     framebufferCreateInfo.attachmentCount = sizeof(imageViews) / sizeof(imageViews[0]);
-    if(context.vk.mmaa.samples == VK_SAMPLE_COUNT_1_BIT)
+    if(this->vk.mmaa.samples == VK_SAMPLE_COUNT_1_BIT)
         framebufferCreateInfo.attachmentCount--;
 
     framebufferCreateInfo.pAttachments = imageViews;
-    framebufferCreateInfo.width  = context.vk.swapExtent.width;
-    framebufferCreateInfo.height = context.vk.swapExtent.height;
+    framebufferCreateInfo.width  = this->vk.swapExtent.width;
+    framebufferCreateInfo.height = this->vk.swapExtent.height;
     framebufferCreateInfo.layers = 1;
 
     int numberOfFailures = 0;
 
-    for(uint32_t i = context.vk.swapChainFrameCount; i != 0; i--) {
-        if(context.vk.mmaa.samples == VK_SAMPLE_COUNT_1_BIT)
-            imageViews[0] = context.vk.pSwapChainFrames[i - 1].imageView;
+    for(uint32_t i = this->vk.swapChainFrameCount; i != 0; i--) {
+        if(this->vk.mmaa.samples == VK_SAMPLE_COUNT_1_BIT)
+            imageViews[0] = this->vk.pSwapChainFrames[i - 1].imageView;
         else
-            imageViews[2] = context.vk.pSwapChainFrames[i - 1].imageView;
+            imageViews[2] = this->vk.pSwapChainFrames[i - 1].imageView;
 
-        result = vkCreateFramebuffer(context.vk.device, &framebufferCreateInfo, NULL, &context.vk.pSwapChainFrames[i - 1].framebuffer);
+        result = vkCreateFramebuffer(this->vk.device, &framebufferCreateInfo, NULL, &this->vk.pSwapChainFrames[i - 1].framebuffer);
 
         if(result != VK_SUCCESS) {
             numberOfFailures++;
@@ -1181,15 +1182,15 @@ static VEngineResult allocateFrameBuffers() {
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-static VEngineResult allocateCommandPool() {
+static VEngineResult allocateCommandPool(Context *this) {
     VkResult result;
 
     VkCommandPoolCreateInfo commandPoolCreateInfo = {0};
     commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     commandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-    commandPoolCreateInfo.queueFamilyIndex = context.vk.graphicsQueueFamilyIndex;
+    commandPoolCreateInfo.queueFamilyIndex = this->vk.graphicsQueueFamilyIndex;
 
-    result = vkCreateCommandPool(context.vk.device, &commandPoolCreateInfo, NULL, &context.vk.commandPool);
+    result = vkCreateCommandPool(this->vk.device, &commandPoolCreateInfo, NULL, &this->vk.commandPool);
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkCommandPool creation failed with result: %i", result);
@@ -1198,22 +1199,22 @@ static VEngineResult allocateCommandPool() {
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-static VEngineResult allocateColorResources() {
+static VEngineResult allocateColorResources(Context *this) {
     VEngineResult engineResult;
 
-    if(context.vk.mmaa.samples == VK_SAMPLE_COUNT_1_BIT)
+    if(this->vk.mmaa.samples == VK_SAMPLE_COUNT_1_BIT)
         RETURN_RESULT_CODE(VE_SUCCESS, 0)
 
-    VkFormat colorFormat = context.vk.surfaceFormat.format;
+    VkFormat colorFormat = this->vk.surfaceFormat.format;
 
-    engineResult = v_alloc_image(context.vk.swapExtent.width, context.vk.swapExtent.height, 1, context.vk.mmaa.samples, colorFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &context.vk.mmaa.image, &context.vk.mmaa.imageMemory);
+    engineResult = v_alloc_image(this, this->vk.swapExtent.width, this->vk.swapExtent.height, 1, this->vk.mmaa.samples, colorFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &this->vk.mmaa.image, &this->vk.mmaa.imageMemory);
 
     if(engineResult.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_alloc_image creation failed with result: %i", engineResult.point);
         RETURN_RESULT_CODE(VE_ALLOC_COLOR_BUFFER_FAILURE, 0)
     }
 
-    engineResult = v_alloc_image_view(context.vk.mmaa.image, colorFormat, 0, VK_IMAGE_ASPECT_COLOR_BIT, &context.vk.mmaa.imageView, 1);
+    engineResult = v_alloc_image_view(this, this->vk.mmaa.image, colorFormat, 0, VK_IMAGE_ASPECT_COLOR_BIT, &this->vk.mmaa.imageView, 1);
 
     if(engineResult.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_alloc_image_view creation failed with result: %i", engineResult.point);
@@ -1223,32 +1224,33 @@ static VEngineResult allocateColorResources() {
     RETURN_RESULT_CODE(VE_SUCCESS, 1)
 }
 
-static VEngineResult allocateDepthResources() {
+static VEngineResult allocateDepthResources(Context *this) {
     VEngineResult engineResult;
 
     engineResult = v_alloc_image(
-        context.vk.swapExtent.width, context.vk.swapExtent.height,
+        this,
+        this->vk.swapExtent.width, this->vk.swapExtent.height,
         1,
-        context.vk.mmaa.samples,
-        context.vk.depthFormat,
+        this->vk.mmaa.samples,
+        this->vk.depthFormat,
         VK_IMAGE_TILING_OPTIMAL,
         VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-        &context.vk.depthImage, &context.vk.depthImageMemory);
+        &this->vk.depthImage, &this->vk.depthImageMemory);
 
     if(engineResult.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_alloc_image creation failed with result: %i", engineResult.point);
         RETURN_RESULT_CODE(VE_ALLOC_DEPTH_BUFFER_FAILURE, 0)
     }
 
-    engineResult = v_alloc_image_view(context.vk.depthImage, context.vk.depthFormat, 0, VK_IMAGE_ASPECT_DEPTH_BIT, &context.vk.depthImageView, 1);
+    engineResult = v_alloc_image_view(this, this->vk.depthImage, this->vk.depthFormat, 0, VK_IMAGE_ASPECT_DEPTH_BIT, &this->vk.depthImageView, 1);
 
     if(engineResult.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_alloc_image_view creation failed with result: %i", engineResult.point);
         RETURN_RESULT_CODE(VE_ALLOC_DEPTH_BUFFER_FAILURE, 1)
     }
 
-    engineResult = v_transition_image_layout(context.vk.depthImage, context.vk.depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
+    engineResult = v_transition_image_layout(this, this->vk.depthImage, this->vk.depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
 
     if(engineResult.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_transition_image_layout creation failed with result: %i", engineResult.point);
@@ -1271,7 +1273,7 @@ static uint32_t getMipLevel(uint32_t width, uint32_t height) {
     return 1;
 }
 
-static VEngineResult allocateTextureImage() {
+static VEngineResult allocateTextureImage(Context *this) {
     qoi_desc QOIdescription;
     qoi_desc mipQOIdescription;
     const char FILENAME[] = "test_texture_%i.qoi";
@@ -1292,7 +1294,7 @@ static VEngineResult allocateTextureImage() {
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
 
-    VEngineResult engineResult = v_alloc_buffer(mipmapSizeSq, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, &stagingBufferMemory);
+    VEngineResult engineResult = v_alloc_buffer(this, mipmapSizeSq, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, &stagingBufferMemory);
 
     if(engineResult.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to make staging buffer for allocateTextureImage");
@@ -1300,12 +1302,12 @@ static VEngineResult allocateTextureImage() {
     }
 
     uint32_t mipLevel = getMipLevel(QOIdescription.width, QOIdescription.height);
-    context.vk.texture.mipLevels = mipLevel;
+    this->vk.texture.mipLevels = mipLevel;
 
     mipQOIdescription = QOIdescription;
 
     void* data;
-    vkMapMemory(context.vk.device, stagingBufferMemory, 0, mipmapSizeSq, 0, &data);
+    vkMapMemory(this->vk.device, stagingBufferMemory, 0, mipmapSizeSq, 0, &data);
     for(uint32_t m = 0; m < mipLevel; m++) {
         VkDeviceSize imageSizeSq = 4 * mipQOIdescription.width * mipQOIdescription.height;
 
@@ -1322,41 +1324,41 @@ static VEngineResult allocateTextureImage() {
 
         pPixels = u_qoi_read(filename, &mipQOIdescription, 4);
     }
-    vkUnmapMemory(context.vk.device, stagingBufferMemory);
+    vkUnmapMemory(this->vk.device, stagingBufferMemory);
 
-    engineResult = v_alloc_image(QOIdescription.width, QOIdescription.height, context.vk.texture.mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &context.vk.texture.image, &context.vk.texture.imageMemory);
+    engineResult = v_alloc_image(this, QOIdescription.width, QOIdescription.height, this->vk.texture.mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &this->vk.texture.image, &this->vk.texture.imageMemory);
 
     if(engineResult.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_alloc_image had failed with %i", engineResult.point);
         RETURN_RESULT_CODE(VE_ALLOC_TEXTURE_IMAGE_FAILURE, 2)
     }
 
-    engineResult = v_transition_image_layout(context.vk.texture.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, context.vk.texture.mipLevels);
+    engineResult = v_transition_image_layout(this, this->vk.texture.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, this->vk.texture.mipLevels);
     if(engineResult.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_transition_image_layout had failed with %i", engineResult.point);
         RETURN_RESULT_CODE(VE_ALLOC_TEXTURE_IMAGE_FAILURE, 3)
     }
 
-    engineResult = v_copy_buffer_to_image(stagingBuffer, context.vk.texture.image, QOIdescription.width, QOIdescription.height, firstImageSizeSq, context.vk.texture.mipLevels);
+    engineResult = v_copy_buffer_to_image(this, stagingBuffer, this->vk.texture.image, QOIdescription.width, QOIdescription.height, firstImageSizeSq, this->vk.texture.mipLevels);
     if(engineResult.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_copy_buffer_to_image had failed with %i", engineResult.point);
         RETURN_RESULT_CODE(VE_ALLOC_TEXTURE_IMAGE_FAILURE, 4)
     }
 
-    engineResult = v_transition_image_layout(context.vk.texture.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, context.vk.texture.mipLevels);
+    engineResult = v_transition_image_layout(this, this->vk.texture.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->vk.texture.mipLevels);
     if(engineResult.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_transition_image_layout had failed with %i", engineResult.point);
         RETURN_RESULT_CODE(VE_ALLOC_TEXTURE_IMAGE_FAILURE, 5)
     }
 
-    vkDestroyBuffer(context.vk.device, stagingBuffer, NULL);
-    vkFreeMemory(context.vk.device, stagingBufferMemory, NULL);
+    vkDestroyBuffer(this->vk.device, stagingBuffer, NULL);
+    vkFreeMemory(this->vk.device, stagingBufferMemory, NULL);
 
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-static VEngineResult allocateTextureImageView() {
-    VEngineResult engineResult = v_alloc_image_view(context.vk.texture.image, VK_FORMAT_R8G8B8A8_SRGB, 0, VK_IMAGE_ASPECT_COLOR_BIT, &context.vk.texture.imageView, context.vk.texture.mipLevels);
+static VEngineResult allocateTextureImageView(Context *this) {
+    VEngineResult engineResult = v_alloc_image_view(this, this->vk.texture.image, VK_FORMAT_R8G8B8A8_SRGB, 0, VK_IMAGE_ASPECT_COLOR_BIT, &this->vk.texture.imageView, this->vk.texture.mipLevels);
 
     if(engineResult.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_alloc_image_view failed for allocate returned %i", engineResult.point);
@@ -1366,7 +1368,7 @@ static VEngineResult allocateTextureImageView() {
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-static VEngineResult allocateDefaultTextureSampler() {
+static VEngineResult allocateDefaultTextureSampler(Context *this) {
     VkSamplerCreateInfo samplerCreateInfo;
     samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
     samplerCreateInfo.pNext = NULL;
@@ -1383,11 +1385,11 @@ static VEngineResult allocateDefaultTextureSampler() {
     samplerCreateInfo.compareEnable = VK_FALSE;
     samplerCreateInfo.compareOp = VK_COMPARE_OP_ALWAYS;
     samplerCreateInfo.minLod = 0.0f;
-    samplerCreateInfo.maxLod = (float)context.vk.texture.mipLevels;
+    samplerCreateInfo.maxLod = (float)this->vk.texture.mipLevels;
     samplerCreateInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
     samplerCreateInfo.unnormalizedCoordinates = VK_FALSE;
 
-    VkResult result = vkCreateSampler(context.vk.device, &samplerCreateInfo, NULL, &context.vk.defaultTextureSampler);
+    VkResult result = vkCreateSampler(this->vk.device, &samplerCreateInfo, NULL, &this->vk.defaultTextureSampler);
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkCreateSampler creation failed with result: %i", result);
         RETURN_RESULT_CODE(VE_ALLOC_DEFAULT_SAMPLER_FAILURE, 0)
@@ -1395,17 +1397,17 @@ static VEngineResult allocateDefaultTextureSampler() {
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-static VEngineResult createCommandBuffer() {
+static VEngineResult createCommandBuffer(Context *this) {
     VkResult result;
 
     VkCommandBufferAllocateInfo commandBufferAllocateInfo = {0};
     commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    commandBufferAllocateInfo.commandPool = context.vk.commandPool;
+    commandBufferAllocateInfo.commandPool = this->vk.commandPool;
     commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     commandBufferAllocateInfo.commandBufferCount = 1;
 
     for(uint32_t i = MAX_FRAMES_IN_FLIGHT; i != 0; i--) {
-        result = vkAllocateCommandBuffers(context.vk.device, &commandBufferAllocateInfo, &context.vk.frames[i - 1].commandBuffer);
+        result = vkAllocateCommandBuffers(this->vk.device, &commandBufferAllocateInfo, &this->vk.frames[i - 1].commandBuffer);
 
         if(result != VK_SUCCESS) {
             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkAllocateCommandBuffers at index %i creation failed with result: %i", i - 1, result);
@@ -1415,7 +1417,7 @@ static VEngineResult createCommandBuffer() {
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-static VEngineResult allocateSyncObjects() {
+static VEngineResult allocateSyncObjects(Context *this) {
     VkResult result;
 
     VkSemaphoreCreateInfo semaphoreCreateInfo = {0};
@@ -1426,19 +1428,19 @@ static VEngineResult allocateSyncObjects() {
     fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
     for(uint32_t i = MAX_FRAMES_IN_FLIGHT; i != 0; i--) {
-        result = vkCreateSemaphore(context.vk.device, &semaphoreCreateInfo, NULL, &context.vk.frames[i - 1].imageAvailableSemaphore);
+        result = vkCreateSemaphore(this->vk.device, &semaphoreCreateInfo, NULL, &this->vk.frames[i - 1].imageAvailableSemaphore);
         if(result != VK_SUCCESS) {
             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "imageAvailableSemaphore at index %i creation failed with result: %i", i - 1, result);
             RETURN_RESULT_CODE(VE_ALLOC_SYNC_OBJECTS_FAILURE, 0)
         }
 
-        result = vkCreateSemaphore(context.vk.device, &semaphoreCreateInfo, NULL, &context.vk.frames[i - 1].renderFinishedSemaphore);
+        result = vkCreateSemaphore(this->vk.device, &semaphoreCreateInfo, NULL, &this->vk.frames[i - 1].renderFinishedSemaphore);
         if(result != VK_SUCCESS) {
             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "renderFinishedSemaphore at index %i creation failed with result: %i", i - 1, result);
             RETURN_RESULT_CODE(VE_ALLOC_SYNC_OBJECTS_FAILURE, 1)
         }
 
-        result = vkCreateFence(context.vk.device, &fenceCreateInfo, NULL, &context.vk.frames[i - 1].inFlightFence);
+        result = vkCreateFence(this->vk.device, &fenceCreateInfo, NULL, &this->vk.frames[i - 1].inFlightFence);
         if(result != VK_SUCCESS) {
             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "inFlightFence at index %i creation failed with result: %i", i - 1, result);
             RETURN_RESULT_CODE(VE_ALLOC_SYNC_OBJECTS_FAILURE, 2)
@@ -1447,7 +1449,7 @@ static VEngineResult allocateSyncObjects() {
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-static VEngineResult allocateDescriptorPool() {
+static VEngineResult allocateDescriptorPool(Context *this) {
     VkResult result;
 
     VkDescriptorPoolSize descriptorPoolSizes[2];
@@ -1462,7 +1464,7 @@ static VEngineResult allocateDescriptorPool() {
     descriptorPoolCreateInfo.pPoolSizes = descriptorPoolSizes;
     descriptorPoolCreateInfo.maxSets = MAX_FRAMES_IN_FLIGHT;
 
-    result = vkCreateDescriptorPool(context.vk.device, &descriptorPoolCreateInfo, NULL, &context.vk.descriptorPool);
+    result = vkCreateDescriptorPool(this->vk.device, &descriptorPoolCreateInfo, NULL, &this->vk.descriptorPool);
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkCreateDescriptorPool failed with result: %i", result);
@@ -1471,23 +1473,23 @@ static VEngineResult allocateDescriptorPool() {
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-static VEngineResult allocateDescriptorSets() {
+static VEngineResult allocateDescriptorSets(Context *this) {
     VkResult result;
 
     VkDescriptorSetAllocateInfo descriptorSetAllocateInfo;
     descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     descriptorSetAllocateInfo.pNext = NULL;
-    descriptorSetAllocateInfo.descriptorPool = context.vk.descriptorPool;
+    descriptorSetAllocateInfo.descriptorPool = this->vk.descriptorPool;
     descriptorSetAllocateInfo.descriptorSetCount = 1;
-    descriptorSetAllocateInfo.pSetLayouts = &context.vk.descriptorSetLayout;
+    descriptorSetAllocateInfo.pSetLayouts = &this->vk.descriptorSetLayout;
 
     VkDescriptorBufferInfo descriptorBufferInfo;
     descriptorBufferInfo.offset = 0;
     descriptorBufferInfo.range = sizeof(UniformBufferObject);
 
     VkDescriptorImageInfo descriptorImageInfo;
-    descriptorImageInfo.sampler = context.vk.defaultTextureSampler;
-    descriptorImageInfo.imageView = context.vk.texture.imageView;
+    descriptorImageInfo.sampler = this->vk.defaultTextureSampler;
+    descriptorImageInfo.imageView = this->vk.texture.imageView;
     descriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
     VkWriteDescriptorSet writeDescriptorSets[2] = {{0}, {0}};
@@ -1506,39 +1508,39 @@ static VEngineResult allocateDescriptorSets() {
     writeDescriptorSets[1].pImageInfo = &descriptorImageInfo;
 
     for(uint32_t i = MAX_FRAMES_IN_FLIGHT; i != 0; i--) {
-        result = vkAllocateDescriptorSets(context.vk.device, &descriptorSetAllocateInfo, &context.vk.frames[i - 1].descriptorSet);
+        result = vkAllocateDescriptorSets(this->vk.device, &descriptorSetAllocateInfo, &this->vk.frames[i - 1].descriptorSet);
 
         if(result != VK_SUCCESS) {
             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkAllocateDescriptorSets at index %i failed with result: %i", i - 1, result);
             RETURN_RESULT_CODE(VE_ALLOC_DESCRIPTOR_SET_FAILURE, i - 1)
         }
 
-        descriptorBufferInfo.buffer = context.vk.frames[i - 1].uniformBuffer;
+        descriptorBufferInfo.buffer = this->vk.frames[i - 1].uniformBuffer;
 
-        writeDescriptorSets[0].dstSet = context.vk.frames[i - 1].descriptorSet;
-        writeDescriptorSets[1].dstSet = context.vk.frames[i - 1].descriptorSet;
+        writeDescriptorSets[0].dstSet = this->vk.frames[i - 1].descriptorSet;
+        writeDescriptorSets[1].dstSet = this->vk.frames[i - 1].descriptorSet;
 
-        vkUpdateDescriptorSets(context.vk.device, 2, writeDescriptorSets, 0, NULL);
+        vkUpdateDescriptorSets(this->vk.device, 2, writeDescriptorSets, 0, NULL);
     }
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-static void cleanupSwapChain() {
-    vkDestroyImageView( context.vk.device, context.vk.mmaa.imageView,   NULL);
-    vkDestroyImage(     context.vk.device, context.vk.mmaa.image,       NULL);
-    vkFreeMemory(       context.vk.device, context.vk.mmaa.imageMemory, NULL);
-    vkDestroyImageView( context.vk.device, context.vk.depthImageView,   NULL);
-    vkDestroyImage(     context.vk.device, context.vk.depthImage,       NULL);
-    vkFreeMemory(       context.vk.device, context.vk.depthImageMemory, NULL);
+static void cleanupSwapChain(Context *this) {
+    vkDestroyImageView( this->vk.device, this->vk.mmaa.imageView,   NULL);
+    vkDestroyImage(     this->vk.device, this->vk.mmaa.image,       NULL);
+    vkFreeMemory(       this->vk.device, this->vk.mmaa.imageMemory, NULL);
+    vkDestroyImageView( this->vk.device, this->vk.depthImageView,   NULL);
+    vkDestroyImage(     this->vk.device, this->vk.depthImage,       NULL);
+    vkFreeMemory(       this->vk.device, this->vk.depthImageMemory, NULL);
 
-    for(uint32_t i = context.vk.swapChainFrameCount; i != 0; i--) {
-        vkDestroyImageView(  context.vk.device, context.vk.pSwapChainFrames[i - 1].imageView,   NULL);
-        vkDestroyFramebuffer(context.vk.device, context.vk.pSwapChainFrames[i - 1].framebuffer, NULL);
+    for(uint32_t i = this->vk.swapChainFrameCount; i != 0; i--) {
+        vkDestroyImageView(  this->vk.device, this->vk.pSwapChainFrames[i - 1].imageView,   NULL);
+        vkDestroyFramebuffer(this->vk.device, this->vk.pSwapChainFrames[i - 1].framebuffer, NULL);
     }
 
-    if(context.vk.pSwapChainFrames != NULL)
-        free(context.vk.pSwapChainFrames);
-    context.vk.pSwapChainFrames = NULL;
+    if(this->vk.pSwapChainFrames != NULL)
+        free(this->vk.pSwapChainFrames);
+    this->vk.pSwapChainFrames = NULL;
 
-    vkDestroySwapchainKHR(context.vk.device, context.vk.swapChain, NULL);
+    vkDestroySwapchainKHR(this->vk.device, this->vk.swapChain, NULL);
 }

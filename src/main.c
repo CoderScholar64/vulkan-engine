@@ -49,7 +49,7 @@ void loop() {
         }
 
         if(!isWindowMinimized) {
-            vResult = v_draw_frame(delta);
+            vResult = v_draw_frame(&context, delta);
 
             if(vResult.type < 0)
                 return;
@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
         return -2;
     }
 
-    returnCode = v_init();
+    returnCode = v_init(&context);
 
     if( returnCode.type < 0 ) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Thus v_init() failed with code %s", SDL_GetError());
@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
         loop();
     }
 
-    v_deinit();
+    v_deinit(&context);
     SDL_DestroyWindow(context.pWindow);
 
     return returnCode.type;

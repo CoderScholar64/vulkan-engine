@@ -17,7 +17,7 @@ const VkVertexInputAttributeDescription vertexInputAttributeDescriptions[3] = {
     {       2,       0,    VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, texCoord)}
 };
 
-VEngineResult v_alloc_buffer(VkDeviceSize size, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags, VkBuffer *pBuffer, VkDeviceMemory *pBufferMemory) {
+VEngineResult v_alloc_buffer(Context *this, VkDeviceSize size, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags, VkBuffer *pBuffer, VkDeviceMemory *pBufferMemory) {
     VkResult result;
 
     VkBufferCreateInfo bufferCreateInfo = {0};
@@ -26,7 +26,7 @@ VEngineResult v_alloc_buffer(VkDeviceSize size, VkBufferUsageFlags usageFlags, V
     bufferCreateInfo.usage = usageFlags;
     bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    result = vkCreateBuffer(context.vk.device, &bufferCreateInfo, NULL, pBuffer);
+    result = vkCreateBuffer(this->vk.device, &bufferCreateInfo, NULL, pBuffer);
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkCreateBuffer failed with result: %i", result);
@@ -34,12 +34,12 @@ VEngineResult v_alloc_buffer(VkDeviceSize size, VkBufferUsageFlags usageFlags, V
     }
 
     VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(context.vk.device, *pBuffer, &memRequirements);
+    vkGetBufferMemoryRequirements(this->vk.device, *pBuffer, &memRequirements);
 
     VkMemoryAllocateInfo memoryAllocateInfo = {0};
     memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     memoryAllocateInfo.allocationSize = memRequirements.size;
-    memoryAllocateInfo.memoryTypeIndex = v_find_memory_type_index(memRequirements.memoryTypeBits, propertyFlags);
+    memoryAllocateInfo.memoryTypeIndex = v_find_memory_type_index(this, memRequirements.memoryTypeBits, propertyFlags);
 
     if(memoryAllocateInfo.memoryTypeIndex == 0) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Memory type not found");
@@ -48,36 +48,37 @@ VEngineResult v_alloc_buffer(VkDeviceSize size, VkBufferUsageFlags usageFlags, V
     else
         memoryAllocateInfo.memoryTypeIndex--;
 
-    result = vkAllocateMemory(context.vk.device, &memoryAllocateInfo, NULL, pBufferMemory);
+    result = vkAllocateMemory(this->vk.device, &memoryAllocateInfo, NULL, pBufferMemory);
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkAllocateMemory failed with result: %i", result);
 
-        vkDestroyBuffer(context.vk.device, *pBuffer, NULL);
+        vkDestroyBuffer(this->vk.device, *pBuffer, NULL);
 
         RETURN_RESULT_CODE(VE_ALLOC_MEMORY_V_BUFFER_FAILURE, 2)
     }
 
-    result = vkBindBufferMemory(context.vk.device, *pBuffer, *pBufferMemory, 0);
+    result = vkBindBufferMemory(this->vk.device, *pBuffer, *pBufferMemory, 0);
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkBindBufferMemory failed with result: %i", result);
 
-        vkDestroyBuffer(context.vk.device, *pBuffer, NULL);
-        vkFreeMemory(context.vk.device, *pBufferMemory, NULL);
+        vkDestroyBuffer(this->vk.device, *pBuffer, NULL);
+        vkFreeMemory(this->vk.device, *pBufferMemory, NULL);
 
         RETURN_RESULT_CODE(VE_ALLOC_MEMORY_V_BUFFER_FAILURE, 3)
     }
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-VEngineResult v_alloc_static_buffer(const void *pData, size_t sizeOfData, VkBuffer *pBuffer, VkBufferUsageFlags usageFlags, VkDeviceMemory *pBufferMemory) {
+VEngineResult v_alloc_static_buffer(Context *this, const void *pData, size_t sizeOfData, VkBuffer *pBuffer, VkBufferUsageFlags usageFlags, VkDeviceMemory *pBufferMemory) {
     VEngineResult engineResult;
 
     VkBuffer       stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
 
     engineResult = v_alloc_buffer(
+                this,
                 sizeOfData,
                 VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -89,11 +90,12 @@ VEngineResult v_alloc_static_buffer(const void *pData, size_t sizeOfData, VkBuff
     }
 
     void* pDstData;
-    vkMapMemory(context.vk.device, stagingBufferMemory, 0, sizeOfData, 0, &pDstData);
+    vkMapMemory(this->vk.device, stagingBufferMemory, 0, sizeOfData, 0, &pDstData);
     memcpy(pDstData, pData, sizeOfData);
-    vkUnmapMemory(context.vk.device, stagingBufferMemory);
+    vkUnmapMemory(this->vk.device, stagingBufferMemory);
 
     engineResult = v_alloc_buffer(
+                this,
                 sizeOfData,
                 VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags,
                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
@@ -101,15 +103,15 @@ VEngineResult v_alloc_static_buffer(const void *pData, size_t sizeOfData, VkBuff
                 pBufferMemory);
 
     if(engineResult.type != VE_SUCCESS) {
-        vkDestroyBuffer(context.vk.device, stagingBuffer, NULL);
-        vkFreeMemory(context.vk.device, stagingBufferMemory, NULL);
+        vkDestroyBuffer(this->vk.device, stagingBuffer, NULL);
+        vkFreeMemory(this->vk.device, stagingBufferMemory, NULL);
         RETURN_RESULT_CODE(VE_ALLOC_STATIC_BUFFER, 4 + engineResult.point)
     }
 
-    engineResult = v_copy_buffer(stagingBuffer, 0, *pBuffer, 0, sizeOfData);
+    engineResult = v_copy_buffer(this, stagingBuffer, 0, *pBuffer, 0, sizeOfData);
 
-    vkDestroyBuffer(context.vk.device, stagingBuffer, NULL);
-    vkFreeMemory(context.vk.device, stagingBufferMemory, NULL);
+    vkDestroyBuffer(this->vk.device, stagingBuffer, NULL);
+    vkFreeMemory(this->vk.device, stagingBufferMemory, NULL);
 
     if(engineResult.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_copy_buffer failed with result: %i", engineResult.type);
@@ -118,32 +120,33 @@ VEngineResult v_alloc_static_buffer(const void *pData, size_t sizeOfData, VkBuff
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-VEngineResult v_alloc_builtin_uniform_buffers() {
+VEngineResult v_alloc_builtin_uniform_buffers(Context *this) {
     VEngineResult engineResult;
 
     for(uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         engineResult = v_alloc_buffer(
+            this,
             sizeof(UniformBufferObject),
             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-            &context.vk.frames[i].uniformBuffer,
-            &context.vk.frames[i].uniformBufferMemory);
+            &this->vk.frames[i].uniformBuffer,
+            &this->vk.frames[i].uniformBufferMemory);
 
         if(engineResult.type != VE_SUCCESS) {
             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_copy_buffer failed with result: %i", engineResult.type);
             return engineResult;
         }
 
-        vkMapMemory(context.vk.device, context.vk.frames[i].uniformBufferMemory, 0, sizeof(UniformBufferObject), 0, &context.vk.frames[i].uniformBufferMapped);
+        vkMapMemory(this->vk.device, this->vk.frames[i].uniformBufferMemory, 0, sizeof(UniformBufferObject), 0, &this->vk.frames[i].uniformBufferMapped);
 
         UniformBufferObject ubo = { {1, 1, 1, 1} };
 
-        memcpy(context.vk.frames[i].uniformBufferMapped, &ubo, sizeof(ubo));
+        memcpy(this->vk.frames[i].uniformBufferMapped, &ubo, sizeof(ubo));
     }
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-VEngineResult v_alloc_image(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage *pImage, VkDeviceMemory *pImageMemory) {
+VEngineResult v_alloc_image(Context *this, uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage *pImage, VkDeviceMemory *pImageMemory) {
     VkResult result;
 
     VkImageCreateInfo imageCreateInfo = {0};
@@ -162,7 +165,7 @@ VEngineResult v_alloc_image(uint32_t width, uint32_t height, uint32_t mipLevels,
     imageCreateInfo.samples = numSamples;
     imageCreateInfo.flags = 0;
 
-    result = vkCreateImage(context.vk.device, &imageCreateInfo, NULL, pImage);
+    result = vkCreateImage(this->vk.device, &imageCreateInfo, NULL, pImage);
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkCreateImage had failed with %i", result);
@@ -170,13 +173,13 @@ VEngineResult v_alloc_image(uint32_t width, uint32_t height, uint32_t mipLevels,
     }
 
     VkMemoryRequirements memRequirements;
-    vkGetImageMemoryRequirements(context.vk.device, *pImage, &memRequirements);
+    vkGetImageMemoryRequirements(this->vk.device, *pImage, &memRequirements);
 
     VkMemoryAllocateInfo memoryAllocateInfo;
     memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     memoryAllocateInfo.pNext = NULL;
     memoryAllocateInfo.allocationSize = memRequirements.size;
-    memoryAllocateInfo.memoryTypeIndex = v_find_memory_type_index(memRequirements.memoryTypeBits, properties);
+    memoryAllocateInfo.memoryTypeIndex = v_find_memory_type_index(this, memRequirements.memoryTypeBits, properties);
 
     if(memoryAllocateInfo.memoryTypeIndex == 0) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Memory type not found");
@@ -185,23 +188,23 @@ VEngineResult v_alloc_image(uint32_t width, uint32_t height, uint32_t mipLevels,
     else
         memoryAllocateInfo.memoryTypeIndex--;
 
-    result = vkAllocateMemory(context.vk.device, &memoryAllocateInfo, NULL, pImageMemory);
+    result = vkAllocateMemory(this->vk.device, &memoryAllocateInfo, NULL, pImageMemory);
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkAllocateMemory had failed with %i", result);
 
-        vkDestroyImage(context.vk.device, *pImage, NULL);
+        vkDestroyImage(this->vk.device, *pImage, NULL);
 
         RETURN_RESULT_CODE(VE_ALLOC_IMAGE_FAILURE, 2)
     }
 
-    result = vkBindImageMemory(context.vk.device, *pImage, *pImageMemory, 0);
+    result = vkBindImageMemory(this->vk.device, *pImage, *pImageMemory, 0);
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkAllocateMemory had failed with %i", result);
 
-        vkDestroyImage(context.vk.device, *pImage, NULL);
-        vkFreeMemory(context.vk.device, *pImageMemory, NULL);
+        vkDestroyImage(this->vk.device, *pImage, NULL);
+        vkFreeMemory(this->vk.device, *pImageMemory, NULL);
 
         RETURN_RESULT_CODE(VE_ALLOC_IMAGE_FAILURE, 3)
     }
@@ -209,12 +212,12 @@ VEngineResult v_alloc_image(uint32_t width, uint32_t height, uint32_t mipLevels,
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-VEngineResult v_copy_buffer(VkBuffer srcBuffer, VkDeviceSize srcOffset, VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize size) {
+VEngineResult v_copy_buffer(Context *this, VkBuffer srcBuffer, VkDeviceSize srcOffset, VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize size) {
     VEngineResult engineResult;
 
     VkCommandBuffer commandBuffer;
 
-    engineResult = v_begin_one_time_command_buffer(&commandBuffer);
+    engineResult = v_begin_one_time_command_buffer(this, &commandBuffer);
     if(engineResult.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_begin_one_time_command_buffer had failed with %i", engineResult.point);
         RETURN_RESULT_CODE(VE_COPY_BUFFER_FAILURE, 0)
@@ -226,7 +229,7 @@ VEngineResult v_copy_buffer(VkBuffer srcBuffer, VkDeviceSize srcOffset, VkBuffer
     copyRegion.size = size;
     vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
-    engineResult = v_end_one_time_command_buffer(&commandBuffer);
+    engineResult = v_end_one_time_command_buffer(this, &commandBuffer);
     if(engineResult.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_end_one_time_command_buffer had failed with %i", engineResult.point);
         RETURN_RESULT_CODE(VE_COPY_BUFFER_FAILURE, 1)
@@ -235,16 +238,16 @@ VEngineResult v_copy_buffer(VkBuffer srcBuffer, VkDeviceSize srcOffset, VkBuffer
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-VEngineResult v_begin_one_time_command_buffer(VkCommandBuffer *pCommandBuffer) {
+VEngineResult v_begin_one_time_command_buffer(Context *this, VkCommandBuffer *pCommandBuffer) {
     VkResult result;
 
     VkCommandBufferAllocateInfo commandBufferAllocateInfo = {0};
     commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    commandBufferAllocateInfo.commandPool = context.vk.commandPool;
+    commandBufferAllocateInfo.commandPool = this->vk.commandPool;
     commandBufferAllocateInfo.commandBufferCount = 1;
 
-    result = vkAllocateCommandBuffers(context.vk.device, &commandBufferAllocateInfo, pCommandBuffer);
+    result = vkAllocateCommandBuffers(this->vk.device, &commandBufferAllocateInfo, pCommandBuffer);
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkAllocateCommandBuffers failed with result: %i", result);
@@ -260,7 +263,7 @@ VEngineResult v_begin_one_time_command_buffer(VkCommandBuffer *pCommandBuffer) {
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkBeginCommandBuffer failed with result: %i", result);
 
-        vkFreeCommandBuffers(context.vk.device, context.vk.commandPool, 1, pCommandBuffer);
+        vkFreeCommandBuffers(this->vk.device, this->vk.commandPool, 1, pCommandBuffer);
 
         RETURN_RESULT_CODE(VE_1_TIME_COMMAND_BUFFER_FAILURE, 1)
     }
@@ -268,13 +271,13 @@ VEngineResult v_begin_one_time_command_buffer(VkCommandBuffer *pCommandBuffer) {
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-VEngineResult v_end_one_time_command_buffer(VkCommandBuffer *pCommandBuffer) {
+VEngineResult v_end_one_time_command_buffer(Context *this, VkCommandBuffer *pCommandBuffer) {
     VkResult result = vkEndCommandBuffer(*pCommandBuffer);
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkEndCommandBuffer failed with result: %i", result);
 
-        vkFreeCommandBuffers(context.vk.device, context.vk.commandPool, 1, pCommandBuffer);
+        vkFreeCommandBuffers(this->vk.device, this->vk.commandPool, 1, pCommandBuffer);
 
         RETURN_RESULT_CODE(VE_1_TIME_COMMAND_BUFFER_FAILURE, 2)
     }
@@ -284,32 +287,32 @@ VEngineResult v_end_one_time_command_buffer(VkCommandBuffer *pCommandBuffer) {
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = pCommandBuffer;
 
-    result = vkQueueSubmit(context.vk.graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+    result = vkQueueSubmit(this->vk.graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkQueueSubmit failed with result: %i", result);
 
-        vkFreeCommandBuffers(context.vk.device, context.vk.commandPool, 1, pCommandBuffer);
+        vkFreeCommandBuffers(this->vk.device, this->vk.commandPool, 1, pCommandBuffer);
 
         RETURN_RESULT_CODE(VE_1_TIME_COMMAND_BUFFER_FAILURE, 3)
     }
 
-    result = vkQueueWaitIdle(context.vk.graphicsQueue);
+    result = vkQueueWaitIdle(this->vk.graphicsQueue);
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkQueueSubmit failed with result: %i", result);
 
-        vkFreeCommandBuffers(context.vk.device, context.vk.commandPool, 1, pCommandBuffer);
+        vkFreeCommandBuffers(this->vk.device, this->vk.commandPool, 1, pCommandBuffer);
 
         RETURN_RESULT_CODE(VE_1_TIME_COMMAND_BUFFER_FAILURE, 4)
     }
 
-    vkFreeCommandBuffers(context.vk.device, context.vk.commandPool, 1, pCommandBuffer);
+    vkFreeCommandBuffers(this->vk.device, this->vk.commandPool, 1, pCommandBuffer);
 
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-VEngineResult v_transition_image_layout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels) {
+VEngineResult v_transition_image_layout(Context *this, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels) {
     VEngineResult engineResult;
     VkImageMemoryBarrier imageMemoryBarrier = {0};
     VkPipelineStageFlags sourceStage;
@@ -362,7 +365,7 @@ VEngineResult v_transition_image_layout(VkImage image, VkFormat format, VkImageL
 
     VkCommandBuffer commandBuffer;
 
-    engineResult = v_begin_one_time_command_buffer(&commandBuffer);
+    engineResult = v_begin_one_time_command_buffer(this, &commandBuffer);
     if(engineResult.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_begin_one_time_command_buffer had failed with %i", engineResult.point);
         RETURN_RESULT_CODE(VE_TRANSIT_IMAGE_LAYOUT_FAILURE, 1)
@@ -377,7 +380,7 @@ VEngineResult v_transition_image_layout(VkImage image, VkFormat format, VkImageL
         1, &imageMemoryBarrier
     );
 
-    engineResult = v_end_one_time_command_buffer(&commandBuffer);
+    engineResult = v_end_one_time_command_buffer(this, &commandBuffer);
     if(engineResult.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_end_one_time_command_buffer had failed with %i", engineResult.point);
         RETURN_RESULT_CODE(VE_TRANSIT_IMAGE_LAYOUT_FAILURE, 2)
@@ -385,12 +388,12 @@ VEngineResult v_transition_image_layout(VkImage image, VkFormat format, VkImageL
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-VEngineResult v_copy_buffer_to_image(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, VkDeviceSize primeImageSize, uint32_t mipLevels) {
+VEngineResult v_copy_buffer_to_image(Context *this, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, VkDeviceSize primeImageSize, uint32_t mipLevels) {
     VEngineResult engineResult;
 
     VkCommandBuffer commandBuffer;
 
-    engineResult = v_begin_one_time_command_buffer(&commandBuffer);
+    engineResult = v_begin_one_time_command_buffer(this, &commandBuffer);
     if(engineResult.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_begin_one_time_command_buffer had failed with %i", engineResult.point);
         RETURN_RESULT_CODE(VE_COPY_BUFFER_TO_IMAGE_FAILURE, 0)
@@ -434,7 +437,7 @@ VEngineResult v_copy_buffer_to_image(VkBuffer buffer, VkImage image, uint32_t wi
         currentImageSize /= 4;
     }
 
-    engineResult = v_end_one_time_command_buffer(&commandBuffer);
+    engineResult = v_end_one_time_command_buffer(this, &commandBuffer);
     if(engineResult.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_end_one_time_command_buffer had failed with %i", engineResult.point);
         RETURN_RESULT_CODE(VE_COPY_BUFFER_TO_IMAGE_FAILURE, 1)
@@ -442,7 +445,7 @@ VEngineResult v_copy_buffer_to_image(VkBuffer buffer, VkImage image, uint32_t wi
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-VEngineResult v_alloc_image_view(VkImage image, VkFormat format, VkImageViewCreateFlags createFlags, VkImageAspectFlags aspectFlags, VkImageView *pImageView, uint32_t mipLevels) {
+VEngineResult v_alloc_image_view(Context *this, VkImage image, VkFormat format, VkImageViewCreateFlags createFlags, VkImageAspectFlags aspectFlags, VkImageView *pImageView, uint32_t mipLevels) {
     VkImageViewCreateInfo imageViewCreateInfo;
     imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     imageViewCreateInfo.pNext = NULL;
@@ -462,7 +465,7 @@ VEngineResult v_alloc_image_view(VkImage image, VkFormat format, VkImageViewCrea
     imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
     imageViewCreateInfo.subresourceRange.layerCount     = 1;
 
-    VkResult result = vkCreateImageView(context.vk.device, &imageViewCreateInfo, NULL, pImageView);
+    VkResult result = vkCreateImageView(this->vk.device, &imageViewCreateInfo, NULL, pImageView);
 
     if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkCreateImageView failed with result: %i", result);
@@ -472,9 +475,9 @@ VEngineResult v_alloc_image_view(VkImage image, VkFormat format, VkImageViewCrea
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-uint32_t v_find_memory_type_index(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
+uint32_t v_find_memory_type_index(Context *this, uint32_t typeFilter, VkMemoryPropertyFlags properties) {
     VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties;
-    vkGetPhysicalDeviceMemoryProperties(context.vk.physicalDevice, &physicalDeviceMemoryProperties);
+    vkGetPhysicalDeviceMemoryProperties(this->vk.physicalDevice, &physicalDeviceMemoryProperties);
 
     for(uint32_t i = 0; i < physicalDeviceMemoryProperties.memoryTypeCount; i++) {
         if((typeFilter & (1 << i)) != 0 && (physicalDeviceMemoryProperties.memoryTypes[i].propertyFlags & properties) == properties)
@@ -484,13 +487,13 @@ uint32_t v_find_memory_type_index(uint32_t typeFilter, VkMemoryPropertyFlags pro
     return 0;
 }
 
-VkFormat v_find_supported_format(const VkFormat *const pCandidates, unsigned candidateAmount, VkImageTiling tiling, VkFormatFeatureFlags features) {
+VkFormat v_find_supported_format(Context *this, const VkFormat *const pCandidates, unsigned candidateAmount, VkImageTiling tiling, VkFormatFeatureFlags features) {
     VkFormatProperties props;
 
     for(unsigned i = 0; i < candidateAmount; i++) {
         VkFormat format = pCandidates[ i ];
 
-        vkGetPhysicalDeviceFormatProperties(context.vk.physicalDevice, format, &props);
+        vkGetPhysicalDeviceFormatProperties(this->vk.physicalDevice, format, &props);
 
         switch(tiling) {
             case VK_IMAGE_TILING_LINEAR:
@@ -523,9 +526,9 @@ VkBool32 v_has_stencil_component(VkFormat format) {
     }
 }
 
-VkSampleCountFlagBits v_find_closet_flag_bit(VkSampleCountFlagBits flags) {
+VkSampleCountFlagBits v_find_closet_flag_bit(Context *this, VkSampleCountFlagBits flags) {
     VkPhysicalDeviceProperties physicalDeviceProperties;
-    vkGetPhysicalDeviceProperties(context.vk.physicalDevice, &physicalDeviceProperties);
+    vkGetPhysicalDeviceProperties(this->vk.physicalDevice, &physicalDeviceProperties);
 
     VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts & physicalDeviceProperties.limits.framebufferDepthSampleCounts;
 

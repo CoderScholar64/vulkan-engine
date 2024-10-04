@@ -4,12 +4,12 @@
 #include "SDL.h"
 #include <vulkan/vulkan.h>
 
-#include "v_buffer.h"
-#include "v_model.h"
+#include "v_buffer_def.h"
+#include "v_model_def.h"
 
 #define MAX_FRAMES_IN_FLIGHT 2
 
-struct Context {
+typedef struct Context {
     char title[64];
     int x, y;
     int w, h;
@@ -89,8 +89,6 @@ struct Context {
         unsigned currentFrame;
     } vk;
 
-};
-
-extern struct Context context;
+} Context;
 
 #endif // CONTEXT_29
