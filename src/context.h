@@ -4,7 +4,7 @@
 #include "SDL.h"
 #include <vulkan/vulkan.h>
 
-#include "v_mem.h"
+#include "v_buffer.h"
 
 #define MAX_FRAMES_IN_FLIGHT 2
 
