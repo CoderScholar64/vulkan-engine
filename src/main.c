@@ -5,7 +5,7 @@
 #include "SDL.h"
 
 
-struct Context context = {"Hello World", 0, 0, 1920, 1080, SDL_WINDOW_MAXIMIZED | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN, 0};
+struct Context context = {"Hello World", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1920, 1080, SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN, 0};
 
 void loop() {
     VEngineResult vResult;
