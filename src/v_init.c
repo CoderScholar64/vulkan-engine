@@ -3,6 +3,7 @@
 #include "context.h"
 #include "u_read.h"
 #include "v_buffer.h"
+#include "v_model.h"
 #include "v_render.h"
 #include "v_results.h"
 #include "v_raymath.h"

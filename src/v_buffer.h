@@ -55,8 +55,6 @@ VEngineResult v_alloc_static_buffer(const void *pData, size_t sizeOfData, VkBuff
  */
 VEngineResult v_alloc_builtin_uniform_buffers();
 
-VEngineResult v_load_model(const char *const pUTF8Filepath);
-
 /**
  * This function allocates an image.
  * @warning Make sure that v_init() is called first.
