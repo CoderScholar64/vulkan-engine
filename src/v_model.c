@@ -4,7 +4,7 @@
 #include "SDL_log.h"
 
 #include "u_read.h"
-#include "context.h" // TODO Temporary!
+#include "context.h"
 
 VEngineResult v_load_model(const char *const pUTF8Filepath, unsigned *pModelAmount, VModelData **ppVModelData) {
     *pModelAmount = 0;
@@ -23,6 +23,8 @@ VEngineResult v_load_model(const char *const pUTF8Filepath, unsigned *pModelAmou
         cgltf_free(pModel);
         RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 1)
     }
+
+    // TODO Find cleaner and more stable loading algorithm.
 
     VModelData *pVModel = malloc(sizeof(VModelData) * pModel->meshes_count );
 

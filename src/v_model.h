@@ -4,7 +4,7 @@
 #include "v_buffer.h"
 
 typedef struct VModelData {
-    unsigned vertexAmount;
+    uint32_t vertexAmount;
     VkDeviceSize vertexOffset;
     VkIndexType indexType;
     VkBuffer buffer;
