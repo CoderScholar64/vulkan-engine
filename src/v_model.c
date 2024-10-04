@@ -6,9 +6,11 @@
 #include "u_read.h"
 #include "context.h" // TODO Temporary!
 
-VEngineResult v_load_model(const char *const pUTF8Filepath) {
+VEngineResult v_load_model(const char *const pUTF8Filepath, unsigned *pModelAmount, VModelData **ppVModelData) {
     cgltf_result result;
     cgltf_data *pModel = u_gltf_read(pUTF8Filepath, &result);
+
+    VModelData *pVModel = *ppVModelData;
 
     if(result != cgltf_result_success) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to find model!");
@@ -172,7 +174,7 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
     if(pIndices != NULL) {
         cgltf_accessor_unpack_indices(pIndices, pIndexedBuffer, indexComponentSize, pIndices->count);
 
-        context.vk.model.indexType = indexType;
+        pVModel[0].indexType = indexType;
     }
 
     cgltf_accessor_unpack_floats(pPositionAttribute->data, pLoadBuffer, positionNumComponent * pPositionAttribute->data->count);
@@ -209,13 +211,13 @@ VEngineResult v_load_model(const char *const pUTF8Filepath) {
     }
 
     if(pIndices != NULL)
-        context.vk.model.vertexAmount = pIndices->count;
+        pVModel[0].vertexAmount = pIndices->count;
     else
-        context.vk.model.vertexAmount = vertexAmount;
+        pVModel[0].vertexAmount = vertexAmount;
 
-    context.vk.model.vertexOffset = indexBufferSize;
+    pVModel[0].vertexOffset = indexBufferSize;
 
-    v_alloc_static_buffer(pIndexedBuffer, indexBufferSize + sizeof(Vertex) * vertexAmount, &context.vk.model.buffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, &context.vk.model.bufferMemory);
+    v_alloc_static_buffer(pIndexedBuffer, indexBufferSize + sizeof(Vertex) * vertexAmount, &pVModel[0].buffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, &pVModel[0].bufferMemory);
 
     free(pLoadBuffer);
     cgltf_free(pModel);
