@@ -63,6 +63,7 @@ void u_maze_delete_grid(UMazeData *pMazeData) {
     assert(pMazeData != NULL);
 
     free(pMazeData->pVertices);
+    // free(pMazeData->ppConnections); // This does not need to happen because of the malloc scheme that was used.
 
     pMazeData->pVertices = NULL;
     pMazeData->ppConnections = NULL;
