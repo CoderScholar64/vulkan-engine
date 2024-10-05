@@ -1,6 +1,9 @@
 #ifndef V_MODEL_DEF_29
 #define V_MODEL_DEF_29
 
+#include <stddef.h>
+#include <vulkan/vulkan.h>
+
 typedef struct VModelData {
     uint32_t vertexAmount;
     VkDeviceSize vertexOffset;
