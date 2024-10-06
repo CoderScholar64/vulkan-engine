@@ -59,8 +59,6 @@ void loop() {
                     context.yaw   =  Wrap(context.yaw,   -PI, PI);
                     context.pitch = Clamp(context.pitch,   0, PI);
 
-                    SDL_Log("yaw = %f degrees", RAD2DEG * context.yaw);
-
                     dirtyModelView = 1;
                 }
                 break;
