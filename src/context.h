@@ -17,6 +17,13 @@ typedef struct Context {
     SDL_Window *pWindow;
     int forceSwapChainRegen;
 
+    Vector3 position;
+    float yaw;
+    float pitch;
+    Matrix modelView;
+
+    float time; // TODO Remove this!
+
     struct {
         VkDevice device;
         VkInstance instance;
@@ -49,8 +56,6 @@ typedef struct Context {
 
         unsigned modelAmount;
         VModelData *pModels;
-
-        float time; // TODO Remove this!
 
         VkCommandPool commandPool;
 

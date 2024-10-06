@@ -155,13 +155,13 @@ VEngineResult v_record_command_buffer(Context *this, VkCommandBuffer commandBuff
 
     PushConstantObject pushConstantObjects[2];
     {
-        Vector3 position = {4.0 * cos(this->vk.time), 0, 0};
-        PushConstantObject pushConstantObject = v_setup_pco(this, position, this->vk.time);
+        Vector3 position = {4.0 * cos(this->time), 0, 0};
+        PushConstantObject pushConstantObject = v_setup_pco(this, position, this->time);
         pushConstantObjects[0] = pushConstantObject;
     }
     {
-        Vector3 position = {0, 4.0 * sin(this->vk.time), 0};
-        PushConstantObject pushConstantObject = v_setup_pco(this, position, this->vk.time);
+        Vector3 position = {0, 4.0 * sin(this->time), 0};
+        PushConstantObject pushConstantObject = v_setup_pco(this, position, this->time);
         pushConstantObjects[1] = pushConstantObject;
     }
 
@@ -180,11 +180,8 @@ VEngineResult v_record_command_buffer(Context *this, VkCommandBuffer commandBuff
 PushConstantObject v_setup_pco(Context *this, Vector3 position, float unit90Degrees) {
     PushConstantObject pushConstantObject;
     Vector3 axis   = {0.0f, 0.0f, 1.0f};
-    Vector3 up     = {0.0f, 0.0f, 1.0f};
-    Vector3 eye    = {4.0f, 4.0f, 4.0f};
-    Vector3 target = {0.0f, 0.0f, 0.0f};
 
-    pushConstantObject.matrix = MatrixTranspose(MatrixMultiply(MatrixMultiply(MatrixMultiply(MatrixRotate(axis, (90.0 * DEG2RAD) * unit90Degrees), MatrixTranslate(position.x, position.y, position.z)), MatrixLookAt(eye, target, up)), MatrixVulkanPerspective(45.0 * DEG2RAD, this->vk.swapExtent.width / (float) this->vk.swapExtent.height, 0.125f, 10.0f)));
+    pushConstantObject.matrix = MatrixTranspose(MatrixMultiply(MatrixMultiply(MatrixMultiply(MatrixRotate(axis, (90.0 * DEG2RAD) * unit90Degrees), MatrixTranslate(position.x, position.y, position.z)), this->modelView), MatrixVulkanPerspective(45.0 * DEG2RAD, this->vk.swapExtent.width / (float) this->vk.swapExtent.height, 0.125f, 10.0f)));
 
     return pushConstantObject;
 }

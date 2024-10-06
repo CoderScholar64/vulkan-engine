@@ -54,7 +54,7 @@ VEngineResult v_init(Context *this) {
     // Clear the entire vulkan context.
     memset(&this->vk, 0, sizeof(this->vk));
 
-    this->vk.time = 0.0f;
+    this->time = 0.0f;
 
     VEngineResult returnCode;
 
