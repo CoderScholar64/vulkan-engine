@@ -107,11 +107,12 @@ UMazeConnection* u_maze_gen(UMazeData *pMazeData, size_t *pEdgeAmount, uint32_t 
 
     pMazeData->pVertices[vertexIndex].metadata.data.isVisited = 1;
     for(uint32_t i = 0; i < pMazeData->pVertices[vertexIndex].metadata.data.count; i++) {
+        assert(linkArraySize < linkArrayLimit);
+
         pLinkArray[linkArraySize].pConnections[0] = &pMazeData->pVertices[vertexIndex];
         pLinkArray[linkArraySize].pConnections[1] =  pMazeData->pVertices[vertexIndex].ppConnections[i];
-        linkArraySize++;
 
-        assert(linkArraySize < linkArrayLimit);
+        linkArraySize++;
     }
 
     while(answerIndex != answerSize && linkArraySize != 0) {
@@ -121,16 +122,22 @@ UMazeConnection* u_maze_gen(UMazeData *pMazeData, size_t *pEdgeAmount, uint32_t 
             pLinkArray[linkIndex].pConnections[1]->metadata.data.isVisited = 1;
 
             for(uint32_t i = 0; i < pMazeData->pVertices[vertexIndex].metadata.data.count; i++) {
-                pLinkArray[linkArraySize].pConnections[0] = pLinkArray[linkIndex].pConnections[1];
-                pLinkArray[linkArraySize].pConnections[0] = pLinkArray[linkIndex].pConnections[1]->ppConnections[i];
-                linkArraySize++;
+                if(pLinkArray[linkIndex].pConnections[1]->ppConnections[i] != pLinkArray[linkIndex].pConnections[0]) {
+                    assert(linkArraySize < linkArrayLimit);
 
-                assert(linkArraySize < linkArrayLimit);
+                    pLinkArray[linkArraySize].pConnections[0] = pLinkArray[linkIndex].pConnections[1];
+                    pLinkArray[linkArraySize].pConnections[1] = pLinkArray[linkIndex].pConnections[1]->ppConnections[i];
+
+                    linkArraySize++;
+                }
             }
 
+            assert(answerIndex < answerSize);
             pAnswerMazeLinks[answerIndex] = pLinkArray[linkIndex];
             answerIndex++;
         }
+
+        assert(linkArraySize != 0);
         linkArraySize--;
         pLinkArray[linkIndex] = pLinkArray[linkArraySize];
     }
