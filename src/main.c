@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
     returnCode = v_init(&context);
 
     if( returnCode.type < 0 ) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Thus v_init() failed with code %s", SDL_GetError());
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Thus v_init() failed with SDL code %s, or return code %i point %i", SDL_GetError(), returnCode.type, returnCode.point);
     }
     else {
         loop();
