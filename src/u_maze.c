@@ -5,6 +5,7 @@
 #include "SDL_log.h"
 
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 UMazeData u_maze_gen_grid(unsigned width, unsigned height) {
@@ -23,6 +24,7 @@ UMazeData u_maze_gen_grid(unsigned width, unsigned height) {
 
     UMazeData mazeData = {0};
     mazeData.vertexAmount = totalVertices;
+    mazeData.connectionAmount = totalEdges;
 
     void *pMem = malloc(mazeData.vertexAmount * sizeof(UMazeVertex) + totalEdges * sizeof(UMazeVertex**));
 
@@ -79,6 +81,7 @@ void u_maze_delete_grid(UMazeData *pMazeData) {
     pMazeData->pVertices = NULL;
     pMazeData->ppConnections = NULL;
     pMazeData->vertexAmount = 0;
+    pMazeData->connectionAmount = 0;
 }
 
 UMazeConnection* u_maze_gen(UMazeData *pMazeData, size_t *pEdgeAmount, uint32_t seed) {
@@ -95,7 +98,7 @@ UMazeConnection* u_maze_gen(UMazeData *pMazeData, size_t *pEdgeAmount, uint32_t 
         return NULL;
 
     size_t linkArraySize = 0;
-    size_t linkArrayLimit = pMazeData->connectionAmount / 2;
+    size_t linkArrayMaxSize = pMazeData->connectionAmount;
     UMazeConnection *pLinkArray = malloc(pMazeData->connectionAmount * sizeof(UMazeConnection));
 
     if(pLinkArray == NULL) {
@@ -107,7 +110,7 @@ UMazeConnection* u_maze_gen(UMazeData *pMazeData, size_t *pEdgeAmount, uint32_t 
 
     pMazeData->pVertices[vertexIndex].metadata.data.isVisited = 1;
     for(uint32_t i = 0; i < pMazeData->pVertices[vertexIndex].metadata.data.count; i++) {
-        assert(linkArraySize < linkArrayLimit);
+        assert(linkArraySize < linkArrayMaxSize);
 
         pLinkArray[linkArraySize].pConnections[0] = &pMazeData->pVertices[vertexIndex];
         pLinkArray[linkArraySize].pConnections[1] =  pMazeData->pVertices[vertexIndex].ppConnections[i];
@@ -121,9 +124,9 @@ UMazeConnection* u_maze_gen(UMazeData *pMazeData, size_t *pEdgeAmount, uint32_t 
         if(pLinkArray[linkIndex].pConnections[1]->metadata.data.isVisited == 0) {
             pLinkArray[linkIndex].pConnections[1]->metadata.data.isVisited = 1;
 
-            for(uint32_t i = 0; i < pMazeData->pVertices[vertexIndex].metadata.data.count; i++) {
+            for(uint32_t i = 0; i < pLinkArray[linkIndex].pConnections[1]->metadata.data.count; i++) {
                 if(pLinkArray[linkIndex].pConnections[1]->ppConnections[i] != pLinkArray[linkIndex].pConnections[0]) {
-                    assert(linkArraySize < linkArrayLimit);
+                    assert(linkArraySize < linkArrayMaxSize);
 
                     pLinkArray[linkArraySize].pConnections[0] = pLinkArray[linkIndex].pConnections[1];
                     pLinkArray[linkArraySize].pConnections[1] = pLinkArray[linkIndex].pConnections[1]->ppConnections[i];
@@ -143,6 +146,13 @@ UMazeConnection* u_maze_gen(UMazeData *pMazeData, size_t *pEdgeAmount, uint32_t 
     }
 
     *pEdgeAmount = answerIndex;
+
+    for(size_t i = 0; i < pMazeData->vertexAmount; i++) {
+        printf("v %i %i 0\n", (int)pMazeData->pVertices[i].metadata.position.x, (int)pMazeData->pVertices[i].metadata.position.y);
+    }
+    for(size_t e = 0; e < *pEdgeAmount; e++) {
+        printf("l %i %i\n", pAnswerMazeLinks[e].pConnections[0] - pMazeData->pVertices + 1, pAnswerMazeLinks[e].pConnections[1] - pMazeData->pVertices + 1);
+    }
 
     free(pLinkArray);
 

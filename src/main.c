@@ -60,6 +60,9 @@ void loop() {
 
 int main(int argc, char **argv) {
     UMazeData maze = u_maze_gen_grid(4, 4);
+    size_t edgeAmount = 0;
+    UMazeConnection *pMaze = u_maze_gen(&maze, &edgeAmount, 12345678);
+    free(pMaze);
     u_maze_delete_grid(&maze);
 
     VEngineResult returnCode;
