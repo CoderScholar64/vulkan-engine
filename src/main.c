@@ -59,6 +59,8 @@ void loop() {
                     context.yaw   =  Wrap(context.yaw,   -PI, PI);
                     context.pitch = Clamp(context.pitch,   0, PI);
 
+                    SDL_Log("yaw = %f degrees", RAD2DEG * context.yaw);
+
                     dirtyModelView = 1;
                 }
                 break;
@@ -104,20 +106,21 @@ void loop() {
             }
         }
 
-        if(movement[0] != 0 || movement[2] != 0) {
+        if(movement[0] != movement[2] || movement[1] != movement[3]) {
             Vector3 move = {0};
 
-            move.y = 8.0f * delta * (movement[0] - movement[2]);
+            move.x = -8.0f * delta * (movement[0] - movement[2]);
+            move.y = -8.0f * delta * (movement[1] - movement[3]);
 
-            context.position = Vector3Add(context.position, Vector3Transform(move, MatrixRotateY(context.yaw)));
+            context.position = Vector3Add(context.position, move);// Vector3Transform(move, MatrixRotateY(context.yaw)));
 
             dirtyModelView = 1;
         }
 
         if(dirtyModelView) {
-                Quaternion quaterion = QuaternionMultiply(QuaternionMultiply(QuaternionFromAxisAngle(zAxis, PI / 2.0), QuaternionFromAxisAngle(yAxis, context.pitch)), QuaternionFromAxisAngle(zAxis, context.yaw));
-                quaterion = QuaternionNormalize(quaterion);
-                context.modelView = MatrixMultiply(MatrixTranslate(context.position.x, context.position.y, context.position.z), QuaternionToMatrix(quaterion));
+            Quaternion quaterion = QuaternionMultiply(QuaternionMultiply(QuaternionFromAxisAngle(zAxis, PI / 2.0), QuaternionFromAxisAngle(yAxis, context.pitch)), QuaternionFromAxisAngle(zAxis, context.yaw));
+            quaterion = QuaternionNormalize(quaterion);
+            context.modelView = MatrixMultiply(MatrixTranslate(context.position.x, context.position.y, context.position.z), QuaternionToMatrix(quaterion));
         }
 
         if(!isWindowMinimized) {
@@ -151,7 +154,7 @@ int main(int argc, char **argv) {
     const static Vector3 yAxis = {0.0f, 1.0f, 0.0f};
     const static Vector3 zAxis = {0.0f, 0.0f, 1.0f};
 
-    context.yaw   = -PI / 2.0;
+    context.yaw   =  0;
     context.pitch =  PI / 2.0;
 
     Quaternion quaterion = QuaternionMultiply(QuaternionMultiply(QuaternionFromAxisAngle(zAxis, PI / 2.0), QuaternionFromAxisAngle(yAxis, context.pitch)), QuaternionFromAxisAngle(zAxis, context.yaw));
