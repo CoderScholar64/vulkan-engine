@@ -56,8 +56,8 @@ void loop() {
                     context.yaw   += event.motion.xrel * delta;
                     context.pitch += event.motion.yrel * delta;
 
-                    context.yaw   = Wrap(context.yaw,   -PI, PI);
-                    context.pitch = Wrap(context.pitch, -PI, PI);
+                    context.yaw   =  Wrap(context.yaw,   -PI, PI);
+                    context.pitch = Clamp(context.pitch,   0, PI);
 
                     dirtyModelView = 1;
                 }
