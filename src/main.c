@@ -107,12 +107,15 @@ void loop() {
         }
 
         if(movement[0] != movement[2] || movement[1] != movement[3]) {
-            Vector3 move = {0};
+            Vector2 move = {0};
 
             move.x = -8.0f * delta * (movement[0] - movement[2]);
             move.y = -8.0f * delta * (movement[1] - movement[3]);
 
-            context.position = Vector3Add(context.position, move);// Vector3Transform(move, MatrixRotateY(context.yaw)));
+            move = Vector2Rotate(move, -context.yaw);
+
+            context.position.x += move.x;
+            context.position.y += move.y;
 
             dirtyModelView = 1;
         }
