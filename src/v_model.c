@@ -164,7 +164,11 @@ VEngineResult v_load_models(Context *this, const char *const pUTF8Filepath, unsi
 
             SDL_Log("This model has indices = %li.\n", pIndices->count);
         }
-        SDL_Log("Buffer size = %li", loadBufferSize);
+
+        // Record the mesh name.
+        snprintf(pVModel[mesh_index].name, sizeof(pVModel[mesh_index].name) / sizeof(pVModel[mesh_index].name[0]), "%s", pModel->meshes[mesh_index].name);
+
+        SDL_Log("\n  Name = %s\n  Buffer size = %li", pVModel[mesh_index].name, loadBufferSize);
 
         void *pLoadBuffer = malloc(loadBufferSize + indexBufferSize + sizeof(Vertex) * vertexAmount);
 

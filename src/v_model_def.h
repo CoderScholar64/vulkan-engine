@@ -5,6 +5,7 @@
 #include <vulkan/vulkan.h>
 
 typedef struct VModelData {
+    char name[64];
     uint32_t vertexAmount;
     VkDeviceSize vertexOffset;
     VkIndexType indexType;
