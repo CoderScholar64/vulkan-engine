@@ -156,12 +156,12 @@ VEngineResult v_record_command_buffer(Context *this, VkCommandBuffer commandBuff
     PushConstantObject pushConstantObjects[2];
     {
         Vector3 position = {0, 0, 0};
-        PushConstantObject pushConstantObject = v_setup_pco(this, position, this->time);
+        PushConstantObject pushConstantObject = v_setup_pco(this, position, 0);
         pushConstantObjects[0] = pushConstantObject;
     }
     {
         Vector3 position = {0, 2, 0};
-        PushConstantObject pushConstantObject = v_setup_pco(this, position, this->time);
+        PushConstantObject pushConstantObject = v_setup_pco(this, position, 0);
         pushConstantObjects[1] = pushConstantObject;
     }
 

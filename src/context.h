@@ -22,8 +22,6 @@ typedef struct Context {
     float pitch;
     Matrix modelView;
 
-    float time; // TODO Remove this!
-
     struct {
         VkDevice device;
         VkInstance instance;
