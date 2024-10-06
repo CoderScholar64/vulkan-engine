@@ -181,7 +181,7 @@ PushConstantObject v_setup_pco(Context *this, Vector3 position, float unit90Degr
     PushConstantObject pushConstantObject;
     Vector3 axis   = {0.0f, 0.0f, 1.0f};
 
-    pushConstantObject.matrix = MatrixTranspose(MatrixMultiply(MatrixMultiply(MatrixMultiply(MatrixRotate(axis, (90.0 * DEG2RAD) * unit90Degrees), MatrixTranslate(position.x, position.y, position.z)), this->modelView), MatrixVulkanPerspective(45.0 * DEG2RAD, this->vk.swapExtent.width / (float) this->vk.swapExtent.height, 0.125f, 10.0f)));
+    pushConstantObject.matrix = MatrixTranspose(MatrixMultiply(MatrixMultiply(MatrixMultiply(MatrixRotate(axis, (90.0 * DEG2RAD) * unit90Degrees), MatrixTranslate(position.x, position.y, position.z)), this->modelView), MatrixVulkanPerspective(45.0 * DEG2RAD, this->vk.swapExtent.width / (float) this->vk.swapExtent.height, 0.125f, 100.0f)));
 
     return pushConstantObject;
 }

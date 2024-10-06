@@ -42,6 +42,7 @@ void loop() {
                     break;
                 case SDL_WINDOWEVENT_RESTORED:
                     isWindowMinimized = 0;
+                    SDL_SetRelativeMouseMode(SDL_TRUE);
                     break;
                 case SDL_WINDOWEVENT_RESIZED:
                     context.forceSwapChainRegen = 1;
@@ -51,16 +52,21 @@ void loop() {
                 }
                 break;
             case SDL_MOUSEMOTION:
-                context.yaw   += event.motion.xrel * delta;
-                context.pitch += event.motion.yrel * delta;
+                if(SDL_GetRelativeMouseMode()) {
+                    context.yaw   += event.motion.xrel * delta;
+                    context.pitch += event.motion.yrel * delta;
 
-                context.yaw   = Wrap(context.yaw,   -PI, PI);
-                context.pitch = Wrap(context.pitch, -PI, PI);
+                    context.yaw   = Wrap(context.yaw,   -PI, PI);
+                    context.pitch = Wrap(context.pitch, -PI, PI);
 
-                dirtyModelView = 1;
+                    dirtyModelView = 1;
+                }
                 break;
             case SDL_KEYDOWN:
                 switch(event.key.keysym.scancode) {
+                case SDL_SCANCODE_ESCAPE:
+                    SDL_SetRelativeMouseMode(SDL_FALSE);
+                    break;
                 case SDL_SCANCODE_W:
                     movement[0] = 1;
                     break;
@@ -103,7 +109,9 @@ void loop() {
 
             move.y = 8.0f * delta * (movement[0] - movement[2]);
 
-            context.position = Vector3Add(context.position, Vector3Transform(move, MatrixRotateY(context.pitch)));
+            context.position = Vector3Add(context.position, Vector3Transform(move, MatrixRotateY(context.yaw)));
+
+            dirtyModelView = 1;
         }
 
         if(dirtyModelView) {
@@ -135,6 +143,8 @@ int main(int argc, char **argv) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_CreateWindow failed with %s", SDL_GetError());
         return -2;
     }
+
+    SDL_SetRelativeMouseMode(SDL_TRUE);
 
     returnCode = v_init(&context);
 
