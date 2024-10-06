@@ -17,9 +17,8 @@ void loop() {
     Uint64 lastTime = currentTime;
     float delta = 0;
 
-    Vector3 up = {0.0f, 1.0f, 0.0f};
-    Vector3 z  = {1.0f, 0.0f, 0.0f};
-    Vector3 w  = {0.0f, 0.0f, 1.0f};
+    const static Vector3 yAxis = {0.0f, 1.0f, 0.0f};
+    const static Vector3 zAxis = {0.0f, 0.0f, 1.0f};
 
     while(run) {
         currentTime = lastTime;
@@ -52,8 +51,10 @@ void loop() {
                 context.yaw   += event.motion.xrel * delta;
                 context.pitch += event.motion.yrel * delta;
 
-                Quaternion quaterion = QuaternionMultiply(QuaternionFromAxisAngle(w, PI / 2.0), QuaternionFromAxisAngle(up, context.pitch));
-                quaterion = QuaternionMultiply(quaterion, QuaternionFromAxisAngle(w, context.yaw));
+                context.yaw   = Wrap(context.yaw,   -PI, PI);
+                context.pitch = Wrap(context.pitch, -PI, PI);
+
+                Quaternion quaterion = QuaternionMultiply(QuaternionMultiply(QuaternionFromAxisAngle(zAxis, PI / 2.0), QuaternionFromAxisAngle(yAxis, context.pitch)), QuaternionFromAxisAngle(zAxis, context.yaw));
                 quaterion = QuaternionNormalize(quaterion);
                 context.modelView = MatrixMultiply(MatrixTranslate(context.position.x, context.position.y, context.position.z), QuaternionToMatrix(quaterion));
                 break;
@@ -88,7 +89,15 @@ int main(int argc, char **argv) {
 
     returnCode = v_init(&context);
 
-    context.modelView = MatrixTranslate(context.position.x, context.position.y, context.position.z);
+    const static Vector3 yAxis = {0.0f, 1.0f, 0.0f};
+    const static Vector3 zAxis = {0.0f, 0.0f, 1.0f};
+
+    context.yaw   = -PI / 2.0;
+    context.pitch =  PI / 2.0;
+
+    Quaternion quaterion = QuaternionMultiply(QuaternionMultiply(QuaternionFromAxisAngle(zAxis, PI / 2.0), QuaternionFromAxisAngle(yAxis, context.pitch)), QuaternionFromAxisAngle(zAxis, context.yaw));
+    quaterion = QuaternionNormalize(quaterion);
+    context.modelView = MatrixMultiply(MatrixTranslate(context.position.x, context.position.y, context.position.z), QuaternionToMatrix(quaterion));
 
     if( returnCode.type < 0 ) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Thus v_init() failed with SDL code %s, or return code %i point %i", SDL_GetError(), returnCode.type, returnCode.point);
