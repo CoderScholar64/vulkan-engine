@@ -59,7 +59,7 @@ void loop() {
 }
 
 int main(int argc, char **argv) {
-    UMazeData maze = u_maze_gen_grid(4, 4);
+    UMazeData maze = u_maze_gen_grid(16, 16);
     size_t edgeAmount = 0;
     UMazeConnection *pMaze = u_maze_gen(&maze, &edgeAmount, 12345678);
     free(pMaze);

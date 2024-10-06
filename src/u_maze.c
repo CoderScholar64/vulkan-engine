@@ -47,22 +47,22 @@ UMazeData u_maze_gen_grid(unsigned width, unsigned height) {
             if(offset + 1 < mazeData.vertexAmount && (offset + 1) % width != 0) {
                 pCurVert->ppConnections[pCurVert->metadata.data.count] = &mazeData.pVertices[offset + 1];
                 pCurVert->metadata.data.count++;
-                SDL_Log( "pVertices[%li] links to %li", offset, offset + 1);
+                //SDL_Log( "pVertices[%li] links to %li", offset, offset + 1);
             }
             if(offset % width != 0) {
                 pCurVert->ppConnections[pCurVert->metadata.data.count] = &mazeData.pVertices[offset - 1];
                 pCurVert->metadata.data.count++;
-                SDL_Log( "pVertices[%li] links to %li", offset, offset - 1);
+                //SDL_Log( "pVertices[%li] links to %li", offset, offset - 1);
             }
             if(offset + width < mazeData.vertexAmount) {
                 pCurVert->ppConnections[pCurVert->metadata.data.count] = &mazeData.pVertices[offset + width];
                 pCurVert->metadata.data.count++;
-                SDL_Log( "pVertices[%li] links to %li", offset, offset + width);
+                //SDL_Log( "pVertices[%li] links to %li", offset, offset + width);
             }
             if(offset >= width) {
                 pCurVert->ppConnections[pCurVert->metadata.data.count] = &mazeData.pVertices[offset - width];
                 pCurVert->metadata.data.count++;
-                SDL_Log( "pVertices[%li] links to %li", offset, offset - width);
+                //SDL_Log( "pVertices[%li] links to %li", offset, offset - width);
             }
 
             ppConnections = ppConnections + pCurVert->metadata.data.count;
