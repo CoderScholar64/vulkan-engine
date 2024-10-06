@@ -81,11 +81,63 @@ void u_maze_delete_grid(UMazeData *pMazeData) {
     pMazeData->vertexAmount = 0;
 }
 
-UMazeConnection* u_maze_gen(UMazeData *pMazeData, unsigned *pEdgeAmount, uint32_t seed) {
+UMazeConnection* u_maze_gen(UMazeData *pMazeData, size_t *pEdgeAmount, uint32_t seed) {
     assert(pMazeData != NULL);
     assert(pEdgeAmount != NULL);
+
+    *pEdgeAmount = 0;
+
+    size_t answerIndex = 0;
+    size_t answerSize  = pMazeData->vertexAmount - 1; // Amount of edges to be returned.
+    UMazeConnection *pAnswerMazeLinks = calloc(answerSize, sizeof(UMazeConnection));
+
+    if(pAnswerMazeLinks == NULL)
+        return NULL;
+
+    size_t linkArraySize = 0;
+    size_t linkArrayLimit = pMazeData->connectionAmount / 2;
+    UMazeConnection *pLinkArray = malloc(pMazeData->connectionAmount * sizeof(UMazeConnection));
+
+    if(pLinkArray == NULL) {
+        free(pAnswerMazeLinks);
+        return NULL;
+    }
 
     size_t vertexIndex = u_random_xorshift32(&seed) % pMazeData->vertexAmount;
 
     pMazeData->pVertices[vertexIndex].metadata.data.isVisited = 1;
+    for(uint32_t i = 0; i < pMazeData->pVertices[vertexIndex].metadata.data.count; i++) {
+        pLinkArray[linkArraySize].pConnections[0] = &pMazeData->pVertices[vertexIndex];
+        pLinkArray[linkArraySize].pConnections[1] =  pMazeData->pVertices[vertexIndex].ppConnections[i];
+        linkArraySize++;
+
+        assert(linkArraySize < linkArrayLimit);
+    }
+
+    while(answerIndex != answerSize && linkArraySize != 0) {
+        size_t linkIndex = u_random_xorshift32(&seed) % linkArraySize;
+
+        if(pLinkArray[linkIndex].pConnections[1]->metadata.data.isVisited == 0) {
+            pLinkArray[linkIndex].pConnections[1]->metadata.data.isVisited = 1;
+
+            for(uint32_t i = 0; i < pMazeData->pVertices[vertexIndex].metadata.data.count; i++) {
+                pLinkArray[linkArraySize].pConnections[0] = pLinkArray[linkIndex].pConnections[1];
+                pLinkArray[linkArraySize].pConnections[0] = pLinkArray[linkIndex].pConnections[1]->ppConnections[i];
+                linkArraySize++;
+
+                assert(linkArraySize < linkArrayLimit);
+            }
+
+            pAnswerMazeLinks[answerIndex] = pLinkArray[linkIndex];
+            answerIndex++;
+        }
+        linkArraySize--;
+        pLinkArray[linkIndex] = pLinkArray[linkArraySize];
+    }
+
+    *pEdgeAmount = answerIndex;
+
+    free(pLinkArray);
+
+    return pAnswerMazeLinks;
 }
