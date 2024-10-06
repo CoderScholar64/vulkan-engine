@@ -19,9 +19,6 @@ UMazeData u_maze_gen_grid(unsigned width, unsigned height) {
     size_t totalVertices = width * height;
     size_t totalEdges    = 4 * amountOfRectMiddles + 3 * amountOfRectEdges + 2 * AMOUNT_OF_RECT_CORNERS;
 
-    SDL_Log( "totalVertices = %li", totalVertices);
-    SDL_Log( "totalEdges = %li", totalEdges);
-
     UMazeData mazeData = {0};
     mazeData.vertexAmount = totalVertices;
     mazeData.connectionAmount = totalEdges;
@@ -146,13 +143,6 @@ UMazeConnection* u_maze_gen(UMazeData *pMazeData, size_t *pEdgeAmount, uint32_t 
     }
 
     *pEdgeAmount = answerIndex;
-
-    for(size_t i = 0; i < pMazeData->vertexAmount; i++) {
-        printf("v %i %i 0\n", (int)pMazeData->pVertices[i].metadata.position.x, (int)pMazeData->pVertices[i].metadata.position.y);
-    }
-    for(size_t e = 0; e < *pEdgeAmount; e++) {
-        printf("l %i %i\n", pAnswerMazeLinks[e].pConnections[0] - pMazeData->pVertices + 1, pAnswerMazeLinks[e].pConnections[1] - pMazeData->pVertices + 1);
-    }
 
     free(pLinkArray);
 

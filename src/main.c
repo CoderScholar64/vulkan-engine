@@ -1,7 +1,7 @@
 #include "context.h"
+
 #include "v_init.h"
 #include "v_render.h"
-#include "u_maze.h"
 
 #include "SDL.h"
 
@@ -59,12 +59,6 @@ void loop() {
 }
 
 int main(int argc, char **argv) {
-    UMazeData maze = u_maze_gen_grid(16, 16);
-    size_t edgeAmount = 0;
-    UMazeConnection *pMaze = u_maze_gen(&maze, &edgeAmount, 12345678);
-    free(pMaze);
-    u_maze_delete_grid(&maze);
-
     VEngineResult returnCode;
 
     if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) < 0 ) {
