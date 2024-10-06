@@ -1,5 +1,9 @@
 #include "u_maze.h"
 
+#include "u_random.h"
+
+#include "SDL_log.h"
+
 #include <assert.h>
 #include <stdlib.h>
 
@@ -13,6 +17,9 @@ UMazeData u_maze_gen_grid(unsigned width, unsigned height) {
 
     size_t totalVertices = width * height;
     size_t totalEdges    = 4 * amountOfRectMiddles + 3 * amountOfRectEdges + 2 * AMOUNT_OF_RECT_CORNERS;
+
+    SDL_Log( "totalVertices = %li", totalVertices);
+    SDL_Log( "totalEdges = %li", totalEdges);
 
     UMazeData mazeData = {0};
     mazeData.vertexAmount = totalVertices;
@@ -38,18 +45,22 @@ UMazeData u_maze_gen_grid(unsigned width, unsigned height) {
             if(offset + 1 < mazeData.vertexAmount && (offset + 1) % width != 0) {
                 pCurVert->ppConnections[pCurVert->metadata.data.count] = &mazeData.pVertices[offset + 1];
                 pCurVert->metadata.data.count++;
+                SDL_Log( "pVertices[%li] links to %li", offset, offset + 1);
             }
-            if(offset != 0 && (offset - 1) % width != 0) {
+            if(offset % width != 0) {
                 pCurVert->ppConnections[pCurVert->metadata.data.count] = &mazeData.pVertices[offset - 1];
                 pCurVert->metadata.data.count++;
+                SDL_Log( "pVertices[%li] links to %li", offset, offset - 1);
             }
             if(offset + width < mazeData.vertexAmount) {
                 pCurVert->ppConnections[pCurVert->metadata.data.count] = &mazeData.pVertices[offset + width];
                 pCurVert->metadata.data.count++;
+                SDL_Log( "pVertices[%li] links to %li", offset, offset + width);
             }
             if(offset >= width) {
                 pCurVert->ppConnections[pCurVert->metadata.data.count] = &mazeData.pVertices[offset - width];
                 pCurVert->metadata.data.count++;
+                SDL_Log( "pVertices[%li] links to %li", offset, offset - width);
             }
 
             ppConnections = ppConnections + pCurVert->metadata.data.count;
@@ -70,7 +81,11 @@ void u_maze_delete_grid(UMazeData *pMazeData) {
     pMazeData->vertexAmount = 0;
 }
 
-UMazeConnection* u_maze_gen(UMazeData *pMazeData, unsigned *pEdgeAmount) {
+UMazeConnection* u_maze_gen(UMazeData *pMazeData, unsigned *pEdgeAmount, uint32_t seed) {
     assert(pMazeData != NULL);
     assert(pEdgeAmount != NULL);
+
+    size_t vertexIndex = u_random_xorshift32(&seed) % pMazeData->vertexAmount;
+
+    pMazeData->pVertices[vertexIndex].metadata.data.isVisited = 1;
 }

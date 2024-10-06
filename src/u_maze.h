@@ -7,6 +7,6 @@ UMazeData u_maze_gen_grid(unsigned width, unsigned height);
 
 void u_maze_delete_grid(UMazeData *pMazeData);
 
-UMazeConnection* u_maze_gen(UMazeData *pMazeData, unsigned *pEdgeAmount);
+UMazeConnection* u_maze_gen(UMazeData *pMazeData, unsigned *pEdgeAmount, uint32_t seed);
 
 #endif // U_MAZE_29
