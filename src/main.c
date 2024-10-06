@@ -20,6 +20,9 @@ void loop() {
     const static Vector3 yAxis = {0.0f, 1.0f, 0.0f};
     const static Vector3 zAxis = {0.0f, 0.0f, 1.0f};
 
+    int movement[4] = {0};
+    int dirtyModelView = 0;
+
     while(run) {
         currentTime = lastTime;
         lastTime = SDL_GetTicks64();
@@ -54,13 +57,59 @@ void loop() {
                 context.yaw   = Wrap(context.yaw,   -PI, PI);
                 context.pitch = Wrap(context.pitch, -PI, PI);
 
-                Quaternion quaterion = QuaternionMultiply(QuaternionMultiply(QuaternionFromAxisAngle(zAxis, PI / 2.0), QuaternionFromAxisAngle(yAxis, context.pitch)), QuaternionFromAxisAngle(zAxis, context.yaw));
-                quaterion = QuaternionNormalize(quaterion);
-                context.modelView = MatrixMultiply(MatrixTranslate(context.position.x, context.position.y, context.position.z), QuaternionToMatrix(quaterion));
+                dirtyModelView = 1;
+                break;
+            case SDL_KEYDOWN:
+                switch(event.key.keysym.scancode) {
+                case SDL_SCANCODE_W:
+                    movement[0] = 1;
+                    break;
+                case SDL_SCANCODE_A:
+                    movement[1] = 1;
+                    break;
+                case SDL_SCANCODE_S:
+                    movement[2] = 1;
+                    break;
+                case SDL_SCANCODE_D:
+                    movement[3] = 1;
+                    break;
+                default: // Do nothing
+                }
+                break;
+            case SDL_KEYUP:
+                switch(event.key.keysym.scancode) {
+                case SDL_SCANCODE_W:
+                    movement[0] = 0;
+                    break;
+                case SDL_SCANCODE_A:
+                    movement[1] = 0;
+                    break;
+                case SDL_SCANCODE_S:
+                    movement[2] = 0;
+                    break;
+                case SDL_SCANCODE_D:
+                    movement[3] = 0;
+                    break;
+                default: // Do nothing
+                }
                 break;
             default:
                 break;
             }
+        }
+
+        if(movement[0] != 0 || movement[2] != 0) {
+            Vector3 move = {0};
+
+            move.y = 8.0f * delta * (movement[0] - movement[2]);
+
+            context.position = Vector3Add(context.position, Vector3Transform(move, MatrixRotateY(context.pitch)));
+        }
+
+        if(dirtyModelView) {
+                Quaternion quaterion = QuaternionMultiply(QuaternionMultiply(QuaternionFromAxisAngle(zAxis, PI / 2.0), QuaternionFromAxisAngle(yAxis, context.pitch)), QuaternionFromAxisAngle(zAxis, context.yaw));
+                quaterion = QuaternionNormalize(quaterion);
+                context.modelView = MatrixMultiply(MatrixTranslate(context.position.x, context.position.y, context.position.z), QuaternionToMatrix(quaterion));
         }
 
         if(!isWindowMinimized) {
