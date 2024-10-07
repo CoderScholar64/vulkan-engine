@@ -153,19 +153,10 @@ VEngineResult v_record_command_buffer(Context *this, VkCommandBuffer commandBuff
 
     vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->vk.pipelineLayout, 0, 1, &this->vk.frames[this->vk.currentFrame].descriptorSet, 0, NULL);
 
-    PushConstantObject pushConstantObjects[2];
-    {
-        Vector3 position = {0, 0, 0};
-        PushConstantObject pushConstantObject = v_setup_pco(this, position, 0);
-        pushConstantObjects[0] = pushConstantObject;
+    for(unsigned m = 0; m < this->vk.modelArrayAmount; m++) {
+        if(this->vk.ppVModelArray[m]->pModelData != NULL)
+            v_record_model_draws(this, commandBuffer, this->vk.ppVModelArray[m]->pModelData, this->vk.ppVModelArray[m]->instanceAmount, this->vk.ppVModelArray[m]->instances);
     }
-    {
-        Vector3 position = {0, 2, 0};
-        PushConstantObject pushConstantObject = v_setup_pco(this, position, 0);
-        pushConstantObjects[1] = pushConstantObject;
-    }
-
-    v_record_model_draws(this, commandBuffer, &this->vk.pModels[0], sizeof(pushConstantObjects) / sizeof(pushConstantObjects[0]), pushConstantObjects);
 
     vkCmdEndRenderPass(commandBuffer);
 
@@ -175,13 +166,4 @@ VEngineResult v_record_command_buffer(Context *this, VkCommandBuffer commandBuff
         RETURN_RESULT_CODE(VE_RECORD_COMMAND_BUFFER_FAILURE, 1)
     }
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
-}
-
-PushConstantObject v_setup_pco(Context *this, Vector3 position, float unit90Degrees) {
-    PushConstantObject pushConstantObject;
-    Vector3 axis   = {0.0f, 0.0f, 1.0f};
-
-    pushConstantObject.matrix = MatrixTranspose(MatrixMultiply(MatrixMultiply(MatrixMultiply(MatrixRotate(axis, (90.0 * DEG2RAD) * unit90Degrees), MatrixTranslate(position.x, position.y, position.z)), this->modelView), MatrixVulkanPerspective(45.0 * DEG2RAD, this->vk.swapExtent.width / (float) this->vk.swapExtent.height, 0.125f, 100.0f)));
-
-    return pushConstantObject;
 }

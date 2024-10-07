@@ -185,6 +185,8 @@ VEngineResult v_init(Context *this) {
         printf("V: %zu B: 0x%x\n", v, bitfield);
     }
 
+    this->vk.modelArrayAmount = (sizeof(mazePieceAmounts) / sizeof(mazePieceAmounts[0]));
+
     void *pMem = malloc(
         (sizeof(VModelArray*) + sizeof(VModelArray)) * (sizeof(mazePieceAmounts) / sizeof(mazePieceAmounts[0])) +
         sizeof(PushConstantObject) * mazeGenResult.vertexMazeData.vertexAmount);
@@ -198,7 +200,7 @@ VEngineResult v_init(Context *this) {
         this->vk.ppVModelArray[i]->instanceAmount = mazePieceAmounts[i];
 
         for(unsigned d = 0; d < this->vk.ppVModelArray[i]->instanceAmount; d++) {
-            this->vk.ppVModelArray[i]->instances[d].matrix = MatrixTranslate(2 * i, 0, 2 * d);
+            this->vk.ppVModelArray[i]->instances[d].matrix = MatrixTranslate(2 * i, 2 * d, 0);
         }
 
         pMem += sizeof(VModelArray) + this->vk.ppVModelArray[i]->instanceAmount * sizeof(PushConstantObject);

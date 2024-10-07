@@ -242,6 +242,8 @@ VEngineResult v_load_models(Context *this, const char *const pUTF8Filepath, unsi
 }
 
 void v_record_model_draws(Context *this, VkCommandBuffer commandBuffer, VModelData *pModelData, unsigned numInstances, PushConstantObject *pPushConstantObjects) {
+    PushConstantObject pushConstantObject;
+
     VkBuffer vertexBuffers[] = {pModelData->buffer};
     VkDeviceSize offsets[] = {pModelData->vertexOffset};
 
@@ -251,7 +253,10 @@ void v_record_model_draws(Context *this, VkCommandBuffer commandBuffer, VModelDa
         vkCmdBindIndexBuffer(commandBuffer, pModelData->buffer, 0, pModelData->indexType);
 
     for(unsigned i = 0; i < numInstances; i++) {
-        vkCmdPushConstants(commandBuffer, this->vk.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConstantObject), &pPushConstantObjects[i]);
+        pushConstantObject = pPushConstantObjects[i];
+        pushConstantObject.matrix = MatrixTranspose(MatrixMultiply(MatrixMultiply(pushConstantObject.matrix, this->modelView), MatrixVulkanPerspective(45.0 * DEG2RAD, this->vk.swapExtent.width / (float) this->vk.swapExtent.height, 0.125f, 100.0f)));
+
+        vkCmdPushConstants(commandBuffer, this->vk.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(pushConstantObject), &pushConstantObject);
 
         if(pModelData->vertexOffset != 0)
             vkCmdDrawIndexed(commandBuffer, pModelData->vertexAmount, 1, 0, 0, 0);
