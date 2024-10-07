@@ -148,3 +148,17 @@ UMazeLink* u_maze_gen(UMazeData *pMazeData, size_t *pEdgeAmount, uint32_t seed) 
 
     return pAnswerMazeLinks;
 }
+
+void u_maze_delete_result(UMazeGenResult *pMazeGenResult) {
+    assert(pMazeGenResult != NULL);
+
+    // u_maze_delete_data(pMazeGenResult->pSource); // pMazeGenResult->pSource
+
+    if(pMazeGenResult->pLinks != NULL)
+        free(pMazeGenResult->pLinks);
+
+    pMazeGenResult->linkAmount = 0;
+    pMazeGenResult->pLinks = NULL;
+
+    u_maze_delete_data(&pMazeGenResult->vertexMazeData); // pMazeGenResult->vertexMazeData
+}

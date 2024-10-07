@@ -41,7 +41,7 @@ typedef struct UMazeGenResult {
     size_t linkAmount; // Can be zero.
     UMazeLink *pLinks; // Can be NULL.
 
-    UMazeData *pVertexMazeData; // Can be NULL.
+    UMazeData vertexMazeData; // Can be empty
 } UMazeGenResult;
 
 #endif // U_MAZE_DEF_29

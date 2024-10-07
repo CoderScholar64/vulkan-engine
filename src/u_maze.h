@@ -9,4 +9,6 @@ void u_maze_delete_data(UMazeData *pMazeData);
 
 UMazeLink* u_maze_gen(UMazeData *pMazeData, size_t *pEdgeAmount, uint32_t seed);
 
+void u_maze_delete_result(UMazeGenResult *pMazeGenResult);
+
 #endif // U_MAZE_29
