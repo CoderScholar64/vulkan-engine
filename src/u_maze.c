@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-UMazeData u_maze_gen_grid(unsigned width, unsigned height) {
+UMazeData u_maze_gen_data(unsigned width, unsigned height) {
     assert(width >= 2);
     assert(height >= 2);
 
@@ -69,7 +69,7 @@ UMazeData u_maze_gen_grid(unsigned width, unsigned height) {
     return mazeData;
 }
 
-void u_maze_delete_grid(UMazeData *pMazeData) {
+void u_maze_delete_data(UMazeData *pMazeData) {
     assert(pMazeData != NULL);
 
     free(pMazeData->pVertices);
