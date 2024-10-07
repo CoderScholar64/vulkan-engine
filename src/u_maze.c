@@ -8,6 +8,23 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+static int allocData(UMazeData *pMazeData, size_t vertexAmount, size_t linkAmount) {
+    assert(pMazeData != NULL);
+
+    void *pMem = malloc(vertexAmount * sizeof(UMazeVertex) + linkAmount * sizeof(UMazeVertex**));
+
+    if(pMem == NULL)
+        return 0;
+
+    pMazeData->vertexAmount = vertexAmount;
+    pMazeData->linkAmount   = linkAmount;
+
+    pMazeData->pVertices     = pMem;
+    pMazeData->ppVertexLinks = pMem + vertexAmount * sizeof(UMazeVertex);
+
+    return 1;
+}
+
 UMazeData u_maze_gen_data(unsigned width, unsigned height) {
     assert(width >= 2);
     assert(height >= 2);
@@ -20,13 +37,9 @@ UMazeData u_maze_gen_data(unsigned width, unsigned height) {
     size_t totalEdges    = 4 * amountOfRectMiddles + 3 * amountOfRectEdges + 2 * AMOUNT_OF_RECT_CORNERS;
 
     UMazeData mazeData = {0};
-    mazeData.vertexAmount = totalVertices;
-    mazeData.linkAmount = totalEdges;
 
-    void *pMem = malloc(mazeData.vertexAmount * sizeof(UMazeVertex) + totalEdges * sizeof(UMazeVertex**));
-
-    mazeData.pVertices = pMem;
-    mazeData.ppVertexLinks = pMem + mazeData.vertexAmount * sizeof(UMazeVertex);
+    if(!allocData(&mazeData, totalVertices, totalEdges))
+        return mazeData;
 
     UMazeVertex **ppConnections = mazeData.ppVertexLinks;
 
@@ -94,20 +107,10 @@ UMazeGenResult u_maze_gen(UMazeData *pMazeData, uint32_t seed, UMazeGenFlags uMa
     if((uMazeGenFlags & U_MAZE_GEN_LINKS_BIT) != 0)
         mazeGenResult.pLinks = calloc(answerSize, sizeof(UMazeLink));
 
-    if((uMazeGenFlags & U_MAZE_GEN_VERTEXES_BIT) != 0) {
-        mazeGenResult.vertexMazeData.vertexAmount = pMazeData->vertexAmount;
-        mazeGenResult.vertexMazeData.linkAmount = 2 * answerSize;
-
-        void *pMem = malloc(mazeGenResult.vertexMazeData.vertexAmount * sizeof(UMazeVertex) + mazeGenResult.vertexMazeData.linkAmount * sizeof(UMazeVertex**));
-
-        if(pMem != NULL) {
-            mazeGenResult.vertexMazeData.pVertices = pMem;
-            mazeGenResult.vertexMazeData.ppVertexLinks = pMem + mazeGenResult.vertexMazeData.vertexAmount * sizeof(UMazeVertex);
-
-            for(size_t i = 0; i < mazeGenResult.vertexMazeData.vertexAmount; i++) {
-                mazeGenResult.vertexMazeData.pVertices[i] = pMazeData->pVertices[i];
-                mazeGenResult.vertexMazeData.pVertices[i].metadata.data.count = 0;
-            }
+    if((uMazeGenFlags & U_MAZE_GEN_VERTEXES_BIT) != 0 && allocData(&mazeGenResult.vertexMazeData, pMazeData->vertexAmount, 2 * answerSize)) {
+        for(size_t i = 0; i < mazeGenResult.vertexMazeData.vertexAmount; i++) {
+            mazeGenResult.vertexMazeData.pVertices[i] = pMazeData->pVertices[i];
+            mazeGenResult.vertexMazeData.pVertices[i].metadata.data.count = 0;
         }
     }
 
