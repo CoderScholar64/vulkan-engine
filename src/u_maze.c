@@ -84,15 +84,32 @@ void u_maze_delete_data(UMazeData *pMazeData) {
 
 UMazeGenResult u_maze_gen(UMazeData *pMazeData, uint32_t seed, UMazeGenFlags uMazeGenFlags) {
     assert(pMazeData != NULL);
-    assert(uMazeGenFlags == 0);
+    assert(uMazeGenFlags != 0);
 
     UMazeGenResult mazeGenResult = {0};
 
     size_t answerIndex = 0;
     size_t answerSize  = pMazeData->vertexAmount - 1; // Amount of edges to be returned.
 
-    if(uMazeGenFlags & U_MAZE_GEN_LINKS_BIT != 0)
+    if((uMazeGenFlags & U_MAZE_GEN_LINKS_BIT) != 0)
         mazeGenResult.pLinks = calloc(answerSize, sizeof(UMazeLink));
+
+    if((uMazeGenFlags & U_MAZE_GEN_VERTEXES_BIT) != 0) {
+        mazeGenResult.vertexMazeData.vertexAmount = pMazeData->vertexAmount;
+        mazeGenResult.vertexMazeData.linkAmount = 2 * answerSize;
+
+        void *pMem = malloc(mazeGenResult.vertexMazeData.vertexAmount * sizeof(UMazeVertex) + mazeGenResult.vertexMazeData.linkAmount * sizeof(UMazeVertex**));
+
+        if(pMem != NULL) {
+            mazeGenResult.vertexMazeData.pVertices = pMem;
+            mazeGenResult.vertexMazeData.ppVertexLinks = pMem + mazeGenResult.vertexMazeData.vertexAmount * sizeof(UMazeVertex);
+
+            for(size_t i = 0; i < mazeGenResult.vertexMazeData.vertexAmount; i++) {
+                mazeGenResult.vertexMazeData.pVertices[i] = pMazeData->pVertices[i];
+                mazeGenResult.vertexMazeData.pVertices[i].metadata.data.count = 0;
+            }
+        }
+    }
 
     size_t linkArraySize = 0;
     size_t linkArrayMaxSize = pMazeData->linkAmount;
@@ -135,14 +152,51 @@ UMazeGenResult u_maze_gen(UMazeData *pMazeData, uint32_t seed, UMazeGenFlags uMa
             }
 
             assert(answerIndex < answerSize);
-            if(mazeGenResult.pLinks == NULL)
+            if(mazeGenResult.pLinks != NULL)
                 mazeGenResult.pLinks[answerIndex] = pLinkArray[linkIndex];
             answerIndex++;
+
+            if(mazeGenResult.vertexMazeData.pVertices != NULL) {
+                const size_t index_0 = pLinkArray[linkIndex].pVertexLink[0] - pMazeData->pVertices;
+                const size_t index_1 = pLinkArray[linkIndex].pVertexLink[1] - pMazeData->pVertices;
+
+                mazeGenResult.vertexMazeData.pVertices[index_0].metadata.data.count++;
+                mazeGenResult.vertexMazeData.pVertices[index_1].metadata.data.count++;
+            }
         }
 
         assert(linkArraySize != 0);
         linkArraySize--;
         pLinkArray[linkIndex] = pLinkArray[linkArraySize];
+    }
+
+    if(mazeGenResult.vertexMazeData.pVertices != NULL && mazeGenResult.pLinks != NULL) {
+        size_t count = 0;
+
+        for(size_t i = 0; i < mazeGenResult.vertexMazeData.vertexAmount; i++) {
+            mazeGenResult.vertexMazeData.pVertices[i].ppVertexLinks = &mazeGenResult.vertexMazeData.ppVertexLinks[count];
+            count += mazeGenResult.vertexMazeData.pVertices[i].metadata.data.count;
+
+            mazeGenResult.vertexMazeData.pVertices[i].metadata.data.count = 0;
+        }
+
+        assert(mazeGenResult.vertexMazeData.linkAmount == count);
+
+        for(size_t i = 0; i < mazeGenResult.linkAmount; i++) {
+            const size_t index_0 = mazeGenResult.pLinks[i].pVertexLink[0] - pMazeData->pVertices;
+            const size_t index_1 = mazeGenResult.pLinks[i].pVertexLink[1] - pMazeData->pVertices;
+
+            SDL_Log( "index0 = %zu", index_0);
+
+            UMazeVertex *pMazeVertex0 = &mazeGenResult.vertexMazeData.pVertices[index_0];
+            UMazeVertex *pMazeVertex1 = &mazeGenResult.vertexMazeData.pVertices[index_1];
+
+            pMazeVertex0->ppVertexLinks[pMazeVertex0->metadata.data.count] = pMazeVertex1;
+            pMazeVertex1->ppVertexLinks[pMazeVertex1->metadata.data.count] = pMazeVertex0;
+
+            pMazeVertex0->metadata.data.count++;
+            pMazeVertex1->metadata.data.count++;
+        }
     }
 
     free(pLinkArray);
@@ -155,7 +209,7 @@ UMazeGenResult u_maze_gen(UMazeData *pMazeData, uint32_t seed, UMazeGenFlags uMa
 void u_maze_delete_result(UMazeGenResult *pMazeGenResult) {
     assert(pMazeGenResult != NULL);
 
-    // u_maze_delete_data(pMazeGenResult->pSource); // pMazeGenResult->pSource
+    // u_maze_delete_data(pMazeGenResult->pSource); // pMazeGenResult->pSource is a reference not the source.
 
     if(pMazeGenResult->pLinks != NULL)
         free(pMazeGenResult->pLinks);
