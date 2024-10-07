@@ -138,7 +138,7 @@ VEngineResult v_init(Context *this) {
         return returnCode;
 
     UMazeData mazeData = u_maze_gen_data(16, 16);
-    UMazeGenResult mazeGenResult = u_maze_gen(&mazeData, 29);
+    UMazeGenResult mazeGenResult = u_maze_gen(&mazeData, 29, U_MAZE_GEN_LINKS_BIT | U_MAZE_GEN_VERTEXES_BIT);
 
     VModelData *pMazeIndexes[16] = { NULL };
 

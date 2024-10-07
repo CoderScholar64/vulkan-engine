@@ -24,8 +24,8 @@ typedef struct UMazeLink {
 } UMazeLink;
 
 typedef enum UMazeGenFlags {
-    U_MAZE_GEN_LINKS    = 0x1,
-    U_MAZE_GEN_VERTEXES = 0x2
+    U_MAZE_GEN_LINKS_BIT    = 0x1,
+    U_MAZE_GEN_VERTEXES_BIT = 0x2
 } UMazeGenFlags;
 
 typedef struct UMazeData {

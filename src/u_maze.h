@@ -7,7 +7,7 @@ UMazeData u_maze_gen_data(unsigned width, unsigned height);
 
 void u_maze_delete_data(UMazeData *pMazeData);
 
-UMazeGenResult u_maze_gen(UMazeData *pMazeData, uint32_t seed);
+UMazeGenResult u_maze_gen(UMazeData *pMazeData, uint32_t seed, UMazeGenFlags uMazeGenFlags);
 
 void u_maze_delete_result(UMazeGenResult *pMazeGenResult);
 
