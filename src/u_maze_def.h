@@ -19,9 +19,9 @@ typedef struct UMazeVertex {
     struct UMazeVertex **ppConnections;
 } UMazeVertex;
 
-typedef struct UMazeConnection {
-    UMazeVertex *pConnections[2];
-} UMazeConnection;
+typedef struct UMazeLink {
+    UMazeVertex *pVertexLink[2];
+} UMazeLink;
 
 typedef enum UMazeGenFlags {
     U_MAZE_GEN_LINKS    = 0x1,
@@ -38,8 +38,8 @@ typedef struct UMazeData {
 typedef struct UMazeGenResult {
     UMazeData *pSource; // Reference
 
-    size_t numberOfConnections; // Can be zero.
-    UMazeConnection *pConnections; // Can be NULL.
+    size_t linkAmount; // Can be zero.
+    UMazeLink *pLinks; // Can be NULL.
 
     UMazeData *pVertexMazeData; // Can be NULL.
 } UMazeGenResult;

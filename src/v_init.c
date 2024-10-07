@@ -139,7 +139,7 @@ VEngineResult v_init(Context *this) {
 
     UMazeData mazeData = u_maze_gen_grid(16, 16);
     size_t linkAmount = 0;
-    UMazeConnection *pLinks = u_maze_gen(&mazeData, &linkAmount, 29);
+    UMazeLink *pLinks = u_maze_gen(&mazeData, &linkAmount, 29);
 
     VModelData *pMazeIndexes[16] = { NULL };
 

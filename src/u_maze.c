@@ -81,7 +81,7 @@ void u_maze_delete_grid(UMazeData *pMazeData) {
     pMazeData->connectionAmount = 0;
 }
 
-UMazeConnection* u_maze_gen(UMazeData *pMazeData, size_t *pEdgeAmount, uint32_t seed) {
+UMazeLink* u_maze_gen(UMazeData *pMazeData, size_t *pEdgeAmount, uint32_t seed) {
     assert(pMazeData != NULL);
     assert(pEdgeAmount != NULL);
 
@@ -89,14 +89,14 @@ UMazeConnection* u_maze_gen(UMazeData *pMazeData, size_t *pEdgeAmount, uint32_t 
 
     size_t answerIndex = 0;
     size_t answerSize  = pMazeData->vertexAmount - 1; // Amount of edges to be returned.
-    UMazeConnection *pAnswerMazeLinks = calloc(answerSize, sizeof(UMazeConnection));
+    UMazeLink *pAnswerMazeLinks = calloc(answerSize, sizeof(UMazeLink));
 
     if(pAnswerMazeLinks == NULL)
         return NULL;
 
     size_t linkArraySize = 0;
     size_t linkArrayMaxSize = pMazeData->connectionAmount;
-    UMazeConnection *pLinkArray = malloc(pMazeData->connectionAmount * sizeof(UMazeConnection));
+    UMazeLink *pLinkArray = malloc(pMazeData->connectionAmount * sizeof(UMazeLink));
 
     if(pLinkArray == NULL) {
         free(pAnswerMazeLinks);
@@ -109,8 +109,8 @@ UMazeConnection* u_maze_gen(UMazeData *pMazeData, size_t *pEdgeAmount, uint32_t 
     for(uint32_t i = 0; i < pMazeData->pVertices[vertexIndex].metadata.data.count; i++) {
         assert(linkArraySize < linkArrayMaxSize);
 
-        pLinkArray[linkArraySize].pConnections[0] = &pMazeData->pVertices[vertexIndex];
-        pLinkArray[linkArraySize].pConnections[1] =  pMazeData->pVertices[vertexIndex].ppConnections[i];
+        pLinkArray[linkArraySize].pVertexLink[0] = &pMazeData->pVertices[vertexIndex];
+        pLinkArray[linkArraySize].pVertexLink[1] =  pMazeData->pVertices[vertexIndex].ppConnections[i];
 
         linkArraySize++;
     }
@@ -118,15 +118,15 @@ UMazeConnection* u_maze_gen(UMazeData *pMazeData, size_t *pEdgeAmount, uint32_t 
     while(answerIndex != answerSize && linkArraySize != 0) {
         size_t linkIndex = u_random_xorshift32(&seed) % linkArraySize;
 
-        if(pLinkArray[linkIndex].pConnections[1]->metadata.data.isVisited == 0) {
-            pLinkArray[linkIndex].pConnections[1]->metadata.data.isVisited = 1;
+        if(pLinkArray[linkIndex].pVertexLink[1]->metadata.data.isVisited == 0) {
+            pLinkArray[linkIndex].pVertexLink[1]->metadata.data.isVisited = 1;
 
-            for(uint32_t i = 0; i < pLinkArray[linkIndex].pConnections[1]->metadata.data.count; i++) {
-                if(pLinkArray[linkIndex].pConnections[1]->ppConnections[i] != pLinkArray[linkIndex].pConnections[0]) {
+            for(uint32_t i = 0; i < pLinkArray[linkIndex].pVertexLink[1]->metadata.data.count; i++) {
+                if(pLinkArray[linkIndex].pVertexLink[1]->ppConnections[i] != pLinkArray[linkIndex].pVertexLink[0]) {
                     assert(linkArraySize < linkArrayMaxSize);
 
-                    pLinkArray[linkArraySize].pConnections[0] = pLinkArray[linkIndex].pConnections[1];
-                    pLinkArray[linkArraySize].pConnections[1] = pLinkArray[linkIndex].pConnections[1]->ppConnections[i];
+                    pLinkArray[linkArraySize].pVertexLink[0] = pLinkArray[linkIndex].pVertexLink[1];
+                    pLinkArray[linkArraySize].pVertexLink[1] = pLinkArray[linkIndex].pVertexLink[1]->ppConnections[i];
 
                     linkArraySize++;
                 }
