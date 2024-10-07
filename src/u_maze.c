@@ -39,25 +39,25 @@ UMazeData u_maze_gen_grid(unsigned width, unsigned height) {
             pCurVert->metadata.data.count     = 0;
             pCurVert->metadata.position.x     = x;
             pCurVert->metadata.position.y     = y;
-            pCurVert->ppConnections           = ppConnections;
+            pCurVert->ppVertexLinks           = ppConnections;
 
             if(offset + 1 < mazeData.vertexAmount && (offset + 1) % width != 0) {
-                pCurVert->ppConnections[pCurVert->metadata.data.count] = &mazeData.pVertices[offset + 1];
+                pCurVert->ppVertexLinks[pCurVert->metadata.data.count] = &mazeData.pVertices[offset + 1];
                 pCurVert->metadata.data.count++;
                 //SDL_Log( "pVertices[%li] links to %li", offset, offset + 1);
             }
             if(offset % width != 0) {
-                pCurVert->ppConnections[pCurVert->metadata.data.count] = &mazeData.pVertices[offset - 1];
+                pCurVert->ppVertexLinks[pCurVert->metadata.data.count] = &mazeData.pVertices[offset - 1];
                 pCurVert->metadata.data.count++;
                 //SDL_Log( "pVertices[%li] links to %li", offset, offset - 1);
             }
             if(offset + width < mazeData.vertexAmount) {
-                pCurVert->ppConnections[pCurVert->metadata.data.count] = &mazeData.pVertices[offset + width];
+                pCurVert->ppVertexLinks[pCurVert->metadata.data.count] = &mazeData.pVertices[offset + width];
                 pCurVert->metadata.data.count++;
                 //SDL_Log( "pVertices[%li] links to %li", offset, offset + width);
             }
             if(offset >= width) {
-                pCurVert->ppConnections[pCurVert->metadata.data.count] = &mazeData.pVertices[offset - width];
+                pCurVert->ppVertexLinks[pCurVert->metadata.data.count] = &mazeData.pVertices[offset - width];
                 pCurVert->metadata.data.count++;
                 //SDL_Log( "pVertices[%li] links to %li", offset, offset - width);
             }
@@ -110,7 +110,7 @@ UMazeLink* u_maze_gen(UMazeData *pMazeData, size_t *pEdgeAmount, uint32_t seed) 
         assert(linkArraySize < linkArrayMaxSize);
 
         pLinkArray[linkArraySize].pVertexLink[0] = &pMazeData->pVertices[vertexIndex];
-        pLinkArray[linkArraySize].pVertexLink[1] =  pMazeData->pVertices[vertexIndex].ppConnections[i];
+        pLinkArray[linkArraySize].pVertexLink[1] =  pMazeData->pVertices[vertexIndex].ppVertexLinks[i];
 
         linkArraySize++;
     }
@@ -122,11 +122,11 @@ UMazeLink* u_maze_gen(UMazeData *pMazeData, size_t *pEdgeAmount, uint32_t seed) 
             pLinkArray[linkIndex].pVertexLink[1]->metadata.data.isVisited = 1;
 
             for(uint32_t i = 0; i < pLinkArray[linkIndex].pVertexLink[1]->metadata.data.count; i++) {
-                if(pLinkArray[linkIndex].pVertexLink[1]->ppConnections[i] != pLinkArray[linkIndex].pVertexLink[0]) {
+                if(pLinkArray[linkIndex].pVertexLink[1]->ppVertexLinks[i] != pLinkArray[linkIndex].pVertexLink[0]) {
                     assert(linkArraySize < linkArrayMaxSize);
 
                     pLinkArray[linkArraySize].pVertexLink[0] = pLinkArray[linkIndex].pVertexLink[1];
-                    pLinkArray[linkArraySize].pVertexLink[1] = pLinkArray[linkIndex].pVertexLink[1]->ppConnections[i];
+                    pLinkArray[linkArraySize].pVertexLink[1] = pLinkArray[linkIndex].pVertexLink[1]->ppVertexLinks[i];
 
                     linkArraySize++;
                 }

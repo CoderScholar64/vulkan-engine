@@ -16,7 +16,7 @@ typedef struct UMazeVertexMetaData {
 
 typedef struct UMazeVertex {
     UMazeVertexMetaData metadata;
-    struct UMazeVertex **ppConnections;
+    struct UMazeVertex **ppVertexLinks;
 } UMazeVertex;
 
 typedef struct UMazeLink {
