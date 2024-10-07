@@ -137,9 +137,6 @@ VEngineResult v_init(Context *this) {
     if( returnCode.type < 0 )
         return returnCode;
 
-    UMazeData mazeData = u_maze_gen_data(4, 4);
-    UMazeGenResult mazeGenResult = u_maze_gen(&mazeData, 29, 1);
-
     VModelData *pMazeIndexes[16] = { NULL };
 
     for(uint32_t i = 0; i < this->vk.modelAmount; i++) {
@@ -157,6 +154,54 @@ VEngineResult v_init(Context *this) {
 
         pMazeIndexes[decodedIndex] = &this->vk.pModels[i];
         printf("Model name = %s. Length = %zu decodedIndex = %i\n", this->vk.pModels[i].name, lengthOfName, decodedIndex);
+    }
+
+    UMazeData mazeData = u_maze_gen_data(4, 4);
+    UMazeGenResult mazeGenResult = u_maze_gen(&mazeData, 29, 1);
+
+    size_t mazePieceAmounts[16] = { 0 };
+
+    for(size_t v = 0; v < mazeGenResult.vertexMazeData.vertexAmount; v++) {
+        UMazeVertex *pVertex = &mazeGenResult.vertexMazeData.pVertices[v];
+
+        unsigned bitfield = 0;
+
+        for(size_t c = 0; c < mazeGenResult.vertexMazeData.pVertices[v].metadata.data.count; c++) {
+            if(pVertex->metadata.position.x > pVertex->ppVertexLinks[c]->metadata.position.x)
+                bitfield |= 0b0001;
+            else
+            if(pVertex->metadata.position.x < pVertex->ppVertexLinks[c]->metadata.position.x)
+                bitfield |= 0b0010;
+
+            if(pVertex->metadata.position.y > pVertex->ppVertexLinks[c]->metadata.position.y)
+                bitfield |= 0b0100;
+            else
+            if(pVertex->metadata.position.y < pVertex->ppVertexLinks[c]->metadata.position.y)
+                bitfield |= 0b1000;
+        }
+
+        mazePieceAmounts[bitfield]++;
+
+        printf("V: %zu B: 0x%x\n", v, bitfield);
+    }
+
+    void *pMem = malloc(
+        (sizeof(VModelArray*) + sizeof(VModelArray)) * (sizeof(mazePieceAmounts) / sizeof(mazePieceAmounts[0])) +
+        sizeof(PushConstantObject) * mazeGenResult.vertexMazeData.vertexAmount);
+    this->vk.ppVModelArray = pMem;
+
+    pMem += sizeof(VModelArray*) * (sizeof(mazePieceAmounts) / sizeof(mazePieceAmounts[0]));
+
+    for(unsigned i = 0; i < sizeof(mazePieceAmounts) / sizeof(mazePieceAmounts[0]); i++) {
+        this->vk.ppVModelArray[i] = pMem;
+        this->vk.ppVModelArray[i]->pModelData = pMazeIndexes[i];
+        this->vk.ppVModelArray[i]->instanceAmount = mazePieceAmounts[i];
+
+        for(unsigned d = 0; d < this->vk.ppVModelArray[i]->instanceAmount; d++) {
+            this->vk.ppVModelArray[i]->instances[d].matrix = MatrixTranslate(2 * i, 0, 2 * d);
+        }
+
+        pMem += sizeof(VModelArray) + this->vk.ppVModelArray[i]->instanceAmount * sizeof(PushConstantObject);
     }
 
     u_maze_delete_result(&mazeGenResult);
@@ -206,6 +251,9 @@ void v_deinit(Context *this) {
             vkFreeMemory(this->vk.device, this->vk.pModels[i].bufferMemory, NULL);
         }
         free(this->vk.pModels);
+    }
+    if(this->vk.ppVModelArray != NULL) {
+        free(this->vk.ppVModelArray);
     }
     vkDestroyCommandPool(this->vk.device, this->vk.commandPool, NULL);
     vkDestroyPipeline(this->vk.device, this->vk.graphicsPipeline, NULL);
