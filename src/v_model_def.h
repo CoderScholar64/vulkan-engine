@@ -7,7 +7,7 @@
 #include "v_buffer_def.h"
 
 typedef struct VModelData {
-    char name[64];
+    char name[32];
     uint32_t vertexAmount;
     VkDeviceSize vertexOffset;
     VkIndexType indexType;
