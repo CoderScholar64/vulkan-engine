@@ -54,6 +54,7 @@ typedef struct Context {
 
         unsigned modelAmount;
         VModelData *pModels;
+        VModelArray **ppVModelArray;
 
         VkCommandPool commandPool;
 

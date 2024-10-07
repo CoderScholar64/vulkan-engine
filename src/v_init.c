@@ -2,6 +2,7 @@
 
 #include "context.h"
 #include "u_read.h"
+#include "u_maze.h"
 #include "v_buffer.h"
 #include "v_model.h"
 #include "v_render.h"
@@ -135,6 +136,32 @@ VEngineResult v_init(Context *this) {
     returnCode = v_load_models(this, "model.glb", &this->vk.modelAmount, &this->vk.pModels);
     if( returnCode.type < 0 )
         return returnCode;
+
+    UMazeData mazeData = u_maze_gen_grid(16, 16);
+    size_t linkAmount = 0;
+    UMazeConnection *pLinks = u_maze_gen(&mazeData, &linkAmount, 29);
+
+    VModelData *pMazeIndexes[16] = { NULL };
+
+    for(uint32_t i = 0; i < this->vk.modelAmount; i++) {
+        size_t lengthOfName = strlen(this->vk.pModels[i].name);
+
+        if(lengthOfName != 4)
+            continue;
+
+        unsigned decodedIndex = 0;
+
+        for(unsigned b = 0; b < 4; b++) {
+            if(this->vk.pModels[i].name[b] == 'C')
+                decodedIndex |= 1 << (3 - b);
+        }
+
+        pMazeIndexes[decodedIndex] = &this->vk.pModels[i];
+        printf("Model name = %s. Length = %i\n  decodedIndex = %i\n", this->vk.pModels[i].name, lengthOfName, decodedIndex);
+    }
+
+    free(pLinks);
+    u_maze_delete_grid(&mazeData);
 
     returnCode = v_alloc_builtin_uniform_buffers(this);
     if( returnCode.type < 0 )
