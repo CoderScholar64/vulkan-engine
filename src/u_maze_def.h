@@ -23,11 +23,6 @@ typedef struct UMazeLink {
     UMazeVertex *pVertexLink[2];
 } UMazeLink;
 
-typedef enum UMazeGenFlags {
-    U_MAZE_GEN_LINKS_BIT    = 0x1,
-    U_MAZE_GEN_VERTEXES_BIT = 0x2
-} UMazeGenFlags;
-
 typedef struct UMazeData {
     size_t vertexAmount;
     UMazeVertex *pVertices;

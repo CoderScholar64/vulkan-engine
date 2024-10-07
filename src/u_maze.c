@@ -95,32 +95,31 @@ void u_maze_delete_data(UMazeData *pMazeData) {
     pMazeData->linkAmount = 0;
 }
 
-UMazeGenResult u_maze_gen(UMazeData *pMazeData, uint32_t seed, UMazeGenFlags uMazeGenFlags) {
+UMazeGenResult u_maze_gen(UMazeData *pMazeData, uint32_t seed, int genVertexGrid) {
     assert(pMazeData != NULL);
-    assert(uMazeGenFlags != 0);
 
     UMazeGenResult mazeGenResult = {0};
-
-    size_t answerIndex = 0;
-    size_t answerSize  = pMazeData->vertexAmount - 1; // Amount of edges to be returned.
-
-    if((uMazeGenFlags & U_MAZE_GEN_LINKS_BIT) != 0)
-        mazeGenResult.pLinks = calloc(answerSize, sizeof(UMazeLink));
-
-    if((uMazeGenFlags & U_MAZE_GEN_VERTEXES_BIT) != 0 && allocData(&mazeGenResult.vertexMazeData, pMazeData->vertexAmount, 2 * answerSize)) {
-        for(size_t i = 0; i < mazeGenResult.vertexMazeData.vertexAmount; i++) {
-            mazeGenResult.vertexMazeData.pVertices[i] = pMazeData->pVertices[i];
-            mazeGenResult.vertexMazeData.pVertices[i].metadata.data.count = 0;
-        }
-    }
 
     size_t linkArraySize = 0;
     size_t linkArrayMaxSize = pMazeData->linkAmount;
     UMazeLink *pLinkArray = malloc(pMazeData->linkAmount * sizeof(UMazeLink));
 
-    if(pLinkArray == NULL) {
-        u_maze_delete_result(&mazeGenResult);
+    if(pLinkArray == NULL)
         return mazeGenResult;
+
+    size_t answerIndex = 0;
+    size_t answerSize  = pMazeData->vertexAmount - 1; // Amount of edges to be returned.
+
+    mazeGenResult.pLinks = calloc(answerSize, sizeof(UMazeLink));
+
+    if(mazeGenResult.pLinks == NULL)
+        return mazeGenResult;
+
+    if(genVertexGrid && allocData(&mazeGenResult.vertexMazeData, pMazeData->vertexAmount, 2 * answerSize)) {
+        for(size_t i = 0; i < mazeGenResult.vertexMazeData.vertexAmount; i++) {
+            mazeGenResult.vertexMazeData.pVertices[i] = pMazeData->pVertices[i];
+            mazeGenResult.vertexMazeData.pVertices[i].metadata.data.count = 0;
+        }
     }
 
     mazeGenResult.pSource = pMazeData;
@@ -155,8 +154,7 @@ UMazeGenResult u_maze_gen(UMazeData *pMazeData, uint32_t seed, UMazeGenFlags uMa
             }
 
             assert(answerIndex < answerSize);
-            if(mazeGenResult.pLinks != NULL)
-                mazeGenResult.pLinks[answerIndex] = pLinkArray[linkIndex];
+            mazeGenResult.pLinks[answerIndex] = pLinkArray[linkIndex];
             answerIndex++;
 
             if(mazeGenResult.vertexMazeData.pVertices != NULL) {
@@ -173,7 +171,7 @@ UMazeGenResult u_maze_gen(UMazeData *pMazeData, uint32_t seed, UMazeGenFlags uMa
         pLinkArray[linkIndex] = pLinkArray[linkArraySize];
     }
 
-    if(mazeGenResult.vertexMazeData.pVertices != NULL && mazeGenResult.pLinks != NULL) {
+    if(mazeGenResult.vertexMazeData.pVertices != NULL) {
         size_t count = 0;
 
         for(size_t i = 0; i < mazeGenResult.vertexMazeData.vertexAmount; i++) {
