@@ -32,7 +32,7 @@ typedef struct UMazeData {
     size_t vertexAmount;
     UMazeVertex *pVertices;
     size_t connectionAmount;
-    UMazeVertex **ppConnections;
+    UMazeVertex **ppVertexLinks;
 } UMazeData;
 
 typedef struct UMazeGenResult {

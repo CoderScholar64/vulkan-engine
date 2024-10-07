@@ -26,9 +26,9 @@ UMazeData u_maze_gen_grid(unsigned width, unsigned height) {
     void *pMem = malloc(mazeData.vertexAmount * sizeof(UMazeVertex) + totalEdges * sizeof(UMazeVertex**));
 
     mazeData.pVertices = pMem;
-    mazeData.ppConnections = pMem + mazeData.vertexAmount * sizeof(UMazeVertex);
+    mazeData.ppVertexLinks = pMem + mazeData.vertexAmount * sizeof(UMazeVertex);
 
-    UMazeVertex **ppConnections = mazeData.ppConnections;
+    UMazeVertex **ppConnections = mazeData.ppVertexLinks;
 
     for(unsigned y = 0; y < height; y++) {
         for(unsigned x = 0; x < width; x++) {
@@ -73,10 +73,10 @@ void u_maze_delete_grid(UMazeData *pMazeData) {
     assert(pMazeData != NULL);
 
     free(pMazeData->pVertices);
-    // free(pMazeData->ppConnections); // This does not need to happen because of the malloc scheme that was used.
+    // free(pMazeData->ppVertexLinks); // This does not need to happen because of the malloc scheme that was used.
 
     pMazeData->pVertices = NULL;
-    pMazeData->ppConnections = NULL;
+    pMazeData->ppVertexLinks = NULL;
     pMazeData->vertexAmount = 0;
     pMazeData->connectionAmount = 0;
 }
