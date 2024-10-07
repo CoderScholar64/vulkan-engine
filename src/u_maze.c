@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// #define DEBUG_U_MAZE
+
 static int allocData(UMazeData *pMazeData, size_t vertexAmount, size_t linkAmount) {
     assert(pMazeData != NULL);
 
@@ -57,22 +59,30 @@ UMazeData u_maze_gen_data(unsigned width, unsigned height) {
             if(offset + 1 < mazeData.vertexAmount && (offset + 1) % width != 0) {
                 pCurVert->ppVertexLinks[pCurVert->metadata.data.count] = &mazeData.pVertices[offset + 1];
                 pCurVert->metadata.data.count++;
-                //SDL_Log( "pVertices[%li] links to %li", offset, offset + 1);
+#ifdef DEBUG_U_MAZE
+                SDL_Log( "pVertices[%li] links to %li", offset, offset + 1);
+#endif
             }
             if(offset % width != 0) {
                 pCurVert->ppVertexLinks[pCurVert->metadata.data.count] = &mazeData.pVertices[offset - 1];
                 pCurVert->metadata.data.count++;
-                //SDL_Log( "pVertices[%li] links to %li", offset, offset - 1);
+#ifdef DEBUG_U_MAZE
+                SDL_Log( "pVertices[%li] links to %li", offset, offset - 1);
+#endif
             }
             if(offset + width < mazeData.vertexAmount) {
                 pCurVert->ppVertexLinks[pCurVert->metadata.data.count] = &mazeData.pVertices[offset + width];
                 pCurVert->metadata.data.count++;
-                //SDL_Log( "pVertices[%li] links to %li", offset, offset + width);
+#ifdef DEBUG_U_MAZE
+                SDL_Log( "pVertices[%li] links to %li", offset, offset + width);
+#endif
             }
             if(offset >= width) {
                 pCurVert->ppVertexLinks[pCurVert->metadata.data.count] = &mazeData.pVertices[offset - width];
                 pCurVert->metadata.data.count++;
-                //SDL_Log( "pVertices[%li] links to %li", offset, offset - width);
+#ifdef DEBUG_U_MAZE
+                SDL_Log( "pVertices[%li] links to %li", offset, offset - width);
+#endif
             }
 
             ppVertexLinks = ppVertexLinks + pCurVert->metadata.data.count;
@@ -178,7 +188,9 @@ UMazeGenResult u_maze_gen(UMazeData *pMazeData, uint32_t seed, int genVertexGrid
             mazeGenResult.vertexMazeData.pVertices[i].ppVertexLinks = &mazeGenResult.vertexMazeData.ppVertexLinks[count];
             count += mazeGenResult.vertexMazeData.pVertices[i].metadata.data.count;
 
-            printf("Point %zu has %i vertices!\n", i, mazeGenResult.vertexMazeData.pVertices[i].metadata.data.count);
+#ifdef DEBUG_U_MAZE
+            SDL_Log("Point %zu has %i vertices!\n", i, mazeGenResult.vertexMazeData.pVertices[i].metadata.data.count);
+#endif
 
             mazeGenResult.vertexMazeData.pVertices[i].metadata.data.count = 0;
         }
@@ -189,7 +201,9 @@ UMazeGenResult u_maze_gen(UMazeData *pMazeData, uint32_t seed, int genVertexGrid
             const size_t index_0 = mazeGenResult.pLinks[i].pVertexLink[0] - pMazeData->pVertices;
             const size_t index_1 = mazeGenResult.pLinks[i].pVertexLink[1] - pMazeData->pVertices;
 
-            printf("Link %zu (%zu, %zu)\n", i, index_0, index_1);
+#ifdef DEBUG_U_MAZE
+            SDL_Log("Link %zu (%zu, %zu)\n", i, index_0, index_1);
+#endif
 
             UMazeVertex *pMazeVertex0 = &mazeGenResult.vertexMazeData.pVertices[index_0];
             UMazeVertex *pMazeVertex1 = &mazeGenResult.vertexMazeData.pVertices[index_1];
@@ -201,6 +215,7 @@ UMazeGenResult u_maze_gen(UMazeData *pMazeData, uint32_t seed, int genVertexGrid
             pMazeVertex1->metadata.data.count++;
         }
 
+#ifdef DEBUG_U_MAZE
         for(size_t i = 0; i < mazeGenResult.vertexMazeData.vertexAmount; i++) {
             printf("Point %zu links to %i vertices:", i, mazeGenResult.vertexMazeData.pVertices[i].metadata.data.count);
 
@@ -210,6 +225,7 @@ UMazeGenResult u_maze_gen(UMazeData *pMazeData, uint32_t seed, int genVertexGrid
 
             printf("\n");
         }
+#endif
     }
 
     free(pLinkArray);
