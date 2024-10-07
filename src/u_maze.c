@@ -84,6 +84,7 @@ void u_maze_delete_data(UMazeData *pMazeData) {
 
 UMazeGenResult u_maze_gen(UMazeData *pMazeData, uint32_t seed, UMazeGenFlags uMazeGenFlags) {
     assert(pMazeData != NULL);
+    assert(uMazeGenFlags == 0);
 
     UMazeGenResult mazeGenResult = {0};
 
