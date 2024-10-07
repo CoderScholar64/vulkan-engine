@@ -186,8 +186,6 @@ UMazeGenResult u_maze_gen(UMazeData *pMazeData, uint32_t seed, UMazeGenFlags uMa
             const size_t index_0 = mazeGenResult.pLinks[i].pVertexLink[0] - pMazeData->pVertices;
             const size_t index_1 = mazeGenResult.pLinks[i].pVertexLink[1] - pMazeData->pVertices;
 
-            SDL_Log( "index0 = %zu", index_0);
-
             UMazeVertex *pMazeVertex0 = &mazeGenResult.vertexMazeData.pVertices[index_0];
             UMazeVertex *pMazeVertex1 = &mazeGenResult.vertexMazeData.pVertices[index_1];
 
