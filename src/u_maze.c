@@ -34,14 +34,14 @@ UMazeData u_maze_gen_data(unsigned width, unsigned height) {
     size_t amountOfRectMiddles = (width - 2) * (height - 2);
 
     size_t totalVertices = width * height;
-    size_t totalEdges    = 4 * amountOfRectMiddles + 3 * amountOfRectEdges + 2 * AMOUNT_OF_RECT_CORNERS;
+    size_t totalLinks    = 4 * amountOfRectMiddles + 3 * amountOfRectEdges + 2 * AMOUNT_OF_RECT_CORNERS;
 
     UMazeData mazeData = {0};
 
-    if(!allocData(&mazeData, totalVertices, totalEdges))
+    if(!allocData(&mazeData, totalVertices, totalLinks))
         return mazeData;
 
-    UMazeVertex **ppConnections = mazeData.ppVertexLinks;
+    UMazeVertex **ppVertexLinks = mazeData.ppVertexLinks;
 
     for(unsigned y = 0; y < height; y++) {
         for(unsigned x = 0; x < width; x++) {
@@ -52,7 +52,7 @@ UMazeData u_maze_gen_data(unsigned width, unsigned height) {
             pCurVert->metadata.data.count     = 0;
             pCurVert->metadata.position.x     = x;
             pCurVert->metadata.position.y     = y;
-            pCurVert->ppVertexLinks           = ppConnections;
+            pCurVert->ppVertexLinks           = ppVertexLinks;
 
             if(offset + 1 < mazeData.vertexAmount && (offset + 1) % width != 0) {
                 pCurVert->ppVertexLinks[pCurVert->metadata.data.count] = &mazeData.pVertices[offset + 1];
@@ -75,7 +75,7 @@ UMazeData u_maze_gen_data(unsigned width, unsigned height) {
                 //SDL_Log( "pVertices[%li] links to %li", offset, offset - width);
             }
 
-            ppConnections = ppConnections + pCurVert->metadata.data.count;
+            ppVertexLinks = ppVertexLinks + pCurVert->metadata.data.count;
         }
     }
 
