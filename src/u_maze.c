@@ -81,18 +81,17 @@ void u_maze_delete_data(UMazeData *pMazeData) {
     pMazeData->linkAmount = 0;
 }
 
-UMazeLink* u_maze_gen(UMazeData *pMazeData, size_t *pEdgeAmount, uint32_t seed) {
+UMazeGenResult u_maze_gen(UMazeData *pMazeData, uint32_t seed) {
     assert(pMazeData != NULL);
-    assert(pEdgeAmount != NULL);
 
-    *pEdgeAmount = 0;
+    UMazeGenResult mazeGenResult = {0};
 
     size_t answerIndex = 0;
     size_t answerSize  = pMazeData->vertexAmount - 1; // Amount of edges to be returned.
     UMazeLink *pAnswerMazeLinks = calloc(answerSize, sizeof(UMazeLink));
 
     if(pAnswerMazeLinks == NULL)
-        return NULL;
+        return mazeGenResult;
 
     size_t linkArraySize = 0;
     size_t linkArrayMaxSize = pMazeData->linkAmount;
@@ -100,8 +99,10 @@ UMazeLink* u_maze_gen(UMazeData *pMazeData, size_t *pEdgeAmount, uint32_t seed) 
 
     if(pLinkArray == NULL) {
         free(pAnswerMazeLinks);
-        return NULL;
+        return mazeGenResult;
     }
+
+    mazeGenResult.pSource = pMazeData;
 
     size_t vertexIndex = u_random_xorshift32(&seed) % pMazeData->vertexAmount;
 
@@ -142,11 +143,12 @@ UMazeLink* u_maze_gen(UMazeData *pMazeData, size_t *pEdgeAmount, uint32_t seed) 
         pLinkArray[linkIndex] = pLinkArray[linkArraySize];
     }
 
-    *pEdgeAmount = answerIndex;
-
     free(pLinkArray);
 
-    return pAnswerMazeLinks;
+    mazeGenResult.linkAmount = answerSize;
+    mazeGenResult.pLinks = pAnswerMazeLinks;
+
+    return mazeGenResult;
 }
 
 void u_maze_delete_result(UMazeGenResult *pMazeGenResult) {

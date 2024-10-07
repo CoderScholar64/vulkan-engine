@@ -138,8 +138,7 @@ VEngineResult v_init(Context *this) {
         return returnCode;
 
     UMazeData mazeData = u_maze_gen_data(16, 16);
-    size_t linkAmount = 0;
-    UMazeLink *pLinks = u_maze_gen(&mazeData, &linkAmount, 29);
+    UMazeGenResult mazeGenResult = u_maze_gen(&mazeData, 29);
 
     VModelData *pMazeIndexes[16] = { NULL };
 
@@ -160,7 +159,7 @@ VEngineResult v_init(Context *this) {
         printf("Model name = %s. Length = %zu\n  decodedIndex = %i\n", this->vk.pModels[i].name, lengthOfName, decodedIndex);
     }
 
-    free(pLinks);
+    u_maze_delete_result(&mazeGenResult);
     u_maze_delete_data(&mazeData);
 
     returnCode = v_alloc_builtin_uniform_buffers(this);
