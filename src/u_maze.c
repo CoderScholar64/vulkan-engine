@@ -178,14 +178,18 @@ UMazeGenResult u_maze_gen(UMazeData *pMazeData, uint32_t seed, int genVertexGrid
             mazeGenResult.vertexMazeData.pVertices[i].ppVertexLinks = &mazeGenResult.vertexMazeData.ppVertexLinks[count];
             count += mazeGenResult.vertexMazeData.pVertices[i].metadata.data.count;
 
+            printf("Point %zu has %i vertices!\n", i, mazeGenResult.vertexMazeData.pVertices[i].metadata.data.count);
+
             mazeGenResult.vertexMazeData.pVertices[i].metadata.data.count = 0;
         }
 
         assert(mazeGenResult.vertexMazeData.linkAmount == count);
 
-        for(size_t i = 0; i < mazeGenResult.linkAmount; i++) {
+        for(size_t i = 0; i < mazeGenResult.vertexMazeData.linkAmount / 2; i++) {
             const size_t index_0 = mazeGenResult.pLinks[i].pVertexLink[0] - pMazeData->pVertices;
             const size_t index_1 = mazeGenResult.pLinks[i].pVertexLink[1] - pMazeData->pVertices;
+
+            printf("Link %zu (%zu, %zu)\n", i, index_0, index_1);
 
             UMazeVertex *pMazeVertex0 = &mazeGenResult.vertexMazeData.pVertices[index_0];
             UMazeVertex *pMazeVertex1 = &mazeGenResult.vertexMazeData.pVertices[index_1];
@@ -195,6 +199,16 @@ UMazeGenResult u_maze_gen(UMazeData *pMazeData, uint32_t seed, int genVertexGrid
 
             pMazeVertex0->metadata.data.count++;
             pMazeVertex1->metadata.data.count++;
+        }
+
+        for(size_t i = 0; i < mazeGenResult.vertexMazeData.vertexAmount; i++) {
+            printf("Point %zu links to %i vertices:", i, mazeGenResult.vertexMazeData.pVertices[i].metadata.data.count);
+
+            for(unsigned l = 0; l < mazeGenResult.vertexMazeData.pVertices[i].metadata.data.count; l++) {
+                printf(" %zu", mazeGenResult.vertexMazeData.pVertices[i].ppVertexLinks[l] - mazeGenResult.vertexMazeData.pVertices);
+            }
+
+            printf("\n");
         }
     }
 
