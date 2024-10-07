@@ -72,7 +72,8 @@ UMazeData u_maze_gen_data(unsigned width, unsigned height) {
 void u_maze_delete_data(UMazeData *pMazeData) {
     assert(pMazeData != NULL);
 
-    free(pMazeData->pVertices);
+    if(pMazeData->pVertices != NULL)
+        free(pMazeData->pVertices);
     // free(pMazeData->ppVertexLinks); // This does not need to happen because of the malloc scheme that was used.
 
     pMazeData->pVertices = NULL;
@@ -88,17 +89,16 @@ UMazeGenResult u_maze_gen(UMazeData *pMazeData, uint32_t seed, UMazeGenFlags uMa
 
     size_t answerIndex = 0;
     size_t answerSize  = pMazeData->vertexAmount - 1; // Amount of edges to be returned.
-    UMazeLink *pAnswerMazeLinks = calloc(answerSize, sizeof(UMazeLink));
 
-    if(pAnswerMazeLinks == NULL)
-        return mazeGenResult;
+    if(uMazeGenFlags & U_MAZE_GEN_LINKS_BIT != 0)
+        mazeGenResult.pLinks = calloc(answerSize, sizeof(UMazeLink));
 
     size_t linkArraySize = 0;
     size_t linkArrayMaxSize = pMazeData->linkAmount;
     UMazeLink *pLinkArray = malloc(pMazeData->linkAmount * sizeof(UMazeLink));
 
     if(pLinkArray == NULL) {
-        free(pAnswerMazeLinks);
+        u_maze_delete_result(&mazeGenResult);
         return mazeGenResult;
     }
 
@@ -134,7 +134,8 @@ UMazeGenResult u_maze_gen(UMazeData *pMazeData, uint32_t seed, UMazeGenFlags uMa
             }
 
             assert(answerIndex < answerSize);
-            pAnswerMazeLinks[answerIndex] = pLinkArray[linkIndex];
+            if(mazeGenResult.pLinks == NULL)
+                mazeGenResult.pLinks[answerIndex] = pLinkArray[linkIndex];
             answerIndex++;
         }
 
@@ -146,7 +147,6 @@ UMazeGenResult u_maze_gen(UMazeData *pMazeData, uint32_t seed, UMazeGenFlags uMa
     free(pLinkArray);
 
     mazeGenResult.linkAmount = answerSize;
-    mazeGenResult.pLinks = pAnswerMazeLinks;
 
     return mazeGenResult;
 }
