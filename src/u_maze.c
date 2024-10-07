@@ -21,7 +21,7 @@ UMazeData u_maze_gen_grid(unsigned width, unsigned height) {
 
     UMazeData mazeData = {0};
     mazeData.vertexAmount = totalVertices;
-    mazeData.connectionAmount = totalEdges;
+    mazeData.linkAmount = totalEdges;
 
     void *pMem = malloc(mazeData.vertexAmount * sizeof(UMazeVertex) + totalEdges * sizeof(UMazeVertex**));
 
@@ -78,7 +78,7 @@ void u_maze_delete_grid(UMazeData *pMazeData) {
     pMazeData->pVertices = NULL;
     pMazeData->ppVertexLinks = NULL;
     pMazeData->vertexAmount = 0;
-    pMazeData->connectionAmount = 0;
+    pMazeData->linkAmount = 0;
 }
 
 UMazeLink* u_maze_gen(UMazeData *pMazeData, size_t *pEdgeAmount, uint32_t seed) {
@@ -95,8 +95,8 @@ UMazeLink* u_maze_gen(UMazeData *pMazeData, size_t *pEdgeAmount, uint32_t seed) 
         return NULL;
 
     size_t linkArraySize = 0;
-    size_t linkArrayMaxSize = pMazeData->connectionAmount;
-    UMazeLink *pLinkArray = malloc(pMazeData->connectionAmount * sizeof(UMazeLink));
+    size_t linkArrayMaxSize = pMazeData->linkAmount;
+    UMazeLink *pLinkArray = malloc(pMazeData->linkAmount * sizeof(UMazeLink));
 
     if(pLinkArray == NULL) {
         free(pAnswerMazeLinks);

@@ -31,7 +31,7 @@ typedef enum UMazeGenFlags {
 typedef struct UMazeData {
     size_t vertexAmount;
     UMazeVertex *pVertices;
-    size_t connectionAmount;
+    size_t linkAmount;
     UMazeVertex **ppVertexLinks;
 } UMazeData;
 
