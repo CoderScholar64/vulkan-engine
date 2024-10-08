@@ -52,7 +52,7 @@ void loop() {
             case SDL_MOUSEMOTION:
                 if(SDL_GetRelativeMouseMode()) {
                     context.yaw   += event.motion.xrel * delta;
-                    context.pitch += event.motion.yrel * delta;
+                    context.pitch -= event.motion.yrel * delta;
 
                     context.yaw   =  Wrap(context.yaw,   -PI, PI);
                     context.pitch = Clamp(context.pitch,   0, PI);

@@ -167,17 +167,17 @@ VEngineResult v_init(Context *this) {
         unsigned bitfield = 0;
 
         for(size_t c = 0; c < mazeGenResult.vertexMazeData.pVertices[v].metadata.data.count; c++) {
-            if(pVertex->metadata.position.x > pVertex->ppVertexLinks[c]->metadata.position.x)
-                bitfield |= 0b0001;
-            else
             if(pVertex->metadata.position.x < pVertex->ppVertexLinks[c]->metadata.position.x)
-                bitfield |= 0b0010;
-
-            if(pVertex->metadata.position.y > pVertex->ppVertexLinks[c]->metadata.position.y)
-                bitfield |= 0b0100;
-            else
-            if(pVertex->metadata.position.y < pVertex->ppVertexLinks[c]->metadata.position.y)
                 bitfield |= 0b1000;
+            else
+            if(pVertex->metadata.position.x > pVertex->ppVertexLinks[c]->metadata.position.x)
+                bitfield |= 0b0100;
+
+            if(pVertex->metadata.position.y < pVertex->ppVertexLinks[c]->metadata.position.y)
+                bitfield |= 0b0010;
+            else
+            if(pVertex->metadata.position.y > pVertex->ppVertexLinks[c]->metadata.position.y)
+                bitfield |= 0b0001;
         }
 
         mazePieceAmounts[bitfield]++;
@@ -199,11 +199,33 @@ VEngineResult v_init(Context *this) {
         this->vk.ppVModelArray[i]->pModelData = pMazeIndexes[i];
         this->vk.ppVModelArray[i]->instanceAmount = mazePieceAmounts[i];
 
-        for(unsigned d = 0; d < this->vk.ppVModelArray[i]->instanceAmount; d++) {
-            this->vk.ppVModelArray[i]->instances[d].matrix = MatrixTranslate(2 * i, 2 * d, 0);
+        pMem += sizeof(VModelArray) + this->vk.ppVModelArray[i]->instanceAmount * sizeof(PushConstantObject);
+
+        mazePieceAmounts[i] = 0;
+    }
+
+    for(size_t v = 0; v < mazeGenResult.vertexMazeData.vertexAmount; v++) {
+        UMazeVertex *pVertex = &mazeGenResult.vertexMazeData.pVertices[v];
+
+        unsigned bitfield = 0;
+
+        for(size_t c = 0; c < mazeGenResult.vertexMazeData.pVertices[v].metadata.data.count; c++) {
+            if(pVertex->metadata.position.x < pVertex->ppVertexLinks[c]->metadata.position.x)
+                bitfield |= 0b1000;
+            else
+            if(pVertex->metadata.position.x > pVertex->ppVertexLinks[c]->metadata.position.x)
+                bitfield |= 0b0100;
+
+            if(pVertex->metadata.position.y < pVertex->ppVertexLinks[c]->metadata.position.y)
+                bitfield |= 0b0010;
+            else
+            if(pVertex->metadata.position.y > pVertex->ppVertexLinks[c]->metadata.position.y)
+                bitfield |= 0b0001;
         }
 
-        pMem += sizeof(VModelArray) + this->vk.ppVModelArray[i]->instanceAmount * sizeof(PushConstantObject);
+        this->vk.ppVModelArray[bitfield]->instances[mazePieceAmounts[bitfield]].matrix = MatrixTranslate(2 * -pVertex->metadata.position.x, 2 * -pVertex->metadata.position.y, -3);
+
+        mazePieceAmounts[bitfield]++;
     }
 
     u_maze_delete_result(&mazeGenResult);
