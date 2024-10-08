@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define DEBUG_U_MAZE
+// #define DEBUG_U_MAZE
 
 static int allocData(UMazeData *pMazeData, size_t vertexAmount, size_t linkAmount) {
     assert(pMazeData != NULL);
@@ -60,7 +60,6 @@ UMazeData u_maze_gen_data(unsigned width, unsigned height) {
                 pCurVert->ppVertexLinks[pCurVert->linkAmount] = &mazeData.pVertices[offset + 1];
                 pCurVert->linkAmount++;
 #ifdef DEBUG_U_MAZE
-                SDL_Log( "U_BIT_ARRAY_SIZE(9) = %i", U_BIT_ARRAY_SIZE(9));
                 SDL_Log( "pVertices[%li] links to %li", offset, offset + 1);
 #endif
             }
