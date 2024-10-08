@@ -156,7 +156,7 @@ VEngineResult v_init(Context *this) {
         printf("Model name = %s. Length = %zu decodedIndex = %i\n", this->vk.pModels[i].name, lengthOfName, decodedIndex);
     }
 
-    UMazeData mazeData = u_maze_gen_data(4, 4);
+    UMazeData mazeData = u_maze_gen_data(16, 16);
     UMazeGenResult mazeGenResult = u_maze_gen(&mazeData, 29, 1);
 
     size_t mazePieceAmounts[16] = { 0 };
@@ -179,6 +179,8 @@ VEngineResult v_init(Context *this) {
             if(pVertex->metadata.position.y > pVertex->ppVertexLinks[c]->metadata.position.y)
                 bitfield |= 0b0001;
         }
+
+        bitfield = bitfield ^ 0b1111;
 
         mazePieceAmounts[bitfield]++;
 
@@ -222,8 +224,9 @@ VEngineResult v_init(Context *this) {
             if(pVertex->metadata.position.y > pVertex->ppVertexLinks[c]->metadata.position.y)
                 bitfield |= 0b0001;
         }
+        bitfield = bitfield ^ 0b1111;
 
-        this->vk.ppVModelArray[bitfield]->instances[mazePieceAmounts[bitfield]].matrix = MatrixTranslate(2 * -pVertex->metadata.position.x, 2 * -pVertex->metadata.position.y, -3);
+        this->vk.ppVModelArray[bitfield]->instances[mazePieceAmounts[bitfield]].matrix = MatrixTranslate(2 * pVertex->metadata.position.x, 2 * pVertex->metadata.position.y, -3);
 
         mazePieceAmounts[bitfield]++;
     }
