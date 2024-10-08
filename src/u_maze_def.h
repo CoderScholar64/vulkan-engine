@@ -7,15 +7,12 @@
 #include <stdint.h>
 
 typedef struct UMazeVertexMetaData {
-    struct {
-        uint32_t isVisited :  1;
-        uint32_t count :     31;
-    } data;
     Vector2 position;
 } UMazeVertexMetaData;
 
 typedef struct UMazeVertex {
     UMazeVertexMetaData metadata;
+    size_t linkAmount;
     struct UMazeVertex **ppVertexLinks;
 } UMazeVertex;
 
@@ -31,7 +28,7 @@ typedef struct UMazeData {
 } UMazeData;
 
 typedef struct UMazeGenResult {
-    UMazeData *pSource; // Reference
+    const UMazeData *pSource; // Reference
 
     size_t linkAmount; // Can be zero.
     UMazeLink *pLinks; // Can be NULL.

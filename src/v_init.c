@@ -166,7 +166,7 @@ VEngineResult v_init(Context *this) {
 
         unsigned bitfield = 0;
 
-        for(size_t c = 0; c < mazeGenResult.vertexMazeData.pVertices[v].metadata.data.count; c++) {
+        for(size_t c = 0; c < mazeGenResult.vertexMazeData.pVertices[v].linkAmount; c++) {
             if(pVertex->metadata.position.x < pVertex->ppVertexLinks[c]->metadata.position.x)
                 bitfield |= 0b1000;
             else
@@ -211,7 +211,7 @@ VEngineResult v_init(Context *this) {
 
         unsigned bitfield = 0;
 
-        for(size_t c = 0; c < mazeGenResult.vertexMazeData.pVertices[v].metadata.data.count; c++) {
+        for(size_t c = 0; c < mazeGenResult.vertexMazeData.pVertices[v].linkAmount; c++) {
             if(pVertex->metadata.position.x < pVertex->ppVertexLinks[c]->metadata.position.x)
                 bitfield |= 0b1000;
             else
