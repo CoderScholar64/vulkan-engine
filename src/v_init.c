@@ -156,7 +156,7 @@ VEngineResult v_init(Context *this) {
         printf("Model name = %s. Length = %zu decodedIndex = %i\n", this->vk.pModels[i].name, lengthOfName, decodedIndex);
     }
 
-    UMazeData mazeData = u_maze_gen_data(16, 16);
+    UMazeData mazeData = u_maze_gen_data(13, 11);
     UMazeGenResult mazeGenResult = u_maze_gen(&mazeData, 29, 1);
 
     size_t mazePieceAmounts[16] = { 0 };
@@ -1472,7 +1472,7 @@ static VEngineResult allocateDefaultTextureSampler(Context *this) {
     samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
     samplerCreateInfo.pNext = NULL;
     samplerCreateInfo.flags = 0;
-    samplerCreateInfo.magFilter = VK_FILTER_LINEAR;
+    samplerCreateInfo.magFilter = VK_FILTER_NEAREST;
     samplerCreateInfo.minFilter = VK_FILTER_LINEAR;
     samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
     samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
