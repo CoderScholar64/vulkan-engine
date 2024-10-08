@@ -167,16 +167,16 @@ VEngineResult v_init(Context *this) {
         unsigned bitfield = 0;
 
         for(size_t c = 0; c < mazeGenResult.vertexMazeData.pVertices[v].linkAmount; c++) {
-            if(pVertex->metadata.position.x < pVertex->ppVertexLinks[c]->metadata.position.x)
+            if(pVertex->metadata.position.x < mazeGenResult.vertexMazeData.pVertices[pVertex->pVertexLinkIndexes[c]].metadata.position.x)
                 bitfield |= 0b1000;
             else
-            if(pVertex->metadata.position.x > pVertex->ppVertexLinks[c]->metadata.position.x)
+            if(pVertex->metadata.position.x > mazeGenResult.vertexMazeData.pVertices[pVertex->pVertexLinkIndexes[c]].metadata.position.x)
                 bitfield |= 0b0100;
 
-            if(pVertex->metadata.position.y < pVertex->ppVertexLinks[c]->metadata.position.y)
+            if(pVertex->metadata.position.y < mazeGenResult.vertexMazeData.pVertices[pVertex->pVertexLinkIndexes[c]].metadata.position.y)
                 bitfield |= 0b0010;
             else
-            if(pVertex->metadata.position.y > pVertex->ppVertexLinks[c]->metadata.position.y)
+            if(pVertex->metadata.position.y > mazeGenResult.vertexMazeData.pVertices[pVertex->pVertexLinkIndexes[c]].metadata.position.y)
                 bitfield |= 0b0001;
         }
 
@@ -212,16 +212,16 @@ VEngineResult v_init(Context *this) {
         unsigned bitfield = 0;
 
         for(size_t c = 0; c < mazeGenResult.vertexMazeData.pVertices[v].linkAmount; c++) {
-            if(pVertex->metadata.position.x < pVertex->ppVertexLinks[c]->metadata.position.x)
+            if(pVertex->metadata.position.x < mazeGenResult.vertexMazeData.pVertices[pVertex->pVertexLinkIndexes[c]].metadata.position.x)
                 bitfield |= 0b1000;
             else
-            if(pVertex->metadata.position.x > pVertex->ppVertexLinks[c]->metadata.position.x)
+            if(pVertex->metadata.position.x > mazeGenResult.vertexMazeData.pVertices[pVertex->pVertexLinkIndexes[c]].metadata.position.x)
                 bitfield |= 0b0100;
 
-            if(pVertex->metadata.position.y < pVertex->ppVertexLinks[c]->metadata.position.y)
+            if(pVertex->metadata.position.y < mazeGenResult.vertexMazeData.pVertices[pVertex->pVertexLinkIndexes[c]].metadata.position.y)
                 bitfield |= 0b0010;
             else
-            if(pVertex->metadata.position.y > pVertex->ppVertexLinks[c]->metadata.position.y)
+            if(pVertex->metadata.position.y > mazeGenResult.vertexMazeData.pVertices[pVertex->pVertexLinkIndexes[c]].metadata.position.y)
                 bitfield |= 0b0001;
         }
         bitfield = bitfield ^ 0b1111;

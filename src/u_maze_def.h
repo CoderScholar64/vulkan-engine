@@ -13,18 +13,18 @@ typedef struct UMazeVertexMetaData {
 typedef struct UMazeVertex {
     UMazeVertexMetaData metadata;
     size_t linkAmount;
-    struct UMazeVertex **ppVertexLinks;
+    size_t *pVertexLinkIndexes;
 } UMazeVertex;
 
 typedef struct UMazeLink {
-    UMazeVertex *pVertexLink[2];
+    size_t vertexIndex[2];
 } UMazeLink;
 
 typedef struct UMazeData {
     size_t vertexAmount;
     UMazeVertex *pVertices;
     size_t linkAmount;
-    UMazeVertex **ppVertexLinks;
+    size_t *pVertexLinkArray;
 } UMazeData;
 
 typedef struct UMazeGenResult {
