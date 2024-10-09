@@ -3,13 +3,7 @@
 
 #include <stddef.h>
 
-typedef struct UVector {
-    size_t elementSize;
-    size_t size;
-    size_t capacity;
-
-    void *pBuffer;
-} UVector;
+#include "u_vector_def.h"
 
 UVector u_vector_alloc(size_t elementSize, size_t size);
 
