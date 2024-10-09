@@ -140,7 +140,7 @@ VEngineResult v_alloc_image_view(Context *this, VkImage image, VkFormat format, 
  * @param properties The desired property flags of the memory index.
  * @return If zero then this function failed to find the memory type with the properties and typeFilter specificed.
  */
-uint32_t v_find_memory_type_index(Context *this, uint32_t typeFilter, VkMemoryPropertyFlags properties);
+uint32_t v_buffer_find_memory_type_index(Context *this, uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
 /**
  * Find if the device supports a VkFormat with VkImageTiling and a certain VkFormatFeatureFlags.

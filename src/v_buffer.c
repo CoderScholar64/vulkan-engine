@@ -39,7 +39,7 @@ VEngineResult v_alloc_buffer(Context *this, VkDeviceSize size, VkBufferUsageFlag
     VkMemoryAllocateInfo memoryAllocateInfo = {0};
     memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     memoryAllocateInfo.allocationSize = memRequirements.size;
-    memoryAllocateInfo.memoryTypeIndex = v_find_memory_type_index(this, memRequirements.memoryTypeBits, propertyFlags);
+    memoryAllocateInfo.memoryTypeIndex = v_buffer_find_memory_type_index(this, memRequirements.memoryTypeBits, propertyFlags);
 
     if(memoryAllocateInfo.memoryTypeIndex == 0) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Memory type not found");
@@ -179,7 +179,7 @@ VEngineResult v_alloc_image(Context *this, uint32_t width, uint32_t height, uint
     memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     memoryAllocateInfo.pNext = NULL;
     memoryAllocateInfo.allocationSize = memRequirements.size;
-    memoryAllocateInfo.memoryTypeIndex = v_find_memory_type_index(this, memRequirements.memoryTypeBits, properties);
+    memoryAllocateInfo.memoryTypeIndex = v_buffer_find_memory_type_index(this, memRequirements.memoryTypeBits, properties);
 
     if(memoryAllocateInfo.memoryTypeIndex == 0) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Memory type not found");
@@ -475,7 +475,7 @@ VEngineResult v_alloc_image_view(Context *this, VkImage image, VkFormat format, 
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-uint32_t v_find_memory_type_index(Context *this, uint32_t typeFilter, VkMemoryPropertyFlags properties) {
+uint32_t v_buffer_find_memory_type_index(Context *this, uint32_t typeFilter, VkMemoryPropertyFlags properties) {
     VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties;
     vkGetPhysicalDeviceMemoryProperties(this->vk.physicalDevice, &physicalDeviceMemoryProperties);
 
