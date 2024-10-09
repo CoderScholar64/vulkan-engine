@@ -158,7 +158,8 @@ VEngineResult v_init(Context *this) {
 
     UMazeData mazeData = {0};
     u_maze_gen_full_sq_grid(&mazeData, 4, 5);
-    UMazeGenResult mazeGenResult = u_maze_gen(&mazeData, 555, 1);
+    UMazeGenResult mazeGenResult = {0};
+    u_maze_gen(&mazeGenResult, &mazeData, 555, 1);
 
     size_t mazePieceAmounts[16] = { 0 };
 

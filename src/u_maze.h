@@ -20,7 +20,7 @@ int u_maze_gen_full_sq_grid(UMazeData *pMazeData, unsigned width, unsigned depth
  */
 void u_maze_delete_data(UMazeData *pMazeData);
 
-UMazeGenResult u_maze_gen(const UMazeData *const pMazeData, uint32_t seed, int genVertexGrid);
+int u_maze_gen(UMazeGenResult *pUMazeGenResult, const UMazeData *const pMazeData, uint32_t seed, int genVertexGrid);
 
 /**
  * Deallocate the maze result.
