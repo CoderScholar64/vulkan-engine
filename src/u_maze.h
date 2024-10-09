@@ -20,7 +20,15 @@ int u_maze_gen_full_sq_grid(UMazeData *pMazeData, unsigned width, unsigned depth
  */
 void u_maze_delete_data(UMazeData *pMazeData);
 
-int u_maze_gen(UMazeGenResult *pUMazeGenResult, const UMazeData *const pMazeData, uint32_t seed, int genVertexGrid);
+/**
+ * This method is what generates a maze.
+ * @param pMazeGenResult The struct that would hold the generated maze if this function succeeds.
+ * @param pMazeData The nodes and connections to form a maze from. Basically the result of u_maze_gen_full_sq_grid.
+ * @param seed The seed for the random number generator.
+ * @param genVertexGrid If one then pMazeGenResult will also have vertexMazeData allocated.
+ * @return 1 for success or 0 for failure.
+ */
+int u_maze_gen(UMazeGenResult *pMazeGenResult, const UMazeData *const pMazeData, uint32_t seed, int genVertexGrid);
 
 /**
  * Deallocate the maze result.
