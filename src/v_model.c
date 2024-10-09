@@ -1,17 +1,24 @@
 #include "v_model.h"
 
+#define CGLTF_IMPLEMENTATION
 #include "cgltf.h"
 #include "SDL_log.h"
 
 #include "u_read.h"
 #include "context.h"
 
+static void* cgltfAllocFunc(void* user, cgltf_size size);
+static void cgltfFreeFunc(void* user, void* ptr);
+static cgltf_result cgltfFileRead(const struct cgltf_memory_options* memory_options, const struct cgltf_file_options* file_options, const char* path, cgltf_size* size, void** data);
+static void cgltfFileRelease(const struct cgltf_memory_options* memory_options, const struct cgltf_file_options* file_options, void* data);
+static cgltf_data* cgltfReadFile(const char *const pUTF8Filepath, cgltf_result *pCGLTFResult);
+
 VEngineResult v_load_models(Context *this, const char *const pUTF8Filepath, unsigned *pModelAmount, VModelData **ppVModelData) {
     *pModelAmount = 0;
     *ppVModelData = NULL;
 
     cgltf_result result;
-    cgltf_data *pModel = u_gltf_read(pUTF8Filepath, &result);
+    cgltf_data *pModel = cgltfReadFile(pUTF8Filepath, &result);
 
     if(result != cgltf_result_success) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to find model!");
@@ -263,4 +270,58 @@ void v_record_model_draws(Context *this, VkCommandBuffer commandBuffer, VModelDa
         else
             vkCmdDraw(commandBuffer, pModelData->vertexAmount, 1, 0, 0);
     }
+}
+
+static cgltf_data* cgltfReadFile(const char *const pUTF8Filepath, cgltf_result *pCGLTFResult) {
+    cgltf_options options = {0};
+    options.memory.alloc_func = cgltfAllocFunc;
+    options.memory.free_func  = cgltfFreeFunc;
+    options.file.read = cgltfFileRead;
+    options.file.release = cgltfFileRelease;
+
+    cgltf_data* data = NULL;
+    cgltf_result result = cgltf_parse_file(&options, pUTF8Filepath, &data);
+
+    if(pCGLTFResult != NULL)
+        *pCGLTFResult = result;
+
+    if (result != cgltf_result_success)
+        return NULL;
+
+    result = cgltf_load_buffers(&options, data, pUTF8Filepath);
+
+    if(pCGLTFResult != NULL)
+        *pCGLTFResult = result;
+
+    if (result != cgltf_result_success) {
+        cgltf_free(data);
+        return NULL;
+    }
+
+    return data;
+}
+
+static void* cgltfAllocFunc(void* user, cgltf_size size) {
+    return malloc(size);
+}
+
+static void cgltfFreeFunc(void* user, void* ptr) {
+    free(ptr);
+}
+
+static cgltf_result cgltfFileRead(const struct cgltf_memory_options* memoryOptions, const struct cgltf_file_options* fileOptions, const char* path, cgltf_size* size, void** data) {
+    int64_t fileSize;
+    uint8_t *pData = u_read_file(path, &fileSize);
+
+    if(pData == NULL)
+        return cgltf_result_io_error;
+
+    *size = fileSize;
+    *data = pData;
+
+    return cgltf_result_success;
+}
+
+static void cgltfFileRelease(const struct cgltf_memory_options* memoryOptions, const struct cgltf_file_options* fileOptions, void* data) {
+    cgltfFreeFunc(NULL, data);
 }

@@ -6,9 +6,6 @@
 #define QOI_IMPLEMENTATION
 #include "qoi.h"
 
-#define CGLTF_IMPLEMENTATION
-#include "cgltf.h"
-
 uint8_t* u_read_file(const char *const pFilepath, int64_t *pFileSize) {
     *pFileSize = 0;
 
@@ -66,63 +63,4 @@ void* u_qoi_read(const char *const pUTF8Filepath, qoi_desc *pDesc, int channels)
     free(pData);
 
     return pPixelData;
-}
-
-static void* cgltfAllocFunc(void* user, cgltf_size size);
-static void cgltfFreeFunc(void* user, void* ptr);
-static cgltf_result cgltfFileRead(const struct cgltf_memory_options* memory_options, const struct cgltf_file_options* file_options, const char* path, cgltf_size* size, void** data);
-static void cgltfFileRelease(const struct cgltf_memory_options* memory_options, const struct cgltf_file_options* file_options, void* data);
-
-cgltf_data* u_gltf_read(const char *const pUTF8Filepath, cgltf_result *pCGLTFResult) {
-    cgltf_options options = {0};
-    options.memory.alloc_func = cgltfAllocFunc;
-    options.memory.free_func  = cgltfFreeFunc;
-    options.file.read = cgltfFileRead;
-    options.file.release = cgltfFileRelease;
-
-    cgltf_data* data = NULL;
-    cgltf_result result = cgltf_parse_file(&options, pUTF8Filepath, &data);
-
-    if(pCGLTFResult != NULL)
-        *pCGLTFResult = result;
-
-    if (result != cgltf_result_success)
-        return NULL;
-
-    result = cgltf_load_buffers(&options, data, pUTF8Filepath);
-
-    if(pCGLTFResult != NULL)
-        *pCGLTFResult = result;
-
-    if (result != cgltf_result_success) {
-        cgltf_free(data);
-        return NULL;
-    }
-
-    return data;
-}
-
-static void* cgltfAllocFunc(void* user, cgltf_size size) {
-    return malloc(size);
-}
-
-static void cgltfFreeFunc(void* user, void* ptr) {
-    free(ptr);
-}
-
-static cgltf_result cgltfFileRead(const struct cgltf_memory_options* memoryOptions, const struct cgltf_file_options* fileOptions, const char* path, cgltf_size* size, void** data) {
-    int64_t fileSize;
-    uint8_t *pData = u_read_file(path, &fileSize);
-
-    if(pData == NULL)
-        return cgltf_result_io_error;
-
-    *size = fileSize;
-    *data = pData;
-
-    return cgltf_result_success;
-}
-
-static void cgltfFileRelease(const struct cgltf_memory_options* memoryOptions, const struct cgltf_file_options* fileOptions, void* data) {
-    cgltfFreeFunc(NULL, data);
 }

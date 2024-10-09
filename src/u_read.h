@@ -3,8 +3,6 @@
 
 #include <stdint.h>
 
-#include "cgltf.h"
-
 #define QOI_NO_STDIO // Use u_qoi_read instead.
 #include "qoi.h"
 
@@ -26,7 +24,5 @@ uint8_t* u_read_file(const char *const pUTF8Filepath, int64_t *pFileSize);
  * @return A valid pointer to the buffer that YOU MUST free() or a null on failure.
  */
 void* u_qoi_read(const char *const pUTF8Filepath, qoi_desc *pDesc, int channels);
-
-cgltf_data* u_gltf_read(const char *const pUTF8Filepath, cgltf_result *pCGLTFResult);
 
 #endif // READ_UTILITY_29
