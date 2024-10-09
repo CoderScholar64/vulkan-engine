@@ -327,7 +327,7 @@ VEngineResult v_transition_image_layout(Context *this, VkImage image, VkFormat f
     if(newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
         imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
 
-        if(v_has_stencil_component(format) == VK_TRUE)
+        if(v_buffer_has_stencil_component(format) == VK_TRUE)
             imageMemoryBarrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
     }
     else
@@ -514,7 +514,7 @@ VkFormat v_find_supported_format(Context *this, const VkFormat *const pCandidate
     return VK_FORMAT_UNDEFINED;
 }
 
-VkBool32 v_has_stencil_component(VkFormat format) {
+VkBool32 v_buffer_has_stencil_component(VkFormat format) {
     switch(format) {
         case  VK_FORMAT_S8_UINT:
         case  VK_FORMAT_D24_UNORM_S8_UINT:

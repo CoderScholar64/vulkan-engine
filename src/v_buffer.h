@@ -157,7 +157,7 @@ VkFormat v_find_supported_format(Context *this, const VkFormat *const pCandidate
 /**
  * @return If the format has a stencil component return VK_TRUE or else VK_FALSE.
  */
-VkBool32 v_has_stencil_component(VkFormat format);
+VkBool32 v_buffer_has_stencil_component(VkFormat format);
 
 /**
  * This function finds a valid sample count flag bit.
