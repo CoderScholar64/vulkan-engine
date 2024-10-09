@@ -22,6 +22,10 @@ void u_maze_delete_data(UMazeData *pMazeData);
 
 UMazeGenResult u_maze_gen(const UMazeData *const pMazeData, uint32_t seed, int genVertexGrid);
 
+/**
+ * Deallocate the maze result.
+ * @param pMazeGenResult The result to be deleted.
+ */
 void u_maze_delete_result(UMazeGenResult *pMazeGenResult);
 
 #endif // U_MAZE_29

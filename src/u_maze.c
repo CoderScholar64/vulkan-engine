@@ -127,8 +127,10 @@ UMazeGenResult u_maze_gen(const UMazeData *const pMazeData, uint32_t seed, int g
 
     mazeGenResult.pLinks = calloc(answerSize, sizeof(UMazeLink));
 
-    if(mazeGenResult.pLinks == NULL)
+    if(mazeGenResult.pLinks == NULL) {
+        free(pMem);
         return mazeGenResult;
+    }
 
     if(genVertexGrid && allocData(&mazeGenResult.vertexMazeData, pMazeData->vertexAmount, 2 * answerSize)) {
         for(size_t i = 0; i < mazeGenResult.vertexMazeData.vertexAmount; i++) {
