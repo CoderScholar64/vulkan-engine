@@ -3,7 +3,7 @@
 
 #include "u_maze_def.h"
 
-UMazeData u_maze_gen_data(unsigned width, unsigned height);
+UMazeData u_maze_gen_full_sq_grid(unsigned width, unsigned height);
 
 void u_maze_delete_data(UMazeData *pMazeData);
 

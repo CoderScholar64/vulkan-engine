@@ -28,7 +28,7 @@ static int allocData(UMazeData *pMazeData, size_t vertexAmount, size_t linkAmoun
     return 1;
 }
 
-UMazeData u_maze_gen_data(unsigned width, unsigned height) {
+UMazeData u_maze_gen_full_sq_grid(unsigned width, unsigned height) {
     assert(width >= 2);
     assert(height >= 2);
 
