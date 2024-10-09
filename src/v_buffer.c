@@ -71,7 +71,7 @@ VEngineResult v_alloc_buffer(Context *this, VkDeviceSize size, VkBufferUsageFlag
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-VEngineResult v_alloc_static_buffer(Context *this, const void *pData, size_t sizeOfData, VkBuffer *pBuffer, VkBufferUsageFlags usageFlags, VkDeviceMemory *pBufferMemory) {
+VEngineResult v_buffer_alloc_static(Context *this, const void *pData, size_t sizeOfData, VkBuffer *pBuffer, VkBufferUsageFlags usageFlags, VkDeviceMemory *pBufferMemory) {
     VEngineResult engineResult;
 
     VkBuffer       stagingBuffer;

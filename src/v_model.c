@@ -235,7 +235,7 @@ VEngineResult v_load_models(Context *this, const char *const pUTF8Filepath, unsi
 
         pVModel[mesh_index].vertexOffset = indexBufferSize;
 
-        v_alloc_static_buffer(this, pIndexedBuffer, indexBufferSize + sizeof(Vertex) * vertexAmount, &pVModel[mesh_index].buffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, &pVModel[mesh_index].bufferMemory);
+        v_buffer_alloc_static(this, pIndexedBuffer, indexBufferSize + sizeof(Vertex) * vertexAmount, &pVModel[mesh_index].buffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, &pVModel[mesh_index].bufferMemory);
 
         free(pLoadBuffer);
 

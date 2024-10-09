@@ -34,7 +34,7 @@ VEngineResult v_alloc_buffer(Context *this, VkDeviceSize size, VkBufferUsageFlag
  * @param pBufferMemory An unallocated reference to a vulkan memory buffer. @warning Make sure that pBufferMemory is unallocated before hand.
  * @return A VEngineResult. If its type is VE_SUCCESS then this buffer is successfully created
  */
-VEngineResult v_alloc_static_buffer(Context *this, const void *pData, size_t sizeOfData, VkBuffer *pBuffer, VkBufferUsageFlags usageFlags, VkDeviceMemory *pBufferMemory);
+VEngineResult v_buffer_alloc_static(Context *this, const void *pData, size_t sizeOfData, VkBuffer *pBuffer, VkBufferUsageFlags usageFlags, VkDeviceMemory *pBufferMemory);
 
 /**
  * This function allocates a built-in uniform buffer to the context.
