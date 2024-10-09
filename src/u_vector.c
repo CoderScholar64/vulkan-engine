@@ -57,7 +57,7 @@ int u_vector_scale(UVector *pVector, size_t size) {
 
 static inline size_t getCapacitySize(size_t size) {
     if(size > 512)
-        return size / 512 + 512 * (size % 512 != 0);
+        return 512 * (size / 512 + (size % 512 != 0));
     else if(size > 256)
         return 512;
     else if(size > 128)
