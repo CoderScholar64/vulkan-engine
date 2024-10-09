@@ -133,7 +133,7 @@ VEngineResult v_init_alloc(Context *this) {
     if( returnCode.type < 0 )
         return returnCode;
 
-    returnCode = v_load_models(this, "model.glb", &this->vk.modelAmount, &this->vk.pModels);
+    returnCode = v_model_load(this, "model.glb", &this->vk.modelAmount, &this->vk.pModels);
     if( returnCode.type < 0 )
         return returnCode;
 

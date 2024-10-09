@@ -155,7 +155,7 @@ VEngineResult v_record_command_buffer(Context *this, VkCommandBuffer commandBuff
 
     for(unsigned m = 0; m < this->vk.modelArrayAmount; m++) {
         if(this->vk.ppVModelArray[m]->pModelData != NULL)
-            v_record_model_draws(this, commandBuffer, this->vk.ppVModelArray[m]->pModelData, this->vk.ppVModelArray[m]->instanceAmount, this->vk.ppVModelArray[m]->instances);
+            v_model_draw_record(this, commandBuffer, this->vk.ppVModelArray[m]->pModelData, this->vk.ppVModelArray[m]->instanceAmount, this->vk.ppVModelArray[m]->instances);
     }
 
     vkCmdEndRenderPass(commandBuffer);

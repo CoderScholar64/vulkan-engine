@@ -13,7 +13,7 @@ static cgltf_result cgltfFileRead(const struct cgltf_memory_options* memory_opti
 static void cgltfFileRelease(const struct cgltf_memory_options* memory_options, const struct cgltf_file_options* file_options, void* data);
 static cgltf_data* cgltfReadFile(const char *const pUTF8Filepath, cgltf_result *pCGLTFResult);
 
-VEngineResult v_load_models(Context *this, const char *const pUTF8Filepath, unsigned *pModelAmount, VModelData **ppVModelData) {
+VEngineResult v_model_load(Context *this, const char *const pUTF8Filepath, unsigned *pModelAmount, VModelData **ppVModelData) {
     *pModelAmount = 0;
     *ppVModelData = NULL;
 
@@ -248,7 +248,7 @@ VEngineResult v_load_models(Context *this, const char *const pUTF8Filepath, unsi
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-void v_record_model_draws(Context *this, VkCommandBuffer commandBuffer, VModelData *pModelData, unsigned numInstances, PushConstantObject *pPushConstantObjects) {
+void v_model_draw_record(Context *this, VkCommandBuffer commandBuffer, VModelData *pModelData, unsigned numInstances, PushConstantObject *pPushConstantObjects) {
     PushConstantObject pushConstantObject;
 
     VkBuffer vertexBuffers[] = {pModelData->buffer};
