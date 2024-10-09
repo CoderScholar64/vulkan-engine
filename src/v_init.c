@@ -1395,7 +1395,7 @@ static VEngineResult allocateTextureImage(Context *this) {
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
 
-    VEngineResult engineResult = v_alloc_buffer(this, mipmapSizeSq, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, &stagingBufferMemory);
+    VEngineResult engineResult = v_buffer_alloc(this, mipmapSizeSq, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, &stagingBufferMemory);
 
     if(engineResult.type != VE_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to make staging buffer for allocateTextureImage");

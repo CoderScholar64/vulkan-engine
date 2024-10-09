@@ -17,7 +17,7 @@ const VkVertexInputAttributeDescription vertexInputAttributeDescriptions[3] = {
     {       2,       0,    VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, texCoord)}
 };
 
-VEngineResult v_alloc_buffer(Context *this, VkDeviceSize size, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags, VkBuffer *pBuffer, VkDeviceMemory *pBufferMemory) {
+VEngineResult v_buffer_alloc(Context *this, VkDeviceSize size, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags, VkBuffer *pBuffer, VkDeviceMemory *pBufferMemory) {
     VkResult result;
 
     VkBufferCreateInfo bufferCreateInfo = {0};
@@ -77,7 +77,7 @@ VEngineResult v_buffer_alloc_static(Context *this, const void *pData, size_t siz
     VkBuffer       stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
 
-    engineResult = v_alloc_buffer(
+    engineResult = v_buffer_alloc(
                 this,
                 sizeOfData,
                 VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
@@ -94,7 +94,7 @@ VEngineResult v_buffer_alloc_static(Context *this, const void *pData, size_t siz
     memcpy(pDstData, pData, sizeOfData);
     vkUnmapMemory(this->vk.device, stagingBufferMemory);
 
-    engineResult = v_alloc_buffer(
+    engineResult = v_buffer_alloc(
                 this,
                 sizeOfData,
                 VK_BUFFER_USAGE_TRANSFER_DST_BIT | usageFlags,
@@ -124,7 +124,7 @@ VEngineResult v_buffer_alloc_builtin_uniform(Context *this) {
     VEngineResult engineResult;
 
     for(uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        engineResult = v_alloc_buffer(
+        engineResult = v_buffer_alloc(
             this,
             sizeof(UniformBufferObject),
             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
