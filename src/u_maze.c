@@ -28,35 +28,33 @@ static int allocData(UMazeData *pMazeData, size_t vertexAmount, size_t linkAmoun
     return 1;
 }
 
-UMazeData u_maze_gen_full_sq_grid(unsigned width, unsigned height) {
+int u_maze_gen_full_sq_grid(UMazeData *pMazeData, unsigned width, unsigned depth) {
     assert(width >= 2);
-    assert(height >= 2);
+    assert(depth >= 2);
 
     const size_t AMOUNT_OF_RECT_CORNERS = 4;
-    size_t amountOfRectEdges = 2 * ((width - 2) + (height - 2));
-    size_t amountOfRectMiddles = (width - 2) * (height - 2);
+    size_t amountOfRectEdges = 2 * ((width - 2) + (depth - 2));
+    size_t amountOfRectMiddles = (width - 2) * (depth - 2);
 
-    size_t totalVertices = width * height;
+    size_t totalVertices = width * depth;
     size_t totalLinks    = 4 * amountOfRectMiddles + 3 * amountOfRectEdges + 2 * AMOUNT_OF_RECT_CORNERS;
 
-    UMazeData mazeData = {0};
+    if(!allocData(pMazeData, totalVertices, totalLinks))
+        return 0;
 
-    if(!allocData(&mazeData, totalVertices, totalLinks))
-        return mazeData;
+    size_t *pVertexLinkArray = pMazeData->pVertexLinkArray;
 
-    size_t *pVertexLinkArray = mazeData.pVertexLinkArray;
-
-    for(unsigned y = 0; y < height; y++) {
+    for(unsigned y = 0; y < depth; y++) {
         for(unsigned x = 0; x < width; x++) {
             size_t offset = y * width + x;
-            UMazeVertex *pCurVert = &mazeData.pVertices[offset];
+            UMazeVertex *pCurVert = &pMazeData->pVertices[offset];
 
             pCurVert->linkAmount          = 0;
             pCurVert->metadata.position.x = x;
             pCurVert->metadata.position.y = y;
             pCurVert->pVertexLinkIndexes  = pVertexLinkArray;
 
-            if(offset + 1 < mazeData.vertexAmount && (offset + 1) % width != 0) {
+            if(offset + 1 < pMazeData->vertexAmount && (offset + 1) % width != 0) {
                 pCurVert->pVertexLinkIndexes[pCurVert->linkAmount] = offset + 1;
                 pCurVert->linkAmount++;
 #ifdef DEBUG_U_MAZE
@@ -70,7 +68,7 @@ UMazeData u_maze_gen_full_sq_grid(unsigned width, unsigned height) {
                 SDL_Log( "pVertices[%li] links to %li", offset, offset - 1);
 #endif
             }
-            if(offset + width < mazeData.vertexAmount) {
+            if(offset + width < pMazeData->vertexAmount) {
                 pCurVert->pVertexLinkIndexes[pCurVert->linkAmount] = offset + width;
                 pCurVert->linkAmount++;
 #ifdef DEBUG_U_MAZE
@@ -89,7 +87,7 @@ UMazeData u_maze_gen_full_sq_grid(unsigned width, unsigned height) {
         }
     }
 
-    return mazeData;
+    return 1;
 }
 
 void u_maze_delete_data(UMazeData *pMazeData) {

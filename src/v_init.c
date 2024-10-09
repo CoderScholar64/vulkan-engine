@@ -156,7 +156,8 @@ VEngineResult v_init(Context *this) {
         printf("Model name = %s. Length = %zu decodedIndex = %i\n", this->vk.pModels[i].name, lengthOfName, decodedIndex);
     }
 
-    UMazeData mazeData = u_maze_gen_full_sq_grid(4, 5);
+    UMazeData mazeData = {0};
+    u_maze_gen_full_sq_grid(&mazeData, 4, 5);
     UMazeGenResult mazeGenResult = u_maze_gen(&mazeData, 555, 1);
 
     size_t mazePieceAmounts[16] = { 0 };
