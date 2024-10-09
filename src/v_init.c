@@ -193,7 +193,7 @@ VEngineResult v_init_alloc(Context *this) {
 
     void *pMem = malloc(
         (sizeof(VModelArray*) + sizeof(VModelArray)) * (sizeof(mazePieceAmounts) / sizeof(mazePieceAmounts[0])) +
-        sizeof(PushConstantObject) * mazeGenResult.vertexMazeData.vertexAmount);
+        sizeof(VBufferPushConstantObject) * mazeGenResult.vertexMazeData.vertexAmount);
     this->vk.ppVModelArray = pMem;
 
     pMem += sizeof(VModelArray*) * (sizeof(mazePieceAmounts) / sizeof(mazePieceAmounts[0]));
@@ -203,7 +203,7 @@ VEngineResult v_init_alloc(Context *this) {
         this->vk.ppVModelArray[i]->pModelData = pMazeIndexes[i];
         this->vk.ppVModelArray[i]->instanceAmount = mazePieceAmounts[i];
 
-        pMem += sizeof(VModelArray) + this->vk.ppVModelArray[i]->instanceAmount * sizeof(PushConstantObject);
+        pMem += sizeof(VModelArray) + this->vk.ppVModelArray[i]->instanceAmount * sizeof(VBufferPushConstantObject);
 
         mazePieceAmounts[i] = 0;
     }
@@ -1086,9 +1086,9 @@ static VEngineResult allocateGraphicsPipeline(Context *this) {
     VkPipelineVertexInputStateCreateInfo pipelineVertexInputStateCreateInfo = {0};
     pipelineVertexInputStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     pipelineVertexInputStateCreateInfo.vertexBindingDescriptionCount = 1;
-    pipelineVertexInputStateCreateInfo.pVertexBindingDescriptions = &vertexBindingDescription;
-    pipelineVertexInputStateCreateInfo.vertexAttributeDescriptionCount = sizeof(vertexInputAttributeDescriptions) / sizeof(vertexInputAttributeDescriptions[0]);
-    pipelineVertexInputStateCreateInfo.pVertexAttributeDescriptions = vertexInputAttributeDescriptions;
+    pipelineVertexInputStateCreateInfo.pVertexBindingDescriptions = &vBufferVertexBindingDescription;
+    pipelineVertexInputStateCreateInfo.vertexAttributeDescriptionCount = sizeof(vBufferVertexInputAttributeDescriptions) / sizeof(vBufferVertexInputAttributeDescriptions[0]);
+    pipelineVertexInputStateCreateInfo.pVertexAttributeDescriptions = vBufferVertexInputAttributeDescriptions;
 
     VkPipelineInputAssemblyStateCreateInfo pipelineInputAssemblyStateCreateInfo = {0};
     pipelineInputAssemblyStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -1185,7 +1185,7 @@ static VEngineResult allocateGraphicsPipeline(Context *this) {
 
     VkPushConstantRange pushConstant = {0};
     pushConstant.offset = 0;
-    pushConstant.size = sizeof(PushConstantObject);
+    pushConstant.size = sizeof(VBufferPushConstantObject);
     pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
     pipelineLayoutInfo.pushConstantRangeCount = 1; // OPTIONAL
@@ -1586,7 +1586,7 @@ static VEngineResult allocateDescriptorSets(Context *this) {
 
     VkDescriptorBufferInfo descriptorBufferInfo;
     descriptorBufferInfo.offset = 0;
-    descriptorBufferInfo.range = sizeof(UniformBufferObject);
+    descriptorBufferInfo.range = sizeof(VBufferUniformBufferObject);
 
     VkDescriptorImageInfo descriptorImageInfo;
     descriptorImageInfo.sampler = this->vk.defaultTextureSampler;

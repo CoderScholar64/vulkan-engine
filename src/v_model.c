@@ -177,7 +177,7 @@ VEngineResult v_model_load(Context *this, const char *const pUTF8Filepath, unsig
 
         SDL_Log("\n  Name = %s\n  Buffer size = %li", pVModel[mesh_index].name, loadBufferSize);
 
-        void *pLoadBuffer = malloc(loadBufferSize + indexBufferSize + sizeof(Vertex) * vertexAmount);
+        void *pLoadBuffer = malloc(loadBufferSize + indexBufferSize + sizeof(VBufferVertex) * vertexAmount);
 
         if(pLoadBuffer == NULL || pVModel == NULL) {
             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to allocate a %li large buffer", loadBufferSize);
@@ -186,8 +186,8 @@ VEngineResult v_model_load(Context *this, const char *const pUTF8Filepath, unsig
             RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 9)
         }
 
-        void   *pIndexedBuffer    = pLoadBuffer + (loadBufferSize);
-        Vertex *pInterlacedBuffer = pLoadBuffer + (loadBufferSize + indexBufferSize);
+        void             *pIndexedBuffer = pLoadBuffer + (loadBufferSize);
+        VBufferVertex *pInterlacedBuffer = pLoadBuffer + (loadBufferSize + indexBufferSize);
 
         if(pIndices != NULL) {
             cgltf_accessor_unpack_indices(pIndices, pIndexedBuffer, indexComponentSize, pIndices->count);
@@ -199,7 +199,7 @@ VEngineResult v_model_load(Context *this, const char *const pUTF8Filepath, unsig
 
         SDL_Log( "components = %li", positionNumComponent);
 
-        const Vertex defaultVertex = {{0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}};
+        const VBufferVertex defaultVertex = {{0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}};
         for(cgltf_size v = 0; v < vertexAmount; v++) {
             pInterlacedBuffer[v].pos.x = ((float*)pLoadBuffer)[positionNumComponent * v + 0];
             pInterlacedBuffer[v].pos.z = ((float*)pLoadBuffer)[positionNumComponent * v + 1];
@@ -235,7 +235,7 @@ VEngineResult v_model_load(Context *this, const char *const pUTF8Filepath, unsig
 
         pVModel[mesh_index].vertexOffset = indexBufferSize;
 
-        v_buffer_alloc_static(this, pIndexedBuffer, indexBufferSize + sizeof(Vertex) * vertexAmount, &pVModel[mesh_index].buffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, &pVModel[mesh_index].bufferMemory);
+        v_buffer_alloc_static(this, pIndexedBuffer, indexBufferSize + sizeof(VBufferVertex) * vertexAmount, &pVModel[mesh_index].buffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, &pVModel[mesh_index].bufferMemory);
 
         free(pLoadBuffer);
 
@@ -248,8 +248,8 @@ VEngineResult v_model_load(Context *this, const char *const pUTF8Filepath, unsig
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-void v_model_draw_record(Context *this, VkCommandBuffer commandBuffer, VModelData *pModelData, unsigned numInstances, PushConstantObject *pPushConstantObjects) {
-    PushConstantObject pushConstantObject;
+void v_model_draw_record(Context *this, VkCommandBuffer commandBuffer, VModelData *pModelData, unsigned numInstances, VBufferPushConstantObject *pPushConstantObjects) {
+    VBufferPushConstantObject pushConstantObject;
 
     VkBuffer vertexBuffers[] = {pModelData->buffer};
     VkDeviceSize offsets[] = {pModelData->vertexOffset};

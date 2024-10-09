@@ -19,7 +19,7 @@ typedef struct VModelData {
 typedef struct VModelArray {
     VModelData *pModelData; // Reference do not delete.
     size_t instanceAmount;
-    PushConstantObject instances[];
+    VBufferPushConstantObject instances[];
 } VModelArray;
 
 #endif // V_MODEL_DEF_29

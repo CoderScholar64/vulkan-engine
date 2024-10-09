@@ -7,17 +7,17 @@ typedef struct {
     Vector3 pos;
     Vector3 color;
     Vector2 texCoord;
-} Vertex;
+} VBufferVertex;
 
 typedef struct {
     Vector4 color;
-} UniformBufferObject;
+} VBufferUniformBufferObject;
 
 typedef struct {
     Matrix matrix;
-} PushConstantObject;
+} VBufferPushConstantObject;
 
-extern const VkVertexInputBindingDescription vertexBindingDescription;
-extern const VkVertexInputAttributeDescription vertexInputAttributeDescriptions[3];
+extern const VkVertexInputBindingDescription vBufferVertexBindingDescription;
+extern const VkVertexInputAttributeDescription vBufferVertexInputAttributeDescriptions[3];
 
 #endif // V_BUFFER_DEFINE_29

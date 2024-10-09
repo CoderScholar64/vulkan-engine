@@ -5,16 +5,16 @@
 
 #include "SDL_log.h"
 
-const VkVertexInputBindingDescription vertexBindingDescription = {
-//  binding,         stride,                   inputRate
-          0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX
+const VkVertexInputBindingDescription vBufferVertexBindingDescription = {
+//  binding,                stride,                   inputRate
+          0, sizeof(VBufferVertex), VK_VERTEX_INPUT_RATE_VERTEX
 };
 
-const VkVertexInputAttributeDescription vertexInputAttributeDescriptions[3] = {
-//   location, binding,                     format,                    offset
-    {       0,       0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex,      pos)},
-    {       1,       0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex,    color)},
-    {       2,       0,    VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, texCoord)}
+const VkVertexInputAttributeDescription vBufferVertexInputAttributeDescriptions[3] = {
+//   location, binding,                     format,                           offset
+    {       0,       0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(VBufferVertex,      pos)},
+    {       1,       0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(VBufferVertex,    color)},
+    {       2,       0,    VK_FORMAT_R32G32_SFLOAT, offsetof(VBufferVertex, texCoord)}
 };
 
 VEngineResult v_buffer_alloc(Context *this, VkDeviceSize size, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags, VkBuffer *pBuffer, VkDeviceMemory *pBufferMemory) {
@@ -126,7 +126,7 @@ VEngineResult v_buffer_alloc_builtin_uniform(Context *this) {
     for(uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         engineResult = v_buffer_alloc(
             this,
-            sizeof(UniformBufferObject),
+            sizeof(VBufferUniformBufferObject),
             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
             &this->vk.frames[i].uniformBuffer,
@@ -137,9 +137,9 @@ VEngineResult v_buffer_alloc_builtin_uniform(Context *this) {
             return engineResult;
         }
 
-        vkMapMemory(this->vk.device, this->vk.frames[i].uniformBufferMemory, 0, sizeof(UniformBufferObject), 0, &this->vk.frames[i].uniformBufferMapped);
+        vkMapMemory(this->vk.device, this->vk.frames[i].uniformBufferMemory, 0, sizeof(VBufferUniformBufferObject), 0, &this->vk.frames[i].uniformBufferMapped);
 
-        UniformBufferObject ubo = { {1, 1, 1, 1} };
+        VBufferUniformBufferObject ubo = { {1, 1, 1, 1} };
 
         memcpy(this->vk.frames[i].uniformBufferMapped, &ubo, sizeof(ubo));
     }
