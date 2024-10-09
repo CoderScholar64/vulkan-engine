@@ -51,7 +51,7 @@ static VEngineResult allocateDescriptorSets(Context *this);
 static void cleanupSwapChain(Context *this);
 
 
-VEngineResult v_init(Context *this) {
+VEngineResult v_init_alloc(Context *this) {
     // Clear the entire vulkan context.
     memset(&this->vk, 0, sizeof(this->vk));
 
@@ -251,7 +251,7 @@ VEngineResult v_init(Context *this) {
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-void v_deinit(Context *this) {
+void v_init_dealloc(Context *this) {
     vkDeviceWaitIdle(this->vk.device);
 
     cleanupSwapChain(this);
@@ -293,7 +293,7 @@ void v_deinit(Context *this) {
     vkDestroyInstance(this->vk.instance, NULL);
 }
 
-VEngineResult v_recreate_swap_chain(Context *this) {
+VEngineResult v_init_recreate_swap_chain(Context *this) {
     VEngineResult returnCode;
 
     vkDeviceWaitIdle(this->vk.device);

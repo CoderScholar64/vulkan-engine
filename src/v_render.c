@@ -27,7 +27,7 @@ VEngineResult v_draw_frame(Context *this, float delta) {
     if(result == VK_TIMEOUT)
         RETURN_RESULT_CODE(VE_TIME_OUT, 1) // Cancel drawing the frame then.
     else if(result == VK_ERROR_OUT_OF_DATE_KHR) {
-        returnCode = v_recreate_swap_chain(this);
+        returnCode = v_init_recreate_swap_chain(this);
 
         // Cancel drawing the frame as well.
         if(returnCode.type == VE_SUCCESS)
@@ -85,7 +85,7 @@ VEngineResult v_draw_frame(Context *this, float delta) {
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || this->forceSwapChainRegen == 1) {
         this->forceSwapChainRegen = 0;
-        returnCode = v_recreate_swap_chain(this);
+        returnCode = v_init_recreate_swap_chain(this);
     }
     else if(result != VK_SUCCESS) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_draw_frame: queue present failed %i aborting!", result);

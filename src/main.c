@@ -148,7 +148,7 @@ int main(int argc, char **argv) {
 
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
-    returnCode = v_init(&context);
+    returnCode = v_init_alloc(&context);
 
     const static Vector3 yAxis = {0.0f, 1.0f, 0.0f};
     const static Vector3 zAxis = {0.0f, 0.0f, 1.0f};
@@ -161,13 +161,13 @@ int main(int argc, char **argv) {
     context.modelView = MatrixMultiply(MatrixTranslate(context.position.x, context.position.y, context.position.z), QuaternionToMatrix(quaterion));
 
     if( returnCode.type < 0 ) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Thus v_init() failed with SDL code %s, or return code %i point %i", SDL_GetError(), returnCode.type, returnCode.point);
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Thus v_init_alloc() failed with SDL code %s, or return code %i point %i", SDL_GetError(), returnCode.type, returnCode.point);
     }
     else {
         loop();
     }
 
-    v_deinit(&context);
+    v_init_dealloc(&context);
     SDL_DestroyWindow(context.pWindow);
 
     return returnCode.type;
