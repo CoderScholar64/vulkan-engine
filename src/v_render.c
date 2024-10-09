@@ -4,7 +4,7 @@
 #include "v_init.h"
 #include "v_model.h"
 
-VEngineResult v_draw_frame(Context *this, float delta) {
+VEngineResult v_render_frame(Context *this, float delta) {
     const uint64_t TIME_OUT_NS = 25000000;
 
     VkResult result;
@@ -18,7 +18,7 @@ VEngineResult v_draw_frame(Context *this, float delta) {
     if(result == VK_TIMEOUT)
         RETURN_RESULT_CODE(VE_TIME_OUT, 0) // Cancel drawing the frame then.
     else if(result < VK_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_draw_frame: in flight fence had failed with %i aborting!", result);
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_render_frame: in flight fence had failed with %i aborting!", result);
         RETURN_RESULT_CODE(VE_DRAW_FRAME_FAILURE, 0) // Program had encountered a problem!
     }
 
@@ -36,7 +36,7 @@ VEngineResult v_draw_frame(Context *this, float delta) {
         return returnCode;
     }
     else if(result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_draw_frame: failed vkAcquireNextImageKHR with code %i aborting!", result);
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_render_frame: failed vkAcquireNextImageKHR with code %i aborting!", result);
         RETURN_RESULT_CODE(VE_DRAW_FRAME_FAILURE, 1) // Program had encountered a problem!
     }
 
@@ -45,7 +45,7 @@ VEngineResult v_draw_frame(Context *this, float delta) {
 
     vkResetCommandBuffer(this->vk.frames[this->vk.currentFrame].commandBuffer, 0);
 
-    v_record_command_buffer(this, this->vk.frames[this->vk.currentFrame].commandBuffer, imageIndex);
+    v_render_record_command_buffer(this, this->vk.frames[this->vk.currentFrame].commandBuffer, imageIndex);
 
     VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
 
@@ -65,7 +65,7 @@ VEngineResult v_draw_frame(Context *this, float delta) {
     result = vkQueueSubmit(this->vk.graphicsQueue, 1, &submitInfo, this->vk.frames[this->vk.currentFrame].inFlightFence);
 
     if(result != VK_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_draw_frame: failed to submit to queue code %i aborting!", result);
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_render_frame: failed to submit to queue code %i aborting!", result);
         RETURN_RESULT_CODE(VE_DRAW_FRAME_FAILURE, 2) // Program had encountered a problem!
     }
 
@@ -88,7 +88,7 @@ VEngineResult v_draw_frame(Context *this, float delta) {
         returnCode = v_init_recreate_swap_chain(this);
     }
     else if(result != VK_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_draw_frame: queue present failed %i aborting!", result);
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_render_frame: queue present failed %i aborting!", result);
         RETURN_RESULT_CODE(VE_DRAW_FRAME_FAILURE, 3)
     }
 
@@ -97,7 +97,7 @@ VEngineResult v_draw_frame(Context *this, float delta) {
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-VEngineResult v_record_command_buffer(Context *this, VkCommandBuffer commandBuffer, uint32_t imageIndex) {
+VEngineResult v_render_record_command_buffer(Context *this, VkCommandBuffer commandBuffer, uint32_t imageIndex) {
     VkResult result;
 
     VkCommandBufferBeginInfo commandBufferBeginInfo = {0};

@@ -123,7 +123,7 @@ void loop() {
         }
 
         if(!isWindowMinimized) {
-            vResult = v_draw_frame(&context, delta);
+            vResult = v_render_frame(&context, delta);
 
             if(vResult.type < 0)
                 return;

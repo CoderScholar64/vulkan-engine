@@ -12,7 +12,7 @@
  * @param this being the context used to draw the frame.
  * @return A VEngineResult. If its type is VE_SUCCESS then this function had drawn something on the screen. If VE_TIME_OUT then nothing is drawn, if there is any error then the vulkan instance is crashed.
  */
-VEngineResult v_draw_frame(Context *this, float delta);
+VEngineResult v_render_frame(Context *this, float delta);
 
 /**
  * Record a command buffer.
@@ -23,8 +23,6 @@ VEngineResult v_draw_frame(Context *this, float delta);
  * @param imageIndex The index in the swap chain to overwrite.
  * @return A VEngineResult. If its type is VE_SUCCESS then this function had drawn something on the screen otherwise VE_RECORD_COMMAND_BUFFER_FAILURE and whatever point to where it failed.
  */
-VEngineResult v_record_command_buffer(Context *this, VkCommandBuffer commandBuffer, uint32_t imageIndex);
-
-PushConstantObject v_setup_pco(Context *this, Vector3 position, float unit90Degrees);
+VEngineResult v_render_record_command_buffer(Context *this, VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
 #endif // V_RENDER_29
