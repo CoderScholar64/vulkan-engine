@@ -3,6 +3,12 @@
 
 #include <stdint.h>
 
+/**
+ * This generates a random number.
+ * @warning Do not use this for cryptography. It is only to be used for gameplay or world generation purposes.
+ * @param pSeed This parameter is the seed of the random number. It will be modified.
+ * @return The same value as pSeed what pSeed points to.
+ */
 static inline uint32_t u_random_xorshift32(uint32_t *pSeed) {
     uint32_t n = *pSeed;
 
