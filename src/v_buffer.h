@@ -59,7 +59,7 @@ VEngineResult v_alloc_builtin_uniform_buffers(Context *this);
  * @param pImageMemory The memory where the image would reside. @warning This must point to a VkDeviceMemory that is not initialized yet.
  * @return A VEngineResult. If its type is VE_SUCCESS then srcBuffer is successfully copied to dstBuffer. If VE_ALLOC_IMAGE_FAILURE then Vulkan had found a problem
  */
-VEngineResult v_alloc_image(Context *this, uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage *pImage, VkDeviceMemory *pImageMemory);
+VEngineResult v_buffer_alloc_image(Context *this, uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage *pImage, VkDeviceMemory *pImageMemory);
 
 /**
  * This function copies the srcBuffer to dstBuffer via Vulkan.

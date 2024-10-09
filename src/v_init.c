@@ -1308,10 +1308,10 @@ static VEngineResult allocateColorResources(Context *this) {
 
     VkFormat colorFormat = this->vk.surfaceFormat.format;
 
-    engineResult = v_alloc_image(this, this->vk.swapExtent.width, this->vk.swapExtent.height, 1, this->vk.mmaa.samples, colorFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &this->vk.mmaa.image, &this->vk.mmaa.imageMemory);
+    engineResult = v_buffer_alloc_image(this, this->vk.swapExtent.width, this->vk.swapExtent.height, 1, this->vk.mmaa.samples, colorFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &this->vk.mmaa.image, &this->vk.mmaa.imageMemory);
 
     if(engineResult.type != VE_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_alloc_image creation failed with result: %i", engineResult.point);
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_buffer_alloc_image creation failed with result: %i", engineResult.point);
         RETURN_RESULT_CODE(VE_ALLOC_COLOR_BUFFER_FAILURE, 0)
     }
 
@@ -1328,7 +1328,7 @@ static VEngineResult allocateColorResources(Context *this) {
 static VEngineResult allocateDepthResources(Context *this) {
     VEngineResult engineResult;
 
-    engineResult = v_alloc_image(
+    engineResult = v_buffer_alloc_image(
         this,
         this->vk.swapExtent.width, this->vk.swapExtent.height,
         1,
@@ -1340,7 +1340,7 @@ static VEngineResult allocateDepthResources(Context *this) {
         &this->vk.depthImage, &this->vk.depthImageMemory);
 
     if(engineResult.type != VE_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_alloc_image creation failed with result: %i", engineResult.point);
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_buffer_alloc_image creation failed with result: %i", engineResult.point);
         RETURN_RESULT_CODE(VE_ALLOC_DEPTH_BUFFER_FAILURE, 0)
     }
 
@@ -1427,10 +1427,10 @@ static VEngineResult allocateTextureImage(Context *this) {
     }
     vkUnmapMemory(this->vk.device, stagingBufferMemory);
 
-    engineResult = v_alloc_image(this, QOIdescription.width, QOIdescription.height, this->vk.texture.mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &this->vk.texture.image, &this->vk.texture.imageMemory);
+    engineResult = v_buffer_alloc_image(this, QOIdescription.width, QOIdescription.height, this->vk.texture.mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &this->vk.texture.image, &this->vk.texture.imageMemory);
 
     if(engineResult.type != VE_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_alloc_image had failed with %i", engineResult.point);
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_buffer_alloc_image had failed with %i", engineResult.point);
         RETURN_RESULT_CODE(VE_ALLOC_TEXTURE_IMAGE_FAILURE, 2)
     }
 
