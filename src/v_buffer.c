@@ -526,7 +526,7 @@ VkBool32 v_has_stencil_component(VkFormat format) {
     }
 }
 
-VkSampleCountFlagBits v_find_closet_flag_bit(Context *this, VkSampleCountFlagBits flags) {
+VkSampleCountFlagBits v_buffer_sample_flag_bit(Context *this, VkSampleCountFlagBits flags) {
     VkPhysicalDeviceProperties physicalDeviceProperties;
     vkGetPhysicalDeviceProperties(this->vk.physicalDevice, &physicalDeviceProperties);
 

@@ -159,6 +159,13 @@ VkFormat v_find_supported_format(Context *this, const VkFormat *const pCandidate
  */
 VkBool32 v_has_stencil_component(VkFormat format);
 
-VkSampleCountFlagBits v_find_closet_flag_bit(Context *this, VkSampleCountFlagBits flags);
+/**
+ * This function finds a valid sample count flag bit.
+ * @warning Make sure that v_init() is called first.
+ * @param this The primary Context of the program.
+ * @param flags The sample count flag to use for the GPU. @warning Only use ONE single flag.
+ * @return At least VK_SAMPLE_COUNT_1_BIT or more depending what the physical device used for the given Context.
+ */
+VkSampleCountFlagBits v_buffer_sample_flag_bit(Context *this, VkSampleCountFlagBits flags);
 
 #endif // V_MEMORY_29
