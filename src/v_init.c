@@ -856,10 +856,10 @@ static VEngineResult allocateSwapChainImageViews(Context *this) {
     VEngineResult engineResult;
 
     for(uint32_t i = 0; i < this->vk.swapChainFrameCount; i++) {
-        engineResult = v_alloc_image_view(this, this->vk.pSwapChainFrames[i].image, this->vk.surfaceFormat.format, 0, VK_IMAGE_ASPECT_COLOR_BIT, &this->vk.pSwapChainFrames[i].imageView, 1);
+        engineResult = v_buffer_alloc_image_view(this, this->vk.pSwapChainFrames[i].image, this->vk.surfaceFormat.format, 0, VK_IMAGE_ASPECT_COLOR_BIT, &this->vk.pSwapChainFrames[i].imageView, 1);
 
         if(engineResult.type != VE_SUCCESS) {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_alloc_image_view failed at index %i for allocate returned %i", i, engineResult.point);
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_buffer_alloc_image_view failed at index %i for allocate returned %i", i, engineResult.point);
             RETURN_RESULT_CODE(VE_ALLOC_SWAP_CHAIN_I_V_FAILURE, i)
         }
     }
@@ -1315,10 +1315,10 @@ static VEngineResult allocateColorResources(Context *this) {
         RETURN_RESULT_CODE(VE_ALLOC_COLOR_BUFFER_FAILURE, 0)
     }
 
-    engineResult = v_alloc_image_view(this, this->vk.mmaa.image, colorFormat, 0, VK_IMAGE_ASPECT_COLOR_BIT, &this->vk.mmaa.imageView, 1);
+    engineResult = v_buffer_alloc_image_view(this, this->vk.mmaa.image, colorFormat, 0, VK_IMAGE_ASPECT_COLOR_BIT, &this->vk.mmaa.imageView, 1);
 
     if(engineResult.type != VE_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_alloc_image_view creation failed with result: %i", engineResult.point);
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_buffer_alloc_image_view creation failed with result: %i", engineResult.point);
         RETURN_RESULT_CODE(VE_ALLOC_COLOR_BUFFER_FAILURE, 1)
     }
 
@@ -1344,10 +1344,10 @@ static VEngineResult allocateDepthResources(Context *this) {
         RETURN_RESULT_CODE(VE_ALLOC_DEPTH_BUFFER_FAILURE, 0)
     }
 
-    engineResult = v_alloc_image_view(this, this->vk.depthImage, this->vk.depthFormat, 0, VK_IMAGE_ASPECT_DEPTH_BIT, &this->vk.depthImageView, 1);
+    engineResult = v_buffer_alloc_image_view(this, this->vk.depthImage, this->vk.depthFormat, 0, VK_IMAGE_ASPECT_DEPTH_BIT, &this->vk.depthImageView, 1);
 
     if(engineResult.type != VE_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_alloc_image_view creation failed with result: %i", engineResult.point);
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_buffer_alloc_image_view creation failed with result: %i", engineResult.point);
         RETURN_RESULT_CODE(VE_ALLOC_DEPTH_BUFFER_FAILURE, 1)
     }
 
@@ -1459,10 +1459,10 @@ static VEngineResult allocateTextureImage(Context *this) {
 }
 
 static VEngineResult allocateTextureImageView(Context *this) {
-    VEngineResult engineResult = v_alloc_image_view(this, this->vk.texture.image, VK_FORMAT_R8G8B8A8_SRGB, 0, VK_IMAGE_ASPECT_COLOR_BIT, &this->vk.texture.imageView, this->vk.texture.mipLevels);
+    VEngineResult engineResult = v_buffer_alloc_image_view(this, this->vk.texture.image, VK_FORMAT_R8G8B8A8_SRGB, 0, VK_IMAGE_ASPECT_COLOR_BIT, &this->vk.texture.imageView, this->vk.texture.mipLevels);
 
     if(engineResult.type != VE_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_alloc_image_view failed for allocate returned %i", engineResult.point);
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_buffer_alloc_image_view failed for allocate returned %i", engineResult.point);
         RETURN_RESULT_CODE(VE_ALLOC_TEXTURE_I_V_FAILURE, 0)
     }
 

@@ -129,7 +129,7 @@ VEngineResult v_copy_buffer_to_image(Context *this, VkBuffer buffer, VkImage ima
  * @param mipLevels The amount of mipmap levels that the mipmap in the buffer has. If the image has no mipmaps then set this to one.
  * @return A VEngineResult. If its type is VE_SUCCESS then the image view is successfully created. If VE_ALLOC_IMAGE_VIEW_FAILURE then Vulkan had found a problem
  */
-VEngineResult v_alloc_image_view(Context *this, VkImage image, VkFormat format, VkImageViewCreateFlags createFlags, VkImageAspectFlags aspectFlags, VkImageView *pImageView, uint32_t mipLevels);
+VEngineResult v_buffer_alloc_image_view(Context *this, VkImage image, VkFormat format, VkImageViewCreateFlags createFlags, VkImageAspectFlags aspectFlags, VkImageView *pImageView, uint32_t mipLevels);
 
 /**
  * Find the memory buffer from the device.
