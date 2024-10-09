@@ -103,7 +103,7 @@ VEngineResult v_end_one_time_command_buffer(Context *this, VkCommandBuffer *pCom
  * @param mipLevels The amount of mipmap levels that the mipmap in the buffer has. If the image has no mipmaps then set this to one.
  * @return A VEngineResult. If its type is VE_SUCCESS then the image uses the newLayout. If VE_TRANSIT_IMAGE_LAYOUT_FAILURE then a problem occured. If point is zero then this function does not support the specific oldLayout and newLayout configuration.
  */
-VEngineResult v_transition_image_layout(Context *this, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);
+VEngineResult v_buffer_transition_image_layout(Context *this, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);
 
 /**
  * This transfers buffer information to the image.

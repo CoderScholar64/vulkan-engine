@@ -312,7 +312,7 @@ VEngineResult v_end_one_time_command_buffer(Context *this, VkCommandBuffer *pCom
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-VEngineResult v_transition_image_layout(Context *this, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels) {
+VEngineResult v_buffer_transition_image_layout(Context *this, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels) {
     VEngineResult engineResult;
     VkImageMemoryBarrier imageMemoryBarrier = {0};
     VkPipelineStageFlags sourceStage;

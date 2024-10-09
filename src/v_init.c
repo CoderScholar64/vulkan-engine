@@ -1351,10 +1351,10 @@ static VEngineResult allocateDepthResources(Context *this) {
         RETURN_RESULT_CODE(VE_ALLOC_DEPTH_BUFFER_FAILURE, 1)
     }
 
-    engineResult = v_transition_image_layout(this, this->vk.depthImage, this->vk.depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
+    engineResult = v_buffer_transition_image_layout(this, this->vk.depthImage, this->vk.depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
 
     if(engineResult.type != VE_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_transition_image_layout creation failed with result: %i", engineResult.point);
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_buffer_transition_image_layout creation failed with result: %i", engineResult.point);
         RETURN_RESULT_CODE(VE_ALLOC_DEPTH_BUFFER_FAILURE, 2)
     }
 
@@ -1434,9 +1434,9 @@ static VEngineResult allocateTextureImage(Context *this) {
         RETURN_RESULT_CODE(VE_ALLOC_TEXTURE_IMAGE_FAILURE, 2)
     }
 
-    engineResult = v_transition_image_layout(this, this->vk.texture.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, this->vk.texture.mipLevels);
+    engineResult = v_buffer_transition_image_layout(this, this->vk.texture.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, this->vk.texture.mipLevels);
     if(engineResult.type != VE_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_transition_image_layout had failed with %i", engineResult.point);
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_buffer_transition_image_layout had failed with %i", engineResult.point);
         RETURN_RESULT_CODE(VE_ALLOC_TEXTURE_IMAGE_FAILURE, 3)
     }
 
@@ -1446,9 +1446,9 @@ static VEngineResult allocateTextureImage(Context *this) {
         RETURN_RESULT_CODE(VE_ALLOC_TEXTURE_IMAGE_FAILURE, 4)
     }
 
-    engineResult = v_transition_image_layout(this, this->vk.texture.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->vk.texture.mipLevels);
+    engineResult = v_buffer_transition_image_layout(this, this->vk.texture.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->vk.texture.mipLevels);
     if(engineResult.type != VE_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_transition_image_layout had failed with %i", engineResult.point);
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_buffer_transition_image_layout had failed with %i", engineResult.point);
         RETURN_RESULT_CODE(VE_ALLOC_TEXTURE_IMAGE_FAILURE, 5)
     }
 
