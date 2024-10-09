@@ -388,7 +388,7 @@ VEngineResult v_transition_image_layout(Context *this, VkImage image, VkFormat f
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-VEngineResult v_copy_buffer_to_image(Context *this, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, VkDeviceSize primeImageSize, uint32_t mipLevels) {
+VEngineResult v_buffer_copy_to_image(Context *this, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, VkDeviceSize primeImageSize, uint32_t mipLevels) {
     VEngineResult engineResult;
 
     VkCommandBuffer commandBuffer;

@@ -117,7 +117,7 @@ VEngineResult v_transition_image_layout(Context *this, VkImage image, VkFormat f
  * @param mipLevels The amount of mipmap levels that the mipmap in the buffer has. If the image has no mipmaps then set this to one.
  * @return A VEngineResult. If its type is VE_SUCCESS then the image has been copied to the image. If VE_COPY_BUFFER_TO_IMAGE_FAILURE then Vulkan had found a problem.
  */
-VEngineResult v_copy_buffer_to_image(Context *this, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, VkDeviceSize primeImageSize, uint32_t mipLevels);
+VEngineResult v_buffer_copy_to_image(Context *this, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, VkDeviceSize primeImageSize, uint32_t mipLevels);
 
 /**
  * This function allocates an image view.

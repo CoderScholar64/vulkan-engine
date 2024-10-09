@@ -1440,9 +1440,9 @@ static VEngineResult allocateTextureImage(Context *this) {
         RETURN_RESULT_CODE(VE_ALLOC_TEXTURE_IMAGE_FAILURE, 3)
     }
 
-    engineResult = v_copy_buffer_to_image(this, stagingBuffer, this->vk.texture.image, QOIdescription.width, QOIdescription.height, firstImageSizeSq, this->vk.texture.mipLevels);
+    engineResult = v_buffer_copy_to_image(this, stagingBuffer, this->vk.texture.image, QOIdescription.width, QOIdescription.height, firstImageSizeSq, this->vk.texture.mipLevels);
     if(engineResult.type != VE_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_copy_buffer_to_image had failed with %i", engineResult.point);
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_buffer_copy_to_image had failed with %i", engineResult.point);
         RETURN_RESULT_CODE(VE_ALLOC_TEXTURE_IMAGE_FAILURE, 4)
     }
 
