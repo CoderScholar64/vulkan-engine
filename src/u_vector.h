@@ -15,10 +15,15 @@ UVector u_vector_alloc(size_t elementSize, size_t size);
 
 /**
  * @warning This only deletes pVector->pBuffer and not the struct itself.
- * @param pVector The vector to become free.
+ * @param pVector The vector to become free. Must be a pointer to UVector.
  */
 void u_vector_free(UVector *pVector);
 
+/**
+ * @param pVector The vector to become free. Must be a pointer to UVector.
+ * @param size The new size of which hopefully rescales pVector.
+ * @return If the resizing operation had failed then return 0. Otherwise it would return 1.
+ */
 int u_vector_scale(UVector *pVector, size_t size);
 
 /**
