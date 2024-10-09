@@ -81,11 +81,11 @@ VEngineResult v_copy_buffer(Context *this, VkBuffer srcBuffer, VkDeviceSize srcO
  * @param pCommandBuffer the pointer to an unallocated command buffer. @warning Make sure it points to an empty handle VkCommandBuffer!
  * @return A VEngineResult. If its type is VE_SUCCESS then the command buffer has been allocated. If VE_1_TIME_COMMAND_BUFFER_FAILURE then the command buffer creation process encountered a problem.
  */
-VEngineResult v_begin_one_time_command_buffer(Context *this, VkCommandBuffer *pCommandBuffer);
+VEngineResult v_buffer_begin_1_time_cb(Context *this, VkCommandBuffer *pCommandBuffer);
 
 /**
- * This is a convience function to end the one time command buffer allocated from v_begin_one_time_command_buffer().
- * @warning Be sure that pCommandBuffer points to a VkCommandBuffer that is allocated from v_begin_one_time_command_buffer().
+ * This is a convience function to end the one time command buffer allocated from v_buffer_begin_1_time_cb().
+ * @warning Be sure that pCommandBuffer points to a VkCommandBuffer that is allocated from v_buffer_begin_1_time_cb().
  * @param this The primary Context of the program.
  * @param pCommandBuffer the pointer to an ALLOCATED command buffer.
  * @return A VEngineResult. If its type is VE_SUCCESS then command buffer has been submitted and deleted. If VE_1_TIME_COMMAND_BUFFER_FAILURE then the command buffer submit/deletion process encountered a problem.

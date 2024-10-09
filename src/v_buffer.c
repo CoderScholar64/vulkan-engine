@@ -217,9 +217,9 @@ VEngineResult v_copy_buffer(Context *this, VkBuffer srcBuffer, VkDeviceSize srcO
 
     VkCommandBuffer commandBuffer;
 
-    engineResult = v_begin_one_time_command_buffer(this, &commandBuffer);
+    engineResult = v_buffer_begin_1_time_cb(this, &commandBuffer);
     if(engineResult.type != VE_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_begin_one_time_command_buffer had failed with %i", engineResult.point);
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_buffer_begin_1_time_cb had failed with %i", engineResult.point);
         RETURN_RESULT_CODE(VE_COPY_BUFFER_FAILURE, 0)
     }
 
@@ -238,7 +238,7 @@ VEngineResult v_copy_buffer(Context *this, VkBuffer srcBuffer, VkDeviceSize srcO
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-VEngineResult v_begin_one_time_command_buffer(Context *this, VkCommandBuffer *pCommandBuffer) {
+VEngineResult v_buffer_begin_1_time_cb(Context *this, VkCommandBuffer *pCommandBuffer) {
     VkResult result;
 
     VkCommandBufferAllocateInfo commandBufferAllocateInfo = {0};
@@ -365,9 +365,9 @@ VEngineResult v_buffer_transition_image_layout(Context *this, VkImage image, VkF
 
     VkCommandBuffer commandBuffer;
 
-    engineResult = v_begin_one_time_command_buffer(this, &commandBuffer);
+    engineResult = v_buffer_begin_1_time_cb(this, &commandBuffer);
     if(engineResult.type != VE_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_begin_one_time_command_buffer had failed with %i", engineResult.point);
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_buffer_begin_1_time_cb had failed with %i", engineResult.point);
         RETURN_RESULT_CODE(VE_TRANSIT_IMAGE_LAYOUT_FAILURE, 1)
     }
 
@@ -393,9 +393,9 @@ VEngineResult v_buffer_copy_to_image(Context *this, VkBuffer buffer, VkImage ima
 
     VkCommandBuffer commandBuffer;
 
-    engineResult = v_begin_one_time_command_buffer(this, &commandBuffer);
+    engineResult = v_buffer_begin_1_time_cb(this, &commandBuffer);
     if(engineResult.type != VE_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_begin_one_time_command_buffer had failed with %i", engineResult.point);
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_buffer_begin_1_time_cb had failed with %i", engineResult.point);
         RETURN_RESULT_CODE(VE_COPY_BUFFER_TO_IMAGE_FAILURE, 0)
     }
 
