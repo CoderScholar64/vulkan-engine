@@ -229,9 +229,9 @@ VEngineResult v_copy_buffer(Context *this, VkBuffer srcBuffer, VkDeviceSize srcO
     copyRegion.size = size;
     vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
-    engineResult = v_end_one_time_command_buffer(this, &commandBuffer);
+    engineResult = v_buffer_end_1_time_cb(this, &commandBuffer);
     if(engineResult.type != VE_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_end_one_time_command_buffer had failed with %i", engineResult.point);
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_buffer_end_1_time_cb had failed with %i", engineResult.point);
         RETURN_RESULT_CODE(VE_COPY_BUFFER_FAILURE, 1)
     }
 
@@ -271,7 +271,7 @@ VEngineResult v_begin_one_time_command_buffer(Context *this, VkCommandBuffer *pC
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-VEngineResult v_end_one_time_command_buffer(Context *this, VkCommandBuffer *pCommandBuffer) {
+VEngineResult v_buffer_end_1_time_cb(Context *this, VkCommandBuffer *pCommandBuffer) {
     VkResult result = vkEndCommandBuffer(*pCommandBuffer);
 
     if(result != VK_SUCCESS) {
@@ -380,9 +380,9 @@ VEngineResult v_buffer_transition_image_layout(Context *this, VkImage image, VkF
         1, &imageMemoryBarrier
     );
 
-    engineResult = v_end_one_time_command_buffer(this, &commandBuffer);
+    engineResult = v_buffer_end_1_time_cb(this, &commandBuffer);
     if(engineResult.type != VE_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_end_one_time_command_buffer had failed with %i", engineResult.point);
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_buffer_end_1_time_cb had failed with %i", engineResult.point);
         RETURN_RESULT_CODE(VE_TRANSIT_IMAGE_LAYOUT_FAILURE, 2)
     }
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
@@ -437,9 +437,9 @@ VEngineResult v_buffer_copy_to_image(Context *this, VkBuffer buffer, VkImage ima
         currentImageSize /= 4;
     }
 
-    engineResult = v_end_one_time_command_buffer(this, &commandBuffer);
+    engineResult = v_buffer_end_1_time_cb(this, &commandBuffer);
     if(engineResult.type != VE_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_end_one_time_command_buffer had failed with %i", engineResult.point);
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_buffer_end_1_time_cb had failed with %i", engineResult.point);
         RETURN_RESULT_CODE(VE_COPY_BUFFER_TO_IMAGE_FAILURE, 1)
     }
     RETURN_RESULT_CODE(VE_SUCCESS, 0)

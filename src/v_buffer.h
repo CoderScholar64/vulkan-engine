@@ -90,7 +90,7 @@ VEngineResult v_begin_one_time_command_buffer(Context *this, VkCommandBuffer *pC
  * @param pCommandBuffer the pointer to an ALLOCATED command buffer.
  * @return A VEngineResult. If its type is VE_SUCCESS then command buffer has been submitted and deleted. If VE_1_TIME_COMMAND_BUFFER_FAILURE then the command buffer submit/deletion process encountered a problem.
  */
-VEngineResult v_end_one_time_command_buffer(Context *this, VkCommandBuffer *pCommandBuffer);
+VEngineResult v_buffer_end_1_time_cb(Context *this, VkCommandBuffer *pCommandBuffer);
 
 /**
  * This function transfers image layouts. For example, it would convert a linearly stored image to an image optimized for random access.
