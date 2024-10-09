@@ -870,13 +870,13 @@ static VEngineResult allocateSwapChainImageViews(Context *this) {
 static VEngineResult createRenderPass(Context *this) {
     const VkFormat candidates[] = {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D24_UNORM_S8_UINT, VK_FORMAT_D16_UNORM_S8_UINT, VK_FORMAT_D16_UNORM, VK_FORMAT_D32_SFLOAT_S8_UINT};
 
-    this->vk.depthFormat = v_find_supported_format(
+    this->vk.depthFormat = v_buffer_find_supported_format(
         this,
         candidates, sizeof(candidates) / sizeof(candidates[0]),
         VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 
     if(this->vk.depthFormat == VK_FORMAT_UNDEFINED) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_find_supported_format failed to find any valid format");
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_buffer_find_supported_format failed to find any valid format");
         RETURN_RESULT_CODE(VE_CREATE_RENDER_PASS_FAILURE, 0)
     }
 

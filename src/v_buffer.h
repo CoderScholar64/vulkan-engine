@@ -152,7 +152,7 @@ uint32_t v_find_memory_type_index(Context *this, uint32_t typeFilter, VkMemoryPr
  * @param features A series of FormatFeatureFlags that are enabled.
  * @return VkFormat from pCandidates if nothing is found then VK_FORMAT_UNDEFINED is returned.
  */
-VkFormat v_find_supported_format(Context *this, const VkFormat *const pCandidates, unsigned candidateAmount, VkImageTiling tiling, VkFormatFeatureFlags features);
+VkFormat v_buffer_find_supported_format(Context *this, const VkFormat *const pCandidates, unsigned candidateAmount, VkImageTiling tiling, VkFormatFeatureFlags features);
 
 /**
  * @return If the format has a stencil component return VK_TRUE or else VK_FALSE.

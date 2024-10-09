@@ -487,7 +487,7 @@ uint32_t v_find_memory_type_index(Context *this, uint32_t typeFilter, VkMemoryPr
     return 0;
 }
 
-VkFormat v_find_supported_format(Context *this, const VkFormat *const pCandidates, unsigned candidateAmount, VkImageTiling tiling, VkFormatFeatureFlags features) {
+VkFormat v_buffer_find_supported_format(Context *this, const VkFormat *const pCandidates, unsigned candidateAmount, VkImageTiling tiling, VkFormatFeatureFlags features) {
     VkFormatProperties props;
 
     for(unsigned i = 0; i < candidateAmount; i++) {
