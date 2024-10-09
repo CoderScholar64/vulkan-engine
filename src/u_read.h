@@ -23,6 +23,6 @@ uint8_t* u_read_file(const char *const pUTF8Filepath, int64_t *pFileSize);
  * @param channels Valid values. 0 means alpha is optional, 3 means alpha channel is excluded, 4 means there is always an alpha channel.
  * @return A valid pointer to the buffer that YOU MUST free() or a null on failure.
  */
-void* u_qoi_read(const char *const pUTF8Filepath, qoi_desc *pDesc, int channels);
+void* u_read_qoi(const char *const pUTF8Filepath, qoi_desc *pDesc, int channels);
 
 #endif // READ_UTILITY_29

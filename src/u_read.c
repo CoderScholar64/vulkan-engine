@@ -51,7 +51,7 @@ uint8_t* u_read_file(const char *const pFilepath, int64_t *pFileSize) {
     return pData;
 }
 
-void* u_qoi_read(const char *const pUTF8Filepath, qoi_desc *pDesc, int channels) {
+void* u_read_qoi(const char *const pUTF8Filepath, qoi_desc *pDesc, int channels) {
     int64_t fileSize;
     uint8_t *pData = u_read_file(pUTF8Filepath, &fileSize);
 

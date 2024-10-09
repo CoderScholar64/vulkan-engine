@@ -1382,7 +1382,7 @@ static VEngineResult allocateTextureImage(Context *this) {
 
     snprintf(filename, sizeof(filename) / sizeof(filename[0]), FILENAME, 0);
 
-    void *pPixels = u_qoi_read(filename, &QOIdescription, 4);
+    void *pPixels = u_read_qoi(filename, &QOIdescription, 4);
 
     VkDeviceSize firstImageSizeSq = 4 * QOIdescription.width * QOIdescription.height;
     VkDeviceSize mipmapSizeSq = firstImageSizeSq + firstImageSizeSq / 3;
@@ -1423,7 +1423,7 @@ static VEngineResult allocateTextureImage(Context *this) {
 
         snprintf(filename, sizeof(filename) / sizeof(filename[0]), FILENAME, m + 1);
 
-        pPixels = u_qoi_read(filename, &mipQOIdescription, 4);
+        pPixels = u_read_qoi(filename, &mipQOIdescription, 4);
     }
     vkUnmapMemory(this->vk.device, stagingBufferMemory);
 
