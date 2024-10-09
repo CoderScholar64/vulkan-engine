@@ -38,7 +38,7 @@ int u_vector_scale(UVector *pVector, size_t size) {
     if(size > pVector->capacity || size < pVector->capacity / 2) {
         newCapacitySize = getCapacitySize(size);
 
-        pReallocBuffer = realloc(pVector->pBuffer, newCapacitySize);
+        pReallocBuffer = realloc(pVector->pBuffer, newCapacitySize * elementSize);
 
         if(pReallocBuffer != NULL)
             return 0; // Operation failed.
