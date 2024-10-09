@@ -14,7 +14,7 @@
  * Allocate a singular buffer.
  * @note This is for more advanced usage for a general purpose one use v_alloc_static_buffer().
  * @warning Make sure that v_init() is called first.
- * @param this
+ * @param this The primary Context of the program.
  * @param size the Vulkan buffer to allocate.
  * @param usageFlags the VkBufferUsageFlags for the newely allocated buffer.
  * @param properties The desired property flags of the memory index.
@@ -27,6 +27,7 @@ VEngineResult v_alloc_buffer(Context *this, VkDeviceSize size, VkBufferUsageFlag
 /**
  * Allocate a static buffer.
  * @warning Make sure that v_init() is called first.
+ * @param this The primary Context of the program.
  * @param pData the source of the data.
  * @param sizeOfData the size in bytes of the source.
  * @param pBuffer An unallocated reference to a vulkan buffer. @warning Make sure that pBuffer is unallocated before hand.
@@ -45,6 +46,7 @@ VEngineResult v_alloc_builtin_uniform_buffers(Context *this);
 /**
  * This function allocates an image.
  * @warning Make sure that v_init() is called first.
+ * @param this The primary Context of the program.
  * @param width The width of the new image in pixel units.
  * @param height The height of the new image in pixel units.
  * @param mipLevels The amount of mipmap levels that the mipmap in the buffer has. If the image has no mipmaps then set this to one.
@@ -62,6 +64,7 @@ VEngineResult v_alloc_image(Context *this, uint32_t width, uint32_t height, uint
 /**
  * This function copies the srcBuffer to dstBuffer via Vulkan.
  * @warning Make sure that v_init() is called first. Also srcBuffer must have VK_BUFFER_USAGE_TRANSFER_SRC_BIT, and the dstBuffer VK_BUFFER_USAGE_TRANSFER_DST_BIT.
+ * @param this The primary Context of the program.
  * @param srcBuffer the Vulkan source buffer.
  * @param srcOffset the Vulkan source offset.
  * @param dstBuffer the Vulkan destination buffer.
@@ -74,6 +77,7 @@ VEngineResult v_copy_buffer(Context *this, VkBuffer srcBuffer, VkDeviceSize srcO
 /**
  * This is a convience function to make one time command buffers when needed.
  * @warning Make sure that v_init() is called first.
+ * @param this The primary Context of the program.
  * @param pCommandBuffer the pointer to an unallocated command buffer. @warning Make sure it points to an empty handle VkCommandBuffer!
  * @return A VEngineResult. If its type is VE_SUCCESS then the command buffer has been allocated. If VE_1_TIME_COMMAND_BUFFER_FAILURE then the command buffer creation process encountered a problem.
  */
@@ -82,6 +86,7 @@ VEngineResult v_begin_one_time_command_buffer(Context *this, VkCommandBuffer *pC
 /**
  * This is a convience function to end the one time command buffer allocated from v_begin_one_time_command_buffer().
  * @warning Be sure that pCommandBuffer points to a VkCommandBuffer that is allocated from v_begin_one_time_command_buffer().
+ * @param this The primary Context of the program.
  * @param pCommandBuffer the pointer to an ALLOCATED command buffer.
  * @return A VEngineResult. If its type is VE_SUCCESS then command buffer has been submitted and deleted. If VE_1_TIME_COMMAND_BUFFER_FAILURE then the command buffer submit/deletion process encountered a problem.
  */
@@ -90,6 +95,7 @@ VEngineResult v_end_one_time_command_buffer(Context *this, VkCommandBuffer *pCom
 /**
  * This function transfers image layouts. For example, it would convert a linearly stored image to an image optimized for random access.
  * @warning Make sure that v_init() is called first.
+ * @param this The primary Context of the program.
  * @param image the image where the layout would be converted.
  * @param format the format of the image to be converted.
  * @param oldLayout the old layout being used by the image.
@@ -102,6 +108,7 @@ VEngineResult v_transition_image_layout(Context *this, VkImage image, VkFormat f
 /**
  * This transfers buffer information to the image.
  * @warning Make sure that v_init() is called first.
+ * @param this The primary Context of the program.
  * @param buffer The buffer where the image data is stored.
  * @param image An image where the buffer would be copied to.
  * @param width The width of the image in pixel units.
@@ -114,6 +121,7 @@ VEngineResult v_copy_buffer_to_image(Context *this, VkBuffer buffer, VkImage ima
 
 /**
  * This function allocates an image view.
+ * @param this The primary Context of the program.
  * @param format The format of the image parameter.
  * @param createFlags These are additional flags for the image view. Setting this value other than 0 will require extensions, so the suggested value 0. @note See VkImageViewCreateFlags for details
  * @param aspectFlags This specifies how the image in the view would be used. E.g. VK_IMAGE_ASPECT_COLOR_BIT for color or VK_IMAGE_ASPECT_DEPTH_BIT. @note See VkImageAspectFlags for details.
@@ -127,6 +135,7 @@ VEngineResult v_alloc_image_view(Context *this, VkImage image, VkFormat format, 
  * Find the memory buffer from the device.
  * @warning Make sure that v_init() is called first.
  * @note If you get a non-zero return you would need to subtract it by one to get the actual index.
+ * @param this The primary Context of the program.
  * @param typeFilter The memory type bits as needed from the VkMemoryRequirements::memoryTypeBits.
  * @param properties The desired property flags of the memory index.
  * @return If zero then this function failed to find the memory type with the properties and typeFilter specificed.
@@ -136,6 +145,7 @@ uint32_t v_find_memory_type_index(Context *this, uint32_t typeFilter, VkMemoryPr
 /**
  * Find if the device supports a VkFormat with VkImageTiling and a certain VkFormatFeatureFlags.
  * @warning Make sure that v_init() is called first.
+ * @param this The primary Context of the program.
  * @param pCandidates A pointer to an array of VkFormats.
  * @param candidateAmount The amount of VkFormats that pCandiates contains.
  * @param tiling Whether the format supports the tilling mode.
