@@ -116,7 +116,7 @@ int u_maze_gen(UMazeGenResult *pUMazeGenResult, const UMazeData *const pMazeData
 
     memset(pMem, 0, U_BIT_ARRAY_SIZE(pMazeData->vertexAmount));
 
-    u_bit_element *pBitVisitedArray = pMem;
+    UBitElement *pBitVisitedArray = pMem;
 
     UMazeLink *pLinkArray = pMem + U_BIT_ARRAY_SIZE(pMazeData->vertexAmount);
 
