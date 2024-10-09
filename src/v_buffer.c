@@ -108,13 +108,13 @@ VEngineResult v_alloc_static_buffer(Context *this, const void *pData, size_t siz
         RETURN_RESULT_CODE(VE_ALLOC_STATIC_BUFFER, 4 + engineResult.point)
     }
 
-    engineResult = v_copy_buffer(this, stagingBuffer, 0, *pBuffer, 0, sizeOfData);
+    engineResult = v_buffer_copy(this, stagingBuffer, 0, *pBuffer, 0, sizeOfData);
 
     vkDestroyBuffer(this->vk.device, stagingBuffer, NULL);
     vkFreeMemory(this->vk.device, stagingBufferMemory, NULL);
 
     if(engineResult.type != VE_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_copy_buffer failed with result: %i", engineResult.type);
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_buffer_copy failed with result: %i", engineResult.type);
         RETURN_RESULT_CODE(VE_ALLOC_STATIC_BUFFER, 8)
     }
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
@@ -133,7 +133,7 @@ VEngineResult v_alloc_builtin_uniform_buffers(Context *this) {
             &this->vk.frames[i].uniformBufferMemory);
 
         if(engineResult.type != VE_SUCCESS) {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_copy_buffer failed with result: %i", engineResult.type);
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "v_buffer_copy failed with result: %i", engineResult.type);
             return engineResult;
         }
 
@@ -212,7 +212,7 @@ VEngineResult v_alloc_image(Context *this, uint32_t width, uint32_t height, uint
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-VEngineResult v_copy_buffer(Context *this, VkBuffer srcBuffer, VkDeviceSize srcOffset, VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize size) {
+VEngineResult v_buffer_copy(Context *this, VkBuffer srcBuffer, VkDeviceSize srcOffset, VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize size) {
     VEngineResult engineResult;
 
     VkCommandBuffer commandBuffer;

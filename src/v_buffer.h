@@ -72,7 +72,7 @@ VEngineResult v_alloc_image(Context *this, uint32_t width, uint32_t height, uint
  * @param size the size in bytes of BOTH buffers.
  * @return A VEngineResult. If its type is VE_SUCCESS then srcBuffer is successfully copied to dstBuffer. If VE_COPY_BUFFER_FAILURE then the copying failed.
  */
-VEngineResult v_copy_buffer(Context *this, VkBuffer srcBuffer, VkDeviceSize srcOffset, VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize size);
+VEngineResult v_buffer_copy(Context *this, VkBuffer srcBuffer, VkDeviceSize srcOffset, VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize size);
 
 /**
  * This is a convience function to make one time command buffers when needed.
