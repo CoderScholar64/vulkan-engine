@@ -120,7 +120,7 @@ VEngineResult v_alloc_static_buffer(Context *this, const void *pData, size_t siz
     RETURN_RESULT_CODE(VE_SUCCESS, 0)
 }
 
-VEngineResult v_alloc_builtin_uniform_buffers(Context *this) {
+VEngineResult v_buffer_alloc_builtin_uniform(Context *this) {
     VEngineResult engineResult;
 
     for(uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {

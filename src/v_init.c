@@ -236,7 +236,7 @@ VEngineResult v_init(Context *this) {
     u_maze_delete_result(&mazeGenResult);
     u_maze_delete_data(&mazeData);
 
-    returnCode = v_alloc_builtin_uniform_buffers(this);
+    returnCode = v_buffer_alloc_builtin_uniform(this);
     if( returnCode.type < 0 )
         return returnCode;
 

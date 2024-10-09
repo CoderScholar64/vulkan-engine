@@ -41,7 +41,7 @@ VEngineResult v_alloc_static_buffer(Context *this, const void *pData, size_t siz
  * @warning Make sure that v_init() is called first.
  * @return A VEngineResult. If its type is VE_SUCCESS then this buffer is successfully created. If VE_ALLOC_MEMORY_V_BUFFER_FAILURE then the buffer had failed to generate.
  */
-VEngineResult v_alloc_builtin_uniform_buffers(Context *this);
+VEngineResult v_buffer_alloc_builtin_uniform(Context *this);
 
 /**
  * This function allocates an image.
