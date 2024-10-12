@@ -39,6 +39,8 @@ typedef struct UGJKBackoutEdge {
 } UGJKBackoutEdge;
 
 typedef struct UGJKBackoutTriangle {
+    Vector3 normal;
+    float distance;
     size_t vertexIndexes[3];
 } UGJKBackoutTriangle;
 
@@ -57,9 +59,7 @@ typedef struct UGJKBackoutCache {
     UGJKBackoutEdge     *pEdges;
     UGJKBackoutTriangle *pFaces;
     Vector3             *pVertices;
-    Vector4             *pNormals;
     UGJKBackoutTriangle *pNewFaces;
-    Vector4             *pNewNormals;
 } UGJKBackoutCache;
 
 #define U_GJK_EMPTY_POLYGON(name, count)\

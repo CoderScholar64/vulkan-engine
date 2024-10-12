@@ -10,7 +10,7 @@ static int modifySimplex(UGJKMetaData *this);
 static int line(UGJKMetaData *this);
 static int triangle(UGJKMetaData *this);
 static int tetrahedron(UGJKMetaData *this);
-static int epaGetFaceNormals(const Vector3 *pPolyTope, size_t polyTopeAmount, const UGJKBackoutTriangle *pFaces, size_t facesAmount, Vector4 *pNormals, size_t *pNormalAmount, size_t normalAmountMax, size_t *pMinTriangleIndex);
+static void epaGetFaceNormals(const Vector3 *pPolyTope, size_t polyTopeAmount, UGJKBackoutTriangle *pFaces, size_t facesAmount, size_t *pMinTriangleIndex);
 static int epaAddIfUniqueEdge(const UGJKBackoutTriangle *pFaces, size_t facesAmount, size_t faceIndex, unsigned a, unsigned b, UGJKBackoutEdge *pEdges, size_t *pEdgeAmount, size_t edgeMax);
 
 static inline int sameDirection(Vector3 direction, Vector3 ao) { return Vector3DotProduct(direction, ao) > 0.0f; }
@@ -78,23 +78,20 @@ UGJKReturn u_gjk_poly(const UGJKPolyhedron *pPoly0, const UGJKPolyhedron *pPoly1
     pBackoutCache->pFaces[2] = (UGJKBackoutTriangle) {0, 2, 3};
     pBackoutCache->pFaces[3] = (UGJKBackoutTriangle) {1, 3, 2};
 
-    size_t minTriangleIndex;
+    size_t minFaceIndex;
 
     epaGetFaceNormals(
         pBackoutCache->pVertices, pBackoutCache->vertexAmount,
         pBackoutCache->pFaces, pBackoutCache->faceAmount,
-        pBackoutCache->pNormals, &pBackoutCache->normalAmount, pBackoutCache->normalLimit,
-        &minTriangleIndex);
+        &minFaceIndex);
 
     // gjkMetadata.direction is Vector3 minNormal;
     float minDistance = FLT_MAX;
     float sDistance;
 
     while(minDistance == FLT_MAX) {
-        gjkMetadata.direction.x = pBackoutCache->pNormals[minTriangleIndex].x;
-        gjkMetadata.direction.y = pBackoutCache->pNormals[minTriangleIndex].y;
-        gjkMetadata.direction.z = pBackoutCache->pNormals[minTriangleIndex].z;
-        minDistance = pBackoutCache->pNormals[minTriangleIndex].w;
+        gjkMetadata.direction = pBackoutCache->pFaces[minFaceIndex].normal;
+        minDistance = pBackoutCache->pFaces[minFaceIndex].distance;
 
         gjkMetadata.support = Vector3Subtract(polyhedronFindFurthestPoint(pPoly0, gjkMetadata.direction), polyhedronFindFurthestPoint(pPoly1, Vector3Negate(gjkMetadata.direction)));
         sDistance = Vector3DotProduct(gjkMetadata.direction, gjkMetadata.support);
@@ -104,17 +101,14 @@ UGJKReturn u_gjk_poly(const UGJKPolyhedron *pPoly0, const UGJKPolyhedron *pPoly1
 
             pBackoutCache->edgeAmount = 0;
 
-            for(size_t i = 0; i < pBackoutCache->normalAmount; i++) {
-                if(sameDirection((Vector3){pBackoutCache->pNormals[minTriangleIndex].x, pBackoutCache->pNormals[minTriangleIndex].y, pBackoutCache->pNormals[minTriangleIndex].z}, gjkMetadata.support)) {
+            for(size_t i = 0; i < pBackoutCache->faceAmount; i++) {
+                if(sameDirection(pBackoutCache->pFaces[minFaceIndex].normal, gjkMetadata.support)) {
                     epaAddIfUniqueEdge(pBackoutCache->pFaces, pBackoutCache->faceAmount, i, 0, 1, pBackoutCache->pEdges, &pBackoutCache->edgeAmount, pBackoutCache->edgeLimit);
                     epaAddIfUniqueEdge(pBackoutCache->pFaces, pBackoutCache->faceAmount, i, 1, 2, pBackoutCache->pEdges, &pBackoutCache->edgeAmount, pBackoutCache->edgeLimit);
                     epaAddIfUniqueEdge(pBackoutCache->pFaces, pBackoutCache->faceAmount, i, 2, 0, pBackoutCache->pEdges, &pBackoutCache->edgeAmount, pBackoutCache->edgeLimit);
 
-                    pBackoutCache->pFaces[i] = pBackoutCache->pFaces[pBackoutCache->faceAmount];
                     pBackoutCache->faceAmount--;
-
-                    pBackoutCache->pNormals[i] = pBackoutCache->pNormals[pBackoutCache->normalAmount];
-                    pBackoutCache->normalAmount--;
+                    pBackoutCache->pFaces[i] = pBackoutCache->pFaces[pBackoutCache->faceAmount];
 
                     i--;
                 }
@@ -244,14 +238,11 @@ static int tetrahedron(UGJKMetaData *this) {
 
 }
 
-static int epaGetFaceNormals(const Vector3 *pPolyTope, size_t polyTopeAmount, const UGJKBackoutTriangle *pFaces, size_t facesAmount, Vector4 *pNormals, size_t *pNormalAmount, size_t normalAmountMax, size_t *pMinTriangleIndex) {
+static void epaGetFaceNormals(const Vector3 *pPolyTope, size_t polyTopeAmount, UGJKBackoutTriangle *pFaces, size_t facesAmount, size_t *pMinTriangleIndex) {
     assert(pPolyTope != NULL);
     assert(polyTopeAmount >= 4);
     assert(pFaces != NULL);
     assert(facesAmount >= 4);
-    assert(pNormals != NULL);
-    assert(pNormalAmount != NULL);
-    assert(*pNormalAmount != 0);
     assert(pMinTriangleIndex != NULL);
 
     float minDistance = FLT_MAX;
@@ -263,30 +254,19 @@ static int epaGetFaceNormals(const Vector3 *pPolyTope, size_t polyTopeAmount, co
         const Vector3 b = pPolyTope[pFaces[faceIndex].vertexIndexes[1]];
         const Vector3 c = pPolyTope[pFaces[faceIndex].vertexIndexes[2]];
 
-        Vector3 normal = Vector3Normalize(Vector3CrossProduct(Vector3Subtract(b, a),Vector3Subtract(c, a)));
-        float distance = Vector3DotProduct(normal, a);
+        pFaces[faceIndex].normal = Vector3Normalize(Vector3CrossProduct(Vector3Subtract(b, a),Vector3Subtract(c, a)));
+        pFaces[faceIndex].distance = Vector3DotProduct(pFaces[faceIndex].normal, a);
 
-        if(distance < 0.0f) {
-            normal = Vector3Negate(normal);
-            distance = -distance;
+        if(pFaces[faceIndex].distance < 0.0f) {
+            pFaces[faceIndex].normal = Vector3Negate(pFaces[faceIndex].normal);
+            pFaces[faceIndex].distance = -pFaces[faceIndex].distance;
         }
 
-        if(*pNormalAmount == normalAmountMax)
-            return 0; // Ran out of normal space.
-
-        pNormals[*pNormalAmount].x = normal.x;
-        pNormals[*pNormalAmount].y = normal.y;
-        pNormals[*pNormalAmount].z = normal.z;
-        pNormals[*pNormalAmount].w = distance;
-        (*pNormalAmount)++;
-        assert(*pNormalAmount != 0);
-
-        if(distance < minDistance) {
+        if(pFaces[faceIndex].distance < minDistance) {
             *pMinTriangleIndex = faceIndex;
-            minDistance = distance;
+            minDistance = pFaces[faceIndex].distance;
         }
     }
-    return 1;
 }
 
 static int epaAddIfUniqueEdge(const UGJKBackoutTriangle *pFaces, size_t facesAmount, size_t faceIndex, unsigned a, unsigned b, UGJKBackoutEdge *pEdges, size_t *pEdgeAmount, size_t edgeMax) {
