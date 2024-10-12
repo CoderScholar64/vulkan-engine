@@ -34,6 +34,34 @@ typedef struct UGJKReturn {
     UGJKState result; // normal is only valid if this is set to COLLISION.
 } UGJKReturn;
 
+typedef struct UGJKBackoutEdge {
+    size_t edgeIndexes[2];
+} UGJKBackoutEdge;
+
+typedef struct UGJKBackoutTriangle {
+    size_t vertexIndexes[3];
+} UGJKBackoutTriangle;
+
+typedef struct UGJKBackoutCache {
+    size_t    edgeAmount;
+    size_t    edgeLimit;
+    size_t    faceAmount;
+    size_t    faceLimit;
+    size_t newFaceAmount;
+    size_t newFaceLimit;
+    size_t  normalAmount;
+    size_t  normalLimit;
+    size_t  vertexAmount;
+    size_t  vertexLimit;
+
+    UGJKBackoutEdge     *pEdges;
+    UGJKBackoutTriangle *pFaces;
+    Vector3             *pVertices;
+    Vector4             *pNormals;
+    UGJKBackoutTriangle *pNewFaces;
+    Vector4             *pNewNormals;
+} UGJKBackoutCache;
+
 #define U_GJK_EMPTY_POLYGON(name, count)\
     UGJKPolyhedron name = {count}
 
