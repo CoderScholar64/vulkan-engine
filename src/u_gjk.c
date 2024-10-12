@@ -96,7 +96,7 @@ UGJKReturn u_gjk_poly(const UGJKPolyhedron *pPoly0, const UGJKPolyhedron *pPoly1
         gjkMetadata.support = Vector3Subtract(polyhedronFindFurthestPoint(pPoly0, gjkMetadata.direction), polyhedronFindFurthestPoint(pPoly1, Vector3Negate(gjkMetadata.direction)));
         sDistance = Vector3DotProduct(gjkMetadata.direction, gjkMetadata.support);
 
-        if(fabs(sDistance - minDistance ) > 0.001f) {
+        if(fabs(sDistance - minDistance ) > 0.001f && pBackoutCache->vertexAmount < pBackoutCache->vertexLimit) {
             minDistance = FLT_MAX;
 
             pBackoutCache->edgeAmount = 0;
@@ -113,8 +113,46 @@ UGJKReturn u_gjk_poly(const UGJKPolyhedron *pPoly0, const UGJKPolyhedron *pPoly1
                     i--;
                 }
             }
+
+            pBackoutCache->newFaceAmount = 0;
+            for(size_t edgeIndex = 0; edgeIndex < pBackoutCache->edgeAmount; edgeIndex++) {
+                pBackoutCache->pNewFaces[pBackoutCache->newFaceAmount].vertexIndexes[0] = pBackoutCache->pEdges[edgeIndex].edgeIndexes[0];
+                pBackoutCache->pNewFaces[pBackoutCache->newFaceAmount].vertexIndexes[1] = pBackoutCache->pEdges[edgeIndex].edgeIndexes[1];
+                pBackoutCache->pNewFaces[pBackoutCache->newFaceAmount].vertexIndexes[2] = pBackoutCache->vertexAmount;
+                pBackoutCache->newFaceAmount++;
+            }
+
+            pBackoutCache->pVertices[pBackoutCache->vertexAmount] = gjkMetadata.support;
+            pBackoutCache->vertexAmount++;
+
+            size_t minNewFaceIndex;
+
+            epaGetFaceNormals(
+                pBackoutCache->pVertices, pBackoutCache->vertexAmount,
+                pBackoutCache->pNewFaces, pBackoutCache->newFaceAmount,
+                &minNewFaceIndex);
+
+            float oldMinDistance = FLT_MAX;
+            for(size_t i = 0; i < pBackoutCache->faceAmount; i++) {
+                if(pBackoutCache->pFaces[i].distance < oldMinDistance) {
+                    oldMinDistance = pBackoutCache->pFaces[i].distance;
+                    minFaceIndex = i;
+                }
+            }
+
+            if(pBackoutCache->pNewFaces[minNewFaceIndex].distance < oldMinDistance) {
+                minFaceIndex = minNewFaceIndex + pBackoutCache->faceAmount;
+            }
+
+            for(size_t i = 0; i < pBackoutCache->newFaceAmount; i++) {
+                pBackoutCache->pFaces[pBackoutCache->faceLimit + i] = pBackoutCache->pNewFaces[i];
+            }
+            pBackoutCache->faceLimit += pBackoutCache->newFaceAmount;
         }
     }
+
+    gjkReturn.normal = gjkMetadata.direction;
+    gjkReturn.distance = minDistance + 0.001f;
 
     return gjkReturn;
 }

@@ -30,7 +30,8 @@ typedef struct UGJKMetaData {
 } UGJKMetaData;
 
 typedef struct UGJKReturn {
-    Vector4 normal; // [x, y, z, depth]
+    Vector3 normal;
+    float distance;
     UGJKState result; // normal is only valid if this is set to COLLISION.
 } UGJKReturn;
 
@@ -51,15 +52,13 @@ typedef struct UGJKBackoutCache {
     size_t    faceLimit;
     size_t newFaceAmount;
     size_t newFaceLimit;
-    size_t  normalAmount;
-    size_t  normalLimit;
     size_t  vertexAmount;
     size_t  vertexLimit;
 
     UGJKBackoutEdge     *pEdges;
     UGJKBackoutTriangle *pFaces;
-    Vector3             *pVertices;
     UGJKBackoutTriangle *pNewFaces;
+    Vector3             *pVertices;
 } UGJKBackoutCache;
 
 #define U_GJK_EMPTY_POLYGON(name, count)\
