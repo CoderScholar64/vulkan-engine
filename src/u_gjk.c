@@ -7,10 +7,10 @@
 #define U_GJK_MAX_RESOLVE 8
 
 static Vector3 polyhedronFindFurthestPoint(const UGJKPolyhedron *pPolygon, Vector3 direction);
-static int modifySimplex(UGJKMetaData *this);
-static int line(UGJKMetaData *this);
-static int triangle(UGJKMetaData *this);
-static int tetrahedron(UGJKMetaData *this);
+static int gjkModifySimplex(UGJKMetaData *this);
+static int gjkLine(UGJKMetaData *this);
+static int gjkTriangle(UGJKMetaData *this);
+static int gjkTetrahedron(UGJKMetaData *this);
 static void epaGetFaceNormals(const Vector3 *pPolyTope, size_t polyTopeAmount, UGJKBackoutTriangle *pFaces, size_t facesAmount, size_t *pMinTriangleIndex);
 static int epaAddIfUniqueEdge(const UGJKBackoutTriangle *pFaces, size_t facesAmount, size_t faceIndex, unsigned a, unsigned b, UGJKBackoutEdge *pEdges, size_t *pEdgeAmount, size_t edgeMax);
 
@@ -51,7 +51,7 @@ UGJKReturn u_gjk_poly(const UGJKPolyhedron *pPoly0, const UGJKPolyhedron *pPoly1
         gjkMetadata.simplex.vertices[0] = gjkMetadata.support;
         gjkMetadata.simplex.amountVertices++;
 
-        int state = modifySimplex(&gjkMetadata);
+        int state = gjkModifySimplex(&gjkMetadata);
 
         assert(state != -1);
 
@@ -212,20 +212,20 @@ void u_gjk_free_backout_cache(UGJKBackoutCache *pBackoutCache) {
     free(pBackoutCache->pVertices);
 }
 
-static int modifySimplex(UGJKMetaData *this) {
+static int gjkModifySimplex(UGJKMetaData *this) {
     switch(this->simplex.amountVertices) {
         case 2:
-            return line(this);
+            return gjkLine(this);
         case 3:
-            return triangle(this);
+            return gjkTriangle(this);
         case 4:
-            return tetrahedron(this);
+            return gjkTetrahedron(this);
         default:
             return -1;
     }
 }
 
-static int line(UGJKMetaData *this) {
+static int gjkLine(UGJKMetaData *this) {
     const Vector3 a = this->simplex.vertices[0];
     const Vector3 b = this->simplex.vertices[1];
 
@@ -243,7 +243,7 @@ static int line(UGJKMetaData *this) {
     return 0;
 }
 
-static int triangle(UGJKMetaData *this) {
+static int gjkTriangle(UGJKMetaData *this) {
     const Vector3 a = this->simplex.vertices[0];
     const Vector3 b = this->simplex.vertices[1];
     const Vector3 c = this->simplex.vertices[2];
@@ -263,7 +263,7 @@ static int triangle(UGJKMetaData *this) {
         }
         else {
             this->simplex.vertices[1] = b;
-            return line(this);
+            return gjkLine(this);
         }
     }
     else {
@@ -271,7 +271,7 @@ static int triangle(UGJKMetaData *this) {
             this->simplex.amountVertices = 2;
             this->simplex.vertices[0] = a;
             this->simplex.vertices[1] = b;
-            return line(this);
+            return gjkLine(this);
         }
         else {
             if(sameDirection(abc, ao)) {
@@ -290,7 +290,7 @@ static int triangle(UGJKMetaData *this) {
     return 0;
 }
 
-static int tetrahedron(UGJKMetaData *this) {
+static int gjkTetrahedron(UGJKMetaData *this) {
     const Vector3 a = this->simplex.vertices[0];
     const Vector3 b = this->simplex.vertices[1];
     const Vector3 c = this->simplex.vertices[2];
@@ -310,21 +310,21 @@ static int tetrahedron(UGJKMetaData *this) {
         this->simplex.vertices[0] = a;
         this->simplex.vertices[1] = b;
         this->simplex.vertices[2] = c;
-        return triangle(this);
+        return gjkTriangle(this);
     }
     if(sameDirection(acd, ao)) {
         this->simplex.amountVertices = 3;
         this->simplex.vertices[0] = a;
         this->simplex.vertices[1] = c;
         this->simplex.vertices[2] = d;
-        return triangle(this);
+        return gjkTriangle(this);
     }
     if(sameDirection(adb, ao)) {
         this->simplex.amountVertices = 3;
         this->simplex.vertices[0] = a;
         this->simplex.vertices[1] = d;
         this->simplex.vertices[2] = b;
-        return triangle(this);
+        return gjkTriangle(this);
     }
 
     return 1;
