@@ -16,155 +16,165 @@ static int epaAddIfUniqueEdge(const UGJKBackoutTriangle *pFaces, size_t facesAmo
 
 static inline int sameDirection(Vector3 direction, Vector3 ao) { return Vector3DotProduct(direction, ao) > 0.0f; }
 
-UGJKReturn u_gjk_poly(const UGJKPolyhedron *pPoly0, const UGJKPolyhedron *pPoly1, UGJKBackoutCache *pBackoutCache) {
-    assert(pPoly0 != NULL);
-    assert(pPoly1 != NULL);
-    assert(pPoly0->amountVertices != 0);
-    assert(pPoly1->amountVertices != 0);
-    // pBackoutCache can be NULL or a valid address.
-
-    UGJKReturn gjkReturn = {0};
-    gjkReturn.result = U_GJK_NO_COLLISION;
-
-    UGJKMetaData gjkMetadata = {0};
-    gjkMetadata.pConvexShape[0] = pPoly0;
-    gjkMetadata.pConvexShape[1] = pPoly1;
-
-    gjkMetadata.simplex.amountVertices = 1;
-    gjkMetadata.simplex.vertices[0] = Vector3Subtract(polyhedronFindFurthestPoint(pPoly0, (Vector3){0, 1, 0}), polyhedronFindFurthestPoint(pPoly1, (Vector3){0, -1, 0}));
-    gjkMetadata.direction = Vector3Negate(gjkMetadata.simplex.vertices[0]);
-
-    gjkMetadata.countDown = pPoly0->amountVertices + pPoly1->amountVertices;
-
-    if(gjkMetadata.countDown < U_GJK_MAX_RESOLVE)
-        gjkMetadata.countDown = U_GJK_MAX_RESOLVE;
-
+#define U_GJK_HEADER() \
+    assert(pPoly0 != NULL);\
+    assert(pPoly1 != NULL);\
+    assert(pPoly0->amountVertices != 0);\
+    assert(pPoly1->amountVertices != 0);\
+    /* pBackoutCache can be NULL or a valid address. */\
+\
+    UGJKReturn gjkReturn = {0};\
+    gjkReturn.result = U_GJK_NO_COLLISION;\
+\
+    UGJKMetaData gjkMetadata = {0};\
+    gjkMetadata.pConvexShape[0] = pPoly0;\
+    gjkMetadata.pConvexShape[1] = pPoly1;\
+\
+    gjkMetadata.simplex.amountVertices = 1;\
+    gjkMetadata.simplex.vertices[0] = Vector3Subtract(polyhedronFindFurthestPoint(pPoly0, (Vector3){0, 1, 0}), polyhedronFindFurthestPoint(pPoly1, (Vector3){0, -1, 0}));\
+    gjkMetadata.direction = Vector3Negate(gjkMetadata.simplex.vertices[0]);\
+\
+    gjkMetadata.countDown = pPoly0->amountVertices + pPoly1->amountVertices;\
+\
+    if(gjkMetadata.countDown < U_GJK_MAX_RESOLVE)\
+        gjkMetadata.countDown = U_GJK_MAX_RESOLVE;\
+\
     while(gjkMetadata.countDown != 0) {
-        gjkMetadata.support = Vector3Subtract(polyhedronFindFurthestPoint(pPoly0, gjkMetadata.direction), polyhedronFindFurthestPoint(pPoly1, Vector3Negate(gjkMetadata.direction)));
 
-        if(Vector3DotProduct(gjkMetadata.support, gjkMetadata.direction) <= 0)
-            return gjkReturn;
+#define U_GJK_FOOTER() \
+        if(Vector3DotProduct(gjkMetadata.support, gjkMetadata.direction) <= 0)\
+            return gjkReturn;\
+\
+        for(unsigned i = 4; i != 1; i--) {\
+            gjkMetadata.simplex.vertices[i - 1] = gjkMetadata.simplex.vertices[i - 2];\
+        }\
+        gjkMetadata.simplex.vertices[0] = gjkMetadata.support;\
+        gjkMetadata.simplex.amountVertices++;\
+\
+        int state = gjkModifySimplex(&gjkMetadata);\
+\
+        assert(state != -1);\
+\
+        if(state == 1) {\
+            gjkReturn.result = U_GJK_COLLISION;\
+            break;\
+        }\
+\
+        gjkMetadata.countDown--;\
+    }\
+\
+    if(gjkReturn.result == U_GJK_NO_COLLISION)\
+        gjkReturn.result = U_GJK_NOT_DETERMINED;\
 
-        for(unsigned i = 4; i != 1; i--) {
-            gjkMetadata.simplex.vertices[i - 1] = gjkMetadata.simplex.vertices[i - 2];
-        }
-        gjkMetadata.simplex.vertices[0] = gjkMetadata.support;
-        gjkMetadata.simplex.amountVertices++;
-
-        int state = gjkModifySimplex(&gjkMetadata);
-
-        assert(state != -1);
-
-        if(state == 1) {
-            gjkReturn.result = U_GJK_COLLISION;
-            break;
-        }
-
-        gjkMetadata.countDown--;
-    }
-
-    if(gjkReturn.result == U_GJK_NO_COLLISION)
-        gjkReturn.result = U_GJK_NOT_DETERMINED;
-
-    if(pBackoutCache == NULL)
-        return gjkReturn;
-
-    pBackoutCache->vertexAmount = gjkMetadata.simplex.amountVertices;
-    for(size_t v = 0; v < pBackoutCache->vertexAmount; v++)
-        pBackoutCache->pVertices[v] = gjkMetadata.simplex.vertices[v];
-
-    pBackoutCache->faceAmount = 4;
-    pBackoutCache->pFaces[0] = (UGJKBackoutTriangle) {{}, 0, {0, 1, 2}};
-    pBackoutCache->pFaces[1] = (UGJKBackoutTriangle) {{}, 0, {0, 3, 1}};
-    pBackoutCache->pFaces[2] = (UGJKBackoutTriangle) {{}, 0, {0, 2, 3}};
-    pBackoutCache->pFaces[3] = (UGJKBackoutTriangle) {{}, 0, {1, 3, 2}};
-
-    size_t minFaceIndex;
-
-    epaGetFaceNormals(
-        pBackoutCache->pVertices, pBackoutCache->vertexAmount,
-        pBackoutCache->pFaces, pBackoutCache->faceAmount,
-        &minFaceIndex);
-
-    // gjkMetadata.direction is Vector3 minNormal;
-    float minDistance = FLT_MAX;
-    float sDistance;
-
-    pBackoutCache->newFaceAmount = 1;
-
-    while(minDistance == FLT_MAX) {
-        gjkMetadata.direction = pBackoutCache->pFaces[minFaceIndex].normal;
+#define U_GJK_EPA_HEADER()\
+    if(pBackoutCache == NULL)\
+        return gjkReturn;\
+\
+    pBackoutCache->vertexAmount = gjkMetadata.simplex.amountVertices;\
+    for(size_t v = 0; v < pBackoutCache->vertexAmount; v++)\
+        pBackoutCache->pVertices[v] = gjkMetadata.simplex.vertices[v];\
+\
+    pBackoutCache->faceAmount = 4;\
+    pBackoutCache->pFaces[0] = (UGJKBackoutTriangle) {{}, 0, {0, 1, 2}};\
+    pBackoutCache->pFaces[1] = (UGJKBackoutTriangle) {{}, 0, {0, 3, 1}};\
+    pBackoutCache->pFaces[2] = (UGJKBackoutTriangle) {{}, 0, {0, 2, 3}};\
+    pBackoutCache->pFaces[3] = (UGJKBackoutTriangle) {{}, 0, {1, 3, 2}};\
+\
+    size_t minFaceIndex;\
+\
+    epaGetFaceNormals(\
+        pBackoutCache->pVertices, pBackoutCache->vertexAmount,\
+        pBackoutCache->pFaces, pBackoutCache->faceAmount,\
+        &minFaceIndex);\
+\
+    /* gjkMetadata.direction is Vector3 minNormal;*/\
+    float minDistance = FLT_MAX;\
+    float sDistance;\
+\
+    pBackoutCache->newFaceAmount = 1;\
+\
+    while(minDistance == FLT_MAX) {\
+        gjkMetadata.direction = pBackoutCache->pFaces[minFaceIndex].normal;\
         minDistance = pBackoutCache->pFaces[minFaceIndex].distance;
 
-        gjkMetadata.support = Vector3Subtract(polyhedronFindFurthestPoint(pPoly0, gjkMetadata.direction), polyhedronFindFurthestPoint(pPoly1, Vector3Negate(gjkMetadata.direction)));
-        sDistance = Vector3DotProduct(gjkMetadata.direction, gjkMetadata.support);
-
-        if(fabs(sDistance - minDistance) > 0.001f && pBackoutCache->vertexAmount < pBackoutCache->vertexLimit && pBackoutCache->newFaceAmount != 0) {
-            minDistance = FLT_MAX;
-
-            pBackoutCache->edgeAmount = 0;
-
-            int edgeLimitHit = 0;
-
-            for(size_t i = 0; i < pBackoutCache->faceAmount; i++) {
-                if(sameDirection(pBackoutCache->pFaces[minFaceIndex].normal, gjkMetadata.support)) {
-                    edgeLimitHit |= epaAddIfUniqueEdge(pBackoutCache->pFaces, pBackoutCache->faceAmount, i, 0, 1, pBackoutCache->pEdges, &pBackoutCache->edgeAmount, pBackoutCache->edgeLimit);
-                    edgeLimitHit |= epaAddIfUniqueEdge(pBackoutCache->pFaces, pBackoutCache->faceAmount, i, 1, 2, pBackoutCache->pEdges, &pBackoutCache->edgeAmount, pBackoutCache->edgeLimit);
-                    edgeLimitHit |= epaAddIfUniqueEdge(pBackoutCache->pFaces, pBackoutCache->faceAmount, i, 2, 0, pBackoutCache->pEdges, &pBackoutCache->edgeAmount, pBackoutCache->edgeLimit);
-
-                    if(edgeLimitHit) {
-                        gjkReturn.result = U_GJK_NOT_DETERMINED;
-                        return gjkReturn;
-                    }
-
-                    pBackoutCache->faceAmount--;
-                    pBackoutCache->pFaces[i] = pBackoutCache->pFaces[pBackoutCache->faceAmount];
-
-                    i--;
-                }
-            }
-
-            pBackoutCache->newFaceAmount = 0;
-            for(size_t edgeIndex = 0; edgeIndex < pBackoutCache->edgeAmount; edgeIndex++) {
-                pBackoutCache->pNewFaces[pBackoutCache->newFaceAmount].vertexIndexes[0] = pBackoutCache->pEdges[edgeIndex].edgeIndexes[0];
-                pBackoutCache->pNewFaces[pBackoutCache->newFaceAmount].vertexIndexes[1] = pBackoutCache->pEdges[edgeIndex].edgeIndexes[1];
-                pBackoutCache->pNewFaces[pBackoutCache->newFaceAmount].vertexIndexes[2] = pBackoutCache->vertexAmount;
-                pBackoutCache->newFaceAmount++;
-            }
-
-            pBackoutCache->pVertices[pBackoutCache->vertexAmount] = gjkMetadata.support;
-            pBackoutCache->vertexAmount++;
-
-            size_t minNewFaceIndex;
-
-            epaGetFaceNormals(
-                pBackoutCache->pVertices, pBackoutCache->vertexAmount,
-                pBackoutCache->pNewFaces, pBackoutCache->newFaceAmount,
-                &minNewFaceIndex);
-
-            float oldMinDistance = FLT_MAX;
-            for(size_t i = 0; i < pBackoutCache->faceAmount; i++) {
-                if(pBackoutCache->pFaces[i].distance < oldMinDistance) {
-                    oldMinDistance = pBackoutCache->pFaces[i].distance;
-                    minFaceIndex = i;
-                }
-            }
-
-            if(pBackoutCache->pNewFaces[minNewFaceIndex].distance < oldMinDistance) {
-                minFaceIndex = minNewFaceIndex + pBackoutCache->faceAmount;
-            }
-
-            if(pBackoutCache->faceAmount + pBackoutCache->newFaceAmount >= pBackoutCache->faceLimit) {
-                gjkReturn.result = U_GJK_NOT_DETERMINED;
-                return gjkReturn;
-            }
-
-            for(size_t i = 0; i < pBackoutCache->newFaceAmount; i++) {
-                pBackoutCache->pFaces[pBackoutCache->faceAmount + i] = pBackoutCache->pNewFaces[i];
-            }
-            pBackoutCache->faceAmount += pBackoutCache->newFaceAmount;
-        }
+#define U_GJK_EPA_FOOTER()\
+        sDistance = Vector3DotProduct(gjkMetadata.direction, gjkMetadata.support);\
+\
+        if(fabs(sDistance - minDistance) > 0.001f && pBackoutCache->vertexAmount < pBackoutCache->vertexLimit && pBackoutCache->newFaceAmount != 0) {\
+            minDistance = FLT_MAX;\
+\
+            pBackoutCache->edgeAmount = 0;\
+\
+            int edgeLimitHit = 0;\
+\
+            for(size_t i = 0; i < pBackoutCache->faceAmount; i++) {\
+                if(sameDirection(pBackoutCache->pFaces[minFaceIndex].normal, gjkMetadata.support)) {\
+                    edgeLimitHit |= epaAddIfUniqueEdge(pBackoutCache->pFaces, pBackoutCache->faceAmount, i, 0, 1, pBackoutCache->pEdges, &pBackoutCache->edgeAmount, pBackoutCache->edgeLimit);\
+                    edgeLimitHit |= epaAddIfUniqueEdge(pBackoutCache->pFaces, pBackoutCache->faceAmount, i, 1, 2, pBackoutCache->pEdges, &pBackoutCache->edgeAmount, pBackoutCache->edgeLimit);\
+                    edgeLimitHit |= epaAddIfUniqueEdge(pBackoutCache->pFaces, pBackoutCache->faceAmount, i, 2, 0, pBackoutCache->pEdges, &pBackoutCache->edgeAmount, pBackoutCache->edgeLimit);\
+\
+                    if(edgeLimitHit) {\
+                        gjkReturn.result = U_GJK_NOT_DETERMINED;\
+                        return gjkReturn;\
+                    }\
+\
+                    pBackoutCache->faceAmount--;\
+                    pBackoutCache->pFaces[i] = pBackoutCache->pFaces[pBackoutCache->faceAmount];\
+\
+                    i--;\
+                }\
+            }\
+\
+            pBackoutCache->newFaceAmount = 0;\
+            for(size_t edgeIndex = 0; edgeIndex < pBackoutCache->edgeAmount; edgeIndex++) {\
+                pBackoutCache->pNewFaces[pBackoutCache->newFaceAmount].vertexIndexes[0] = pBackoutCache->pEdges[edgeIndex].edgeIndexes[0];\
+                pBackoutCache->pNewFaces[pBackoutCache->newFaceAmount].vertexIndexes[1] = pBackoutCache->pEdges[edgeIndex].edgeIndexes[1];\
+                pBackoutCache->pNewFaces[pBackoutCache->newFaceAmount].vertexIndexes[2] = pBackoutCache->vertexAmount;\
+                pBackoutCache->newFaceAmount++;\
+            }\
+\
+            pBackoutCache->pVertices[pBackoutCache->vertexAmount] = gjkMetadata.support;\
+            pBackoutCache->vertexAmount++;\
+\
+            size_t minNewFaceIndex;\
+\
+            epaGetFaceNormals(\
+                pBackoutCache->pVertices, pBackoutCache->vertexAmount,\
+                pBackoutCache->pNewFaces, pBackoutCache->newFaceAmount,\
+                &minNewFaceIndex);\
+\
+            float oldMinDistance = FLT_MAX;\
+            for(size_t i = 0; i < pBackoutCache->faceAmount; i++) {\
+                if(pBackoutCache->pFaces[i].distance < oldMinDistance) {\
+                    oldMinDistance = pBackoutCache->pFaces[i].distance;\
+                    minFaceIndex = i;\
+                }\
+            }\
+\
+            if(pBackoutCache->pNewFaces[minNewFaceIndex].distance < oldMinDistance) {\
+                minFaceIndex = minNewFaceIndex + pBackoutCache->faceAmount;\
+            }\
+\
+            if(pBackoutCache->faceAmount + pBackoutCache->newFaceAmount >= pBackoutCache->faceLimit) {\
+                gjkReturn.result = U_GJK_NOT_DETERMINED;\
+                return gjkReturn;\
+            }\
+\
+            for(size_t i = 0; i < pBackoutCache->newFaceAmount; i++) {\
+                pBackoutCache->pFaces[pBackoutCache->faceAmount + i] = pBackoutCache->pNewFaces[i];\
+            }\
+            pBackoutCache->faceAmount += pBackoutCache->newFaceAmount;\
+        }\
     }
+
+UGJKReturn u_gjk_poly(const UGJKPolyhedron *pPoly0, const UGJKPolyhedron *pPoly1, UGJKBackoutCache *pBackoutCache) {
+    U_GJK_HEADER()
+        gjkMetadata.support = Vector3Subtract(polyhedronFindFurthestPoint(pPoly0, gjkMetadata.direction), polyhedronFindFurthestPoint(pPoly1, Vector3Negate(gjkMetadata.direction)));
+    U_GJK_FOOTER()
+
+    U_GJK_EPA_HEADER()
+        gjkMetadata.support = Vector3Subtract(polyhedronFindFurthestPoint(pPoly0, gjkMetadata.direction), polyhedronFindFurthestPoint(pPoly1, Vector3Negate(gjkMetadata.direction)));
+    U_GJK_EPA_FOOTER()
 
     gjkReturn.normal = gjkMetadata.direction;
     gjkReturn.distance = minDistance + 0.001f;
