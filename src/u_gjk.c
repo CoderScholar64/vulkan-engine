@@ -18,25 +18,26 @@ static int epaAddIfUniqueEdge(const UGJKBackoutTriangle *pFaces, size_t facesAmo
 
 static inline int sameDirection(Vector3 direction, Vector3 ao) { return Vector3DotProduct(direction, ao) > 0.0f; }
 
-#define U_GJK_INIT() \
+#define U_GJK_IMPLEMENTATION(maxResolve, shape0SupportFunction, shape1SupportFunction) \
     UGJKReturn gjkReturn = {0};\
     gjkReturn.result = U_GJK_NO_COLLISION;\
 \
     UGJKMetaData gjkMetadata = {0};\
 \
-    gjkMetadata.simplex.amountVertices = 1;
-
-#define U_GJK_HEADER(max_resolve) \
+    gjkMetadata.simplex.amountVertices = 1;\
+    gjkMetadata.simplex.vertices[0] = Vector3Subtract(shape0SupportFunction(pShape0, (Vector3){0, 1, 0}), shape1SupportFunction(pShape1, (Vector3){0, -1, 0}));\
+\
     gjkMetadata.direction = Vector3Negate(gjkMetadata.simplex.vertices[0]);\
 \
-    gjkMetadata.countDown = max_resolve;\
+    gjkMetadata.countDown = maxResolve;\
 \
     if(gjkMetadata.countDown < U_GJK_MAX_RESOLVE)\
         gjkMetadata.countDown = U_GJK_MAX_RESOLVE;\
 \
-    while(gjkMetadata.countDown != 0) {
-
-#define U_GJK_FOOTER() \
+    while(gjkMetadata.countDown != 0) {\
+\
+        gjkMetadata.support = Vector3Subtract(shape0SupportFunction(pShape0, gjkMetadata.direction), shape1SupportFunction(pShape1, Vector3Negate(gjkMetadata.direction)));\
+\
         if(Vector3DotProduct(gjkMetadata.support, gjkMetadata.direction) <= 0)\
             return gjkReturn;\
 \
@@ -61,7 +62,7 @@ static inline int sameDirection(Vector3 direction, Vector3 ao) { return Vector3D
     if(gjkReturn.result == U_GJK_NO_COLLISION)\
         gjkReturn.result = U_GJK_NOT_DETERMINED;\
 
-#define U_GJK_EPA_HEADER()\
+#define U_GJK_EPA_IMPLEMENTATION(shape0SupportFunction, shape1SupportFunction)\
     if(pBackoutCache == NULL)\
         return gjkReturn;\
 \
@@ -90,9 +91,10 @@ static inline int sameDirection(Vector3 direction, Vector3 ao) { return Vector3D
 \
     while(minDistance == FLT_MAX) {\
         gjkMetadata.direction = pBackoutCache->pFaces[minFaceIndex].normal;\
-        minDistance = pBackoutCache->pFaces[minFaceIndex].distance;
-
-#define U_GJK_EPA_FOOTER()\
+        minDistance = pBackoutCache->pFaces[minFaceIndex].distance;\
+\
+        gjkMetadata.support = Vector3Subtract(shape0SupportFunction(pShape0, gjkMetadata.direction), shape1SupportFunction(pShape1, Vector3Negate(gjkMetadata.direction)));\
+\
         sDistance = Vector3DotProduct(gjkMetadata.direction, gjkMetadata.support);\
 \
         if(fabs(sDistance - minDistance) > 0.001f && pBackoutCache->vertexAmount < pBackoutCache->vertexLimit && pBackoutCache->newFaceAmount != 0) {\
@@ -169,15 +171,9 @@ UGJKReturn u_gjk_poly(const UGJKPolyhedron *pShape0, const UGJKPolyhedron *pShap
     assert(pShape1->amountVertices != 0);
     // pBackoutCache can be NULL or a valid address.
 
-    U_GJK_INIT()
-    gjkMetadata.simplex.vertices[0] = Vector3Subtract(polyhedronFindFurthestPoint(pShape0, (Vector3){0, 1, 0}), polyhedronFindFurthestPoint(pShape1, (Vector3){0, -1, 0}));
-    U_GJK_HEADER(pShape0->amountVertices + pShape1->amountVertices)
-        gjkMetadata.support = Vector3Subtract(polyhedronFindFurthestPoint(pShape0, gjkMetadata.direction), polyhedronFindFurthestPoint(pShape1, Vector3Negate(gjkMetadata.direction)));
-    U_GJK_FOOTER()
+    U_GJK_IMPLEMENTATION(pShape0->amountVertices + pShape1->amountVertices, polyhedronFindFurthestPoint, polyhedronFindFurthestPoint)
 
-    U_GJK_EPA_HEADER()
-        gjkMetadata.support = Vector3Subtract(polyhedronFindFurthestPoint(pShape0, gjkMetadata.direction), polyhedronFindFurthestPoint(pShape1, Vector3Negate(gjkMetadata.direction)));
-    U_GJK_EPA_FOOTER()
+    U_GJK_EPA_IMPLEMENTATION(polyhedronFindFurthestPoint, polyhedronFindFurthestPoint)
 
     gjkReturn.normal = gjkMetadata.direction;
     gjkReturn.distance = minDistance + 0.001f;
@@ -191,15 +187,9 @@ UGJKReturn u_gjk_poly_sphere(const UGJKPolyhedron *pShape0, const UGJKSphere *pS
     assert(pShape0->amountVertices != 0);
     // pBackoutCache can be NULL or a valid address.
 
-    U_GJK_INIT()
-    gjkMetadata.simplex.vertices[0] = Vector3Subtract(polyhedronFindFurthestPoint(pShape0, (Vector3){0, 1, 0}), sphereFindFurthestPoint(pShape1, (Vector3){0, -1, 0}));
-    U_GJK_HEADER(3 * pShape0->amountVertices)
-        gjkMetadata.support = Vector3Subtract(polyhedronFindFurthestPoint(pShape0, gjkMetadata.direction), sphereFindFurthestPoint(pShape1, Vector3Negate(gjkMetadata.direction)));
-    U_GJK_FOOTER()
+    U_GJK_IMPLEMENTATION(3 * pShape0->amountVertices, polyhedronFindFurthestPoint, sphereFindFurthestPoint)
 
-    U_GJK_EPA_HEADER()
-        gjkMetadata.support = Vector3Subtract(polyhedronFindFurthestPoint(pShape0, gjkMetadata.direction), sphereFindFurthestPoint(pShape1, Vector3Negate(gjkMetadata.direction)));
-    U_GJK_EPA_FOOTER()
+    U_GJK_EPA_IMPLEMENTATION(polyhedronFindFurthestPoint, sphereFindFurthestPoint)
 
     gjkReturn.normal = gjkMetadata.direction;
     gjkReturn.distance = minDistance + 0.001f;
