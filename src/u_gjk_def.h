@@ -46,19 +46,21 @@ typedef struct UGJKBackoutTriangle {
 } UGJKBackoutTriangle;
 
 typedef struct UGJKBackoutCache {
-    size_t    edgeAmount;
-    size_t    edgeLimit;
-    size_t    faceAmount;
-    size_t    faceLimit;
-    size_t newFaceAmount;
-    size_t newFaceLimit;
-    size_t  vertexAmount;
-    size_t  vertexLimit;
+    size_t            edgeAmount;
+    size_t            edgeLimit;
+    UGJKBackoutEdge *pEdges;
 
-    UGJKBackoutEdge     *pEdges;
+    size_t                faceAmount;
+    size_t                faceLimit;
     UGJKBackoutTriangle *pFaces;
+
+    size_t                newFaceAmount;
+    size_t                newFaceLimit;
     UGJKBackoutTriangle *pNewFaces;
-    Vector3             *pVertices;
+
+    size_t   vertexAmount;
+    size_t   vertexLimit;
+    Vector3 *pVertices;
 } UGJKBackoutCache;
 
 #define U_GJK_EMPTY_POLYGON(name, count)\

@@ -9,4 +9,8 @@ UGJKReturn u_gjk_poly(const UGJKPolyhedron *pPoly0, const UGJKPolyhedron *pPoly1
 
 //UGJKReturn u_gjk_sphere(..., int backout);
 
+UGJKBackoutCache u_gjk_alloc_backout_cache(size_t extraVertices);
+
+void u_gjk_free_backout_cache(UGJKBackoutCache *pBackoutCache);
+
 #endif // U_GJK_DEF_29

@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <float.h>
+#include <stdlib.h>
 
 #define U_GJK_MAX_RESOLVE 8
 
@@ -155,6 +156,44 @@ UGJKReturn u_gjk_poly(const UGJKPolyhedron *pPoly0, const UGJKPolyhedron *pPoly1
     gjkReturn.distance = minDistance + 0.001f;
 
     return gjkReturn;
+}
+
+UGJKBackoutCache u_gjk_alloc_backout_cache(size_t extraVertices) {
+    size_t triangleAmount = 4 + 2 * extraVertices;
+    size_t   vertexAmount = 4   +   extraVertices;
+    size_t     edgeAmount = 6 + 3 * extraVertices;
+
+    UGJKBackoutCache backoutCache;
+    backoutCache.edgeLimit    =     edgeAmount;
+    backoutCache.faceLimit    = triangleAmount;
+    backoutCache.newFaceLimit = triangleAmount;
+    backoutCache.vertexLimit  =   vertexAmount;
+
+    size_t memorySize = 0;
+    memorySize += sizeof(UGJKBackoutEdge)     * backoutCache.edgeLimit;
+    memorySize += sizeof(UGJKBackoutTriangle) * backoutCache.faceLimit;
+    memorySize += sizeof(UGJKBackoutTriangle) * backoutCache.newFaceLimit;
+    memorySize += sizeof(Vector3)             * backoutCache.vertexLimit;
+
+    void *pMem = malloc(memorySize);
+
+    backoutCache.pVertices = pMem;
+    pMem = pMem + sizeof(Vector3) * backoutCache.vertexLimit;
+
+    backoutCache.pEdges = pMem;
+    pMem = pMem + sizeof(UGJKBackoutEdge) * backoutCache.edgeLimit;
+
+    backoutCache.pFaces = pMem;
+    pMem = pMem + sizeof(UGJKBackoutTriangle) * backoutCache.faceLimit;
+
+    backoutCache.pNewFaces = pMem;
+    pMem = pMem + sizeof(UGJKBackoutTriangle) * backoutCache.newFaceLimit;
+}
+
+void u_gjk_free_backout_cache(UGJKBackoutCache *pBackoutCache) {
+    assert(pBackoutCache != NULL);
+
+    free(pBackoutCache->pVertices);
 }
 
 static int modifySimplex(UGJKMetaData *this) {
