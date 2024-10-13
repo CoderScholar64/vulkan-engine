@@ -188,6 +188,8 @@ UGJKBackoutCache u_gjk_alloc_backout_cache(size_t extraVertices) {
 
     backoutCache.pNewFaces = pMem;
     pMem = pMem + sizeof(UGJKBackoutTriangle) * backoutCache.newFaceLimit;
+
+    return backoutCache;
 }
 
 void u_gjk_free_backout_cache(UGJKBackoutCache *pBackoutCache) {
