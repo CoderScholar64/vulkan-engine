@@ -16,7 +16,6 @@ static int epaAddIfUniqueEdge(const UGJKBackoutTriangle *pFaces, size_t facesAmo
 
 static inline int sameDirection(Vector3 direction, Vector3 ao) { return Vector3DotProduct(direction, ao) > 0.0f; }
 
-#include <stdio.h>
 UGJKReturn u_gjk_poly(const UGJKPolyhedron *pPoly0, const UGJKPolyhedron *pPoly1, UGJKBackoutCache *pBackoutCache) {
     assert(pPoly0 != NULL);
     assert(pPoly1 != NULL);
@@ -100,10 +99,6 @@ UGJKReturn u_gjk_poly(const UGJKPolyhedron *pPoly0, const UGJKPolyhedron *pPoly1
         gjkMetadata.support = Vector3Subtract(polyhedronFindFurthestPoint(pPoly0, gjkMetadata.direction), polyhedronFindFurthestPoint(pPoly1, Vector3Negate(gjkMetadata.direction)));
         sDistance = Vector3DotProduct(gjkMetadata.direction, gjkMetadata.support);
 
-        printf("gjkMetadata.direction = %f %f %f\n", gjkMetadata.direction.x,gjkMetadata.direction.y, gjkMetadata.direction.z);
-        printf("minDistance = %f\n", minDistance);
-        printf("pBackoutCache->vertexAmount = %zu\n", pBackoutCache->vertexAmount);
-
         if(fabs(sDistance - minDistance) > 0.001f && pBackoutCache->vertexAmount < pBackoutCache->vertexLimit && pBackoutCache->newFaceAmount != 0) {
             minDistance = FLT_MAX;
 
@@ -118,7 +113,6 @@ UGJKReturn u_gjk_poly(const UGJKPolyhedron *pPoly0, const UGJKPolyhedron *pPoly1
                     edgeLimitHit |= epaAddIfUniqueEdge(pBackoutCache->pFaces, pBackoutCache->faceAmount, i, 2, 0, pBackoutCache->pEdges, &pBackoutCache->edgeAmount, pBackoutCache->edgeLimit);
 
                     if(edgeLimitHit) {
-                        printf("edgeLimitHit = %zu\n", pBackoutCache->edgeLimit);
                         gjkReturn.result = U_GJK_NOT_DETERMINED;
                         return gjkReturn;
                     }
@@ -161,7 +155,6 @@ UGJKReturn u_gjk_poly(const UGJKPolyhedron *pPoly0, const UGJKPolyhedron *pPoly1
             }
 
             if(pBackoutCache->faceAmount + pBackoutCache->newFaceAmount >= pBackoutCache->faceLimit) {
-                printf("faceLimit = %zu\n", pBackoutCache->faceLimit);
                 gjkReturn.result = U_GJK_NOT_DETERMINED;
                 return gjkReturn;
             }
