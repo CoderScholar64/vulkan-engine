@@ -7,6 +7,8 @@
 #define U_GJK_MAX_RESOLVE 8
 
 static Vector3 polyhedronFindFurthestPoint(const UGJKPolyhedron *pPolygon, Vector3 direction);
+static Vector3 sphereFindFurthestPoint(const UGJKSphere *pSphere, Vector3 direction);
+
 static int gjkModifySimplex(UGJKMetaData *this);
 static int gjkLine(UGJKMetaData *this);
 static int gjkTriangle(UGJKMetaData *this);
@@ -17,18 +19,10 @@ static int epaAddIfUniqueEdge(const UGJKBackoutTriangle *pFaces, size_t facesAmo
 static inline int sameDirection(Vector3 direction, Vector3 ao) { return Vector3DotProduct(direction, ao) > 0.0f; }
 
 #define U_GJK_INIT() \
-    assert(pShape0 != NULL);\
-    assert(pShape1 != NULL);\
-    assert(pShape0->amountVertices != 0);\
-    assert(pShape1->amountVertices != 0);\
-    /* pBackoutCache can be NULL or a valid address. */\
-\
     UGJKReturn gjkReturn = {0};\
     gjkReturn.result = U_GJK_NO_COLLISION;\
 \
     UGJKMetaData gjkMetadata = {0};\
-    gjkMetadata.pConvexShape[0] = pShape0;\
-    gjkMetadata.pConvexShape[1] = pShape1;\
 \
     gjkMetadata.simplex.amountVertices = 1;
 
@@ -169,6 +163,11 @@ static inline int sameDirection(Vector3 direction, Vector3 ao) { return Vector3D
     }
 
 UGJKReturn u_gjk_poly(const UGJKPolyhedron *pShape0, const UGJKPolyhedron *pShape1, UGJKBackoutCache *pBackoutCache) {
+    assert(pShape0 != NULL);
+    assert(pShape1 != NULL);
+    assert(pShape0->amountVertices != 0);
+    assert(pShape1->amountVertices != 0);
+    // pBackoutCache can be NULL or a valid address.
 
     U_GJK_INIT()
     gjkMetadata.simplex.vertices[0] = Vector3Subtract(polyhedronFindFurthestPoint(pShape0, (Vector3){0, 1, 0}), polyhedronFindFurthestPoint(pShape1, (Vector3){0, -1, 0}));
@@ -178,6 +177,28 @@ UGJKReturn u_gjk_poly(const UGJKPolyhedron *pShape0, const UGJKPolyhedron *pShap
 
     U_GJK_EPA_HEADER()
         gjkMetadata.support = Vector3Subtract(polyhedronFindFurthestPoint(pShape0, gjkMetadata.direction), polyhedronFindFurthestPoint(pShape1, Vector3Negate(gjkMetadata.direction)));
+    U_GJK_EPA_FOOTER()
+
+    gjkReturn.normal = gjkMetadata.direction;
+    gjkReturn.distance = minDistance + 0.001f;
+
+    return gjkReturn;
+}
+
+UGJKReturn u_gjk_poly_sphere(const UGJKPolyhedron *pShape0, const UGJKSphere *pShape1, UGJKBackoutCache *pBackoutCache) {
+    assert(pShape0 != NULL);
+    assert(pShape1 != NULL);
+    assert(pShape0->amountVertices != 0);
+    // pBackoutCache can be NULL or a valid address.
+
+    U_GJK_INIT()
+    gjkMetadata.simplex.vertices[0] = Vector3Subtract(polyhedronFindFurthestPoint(pShape0, (Vector3){0, 1, 0}), sphereFindFurthestPoint(pShape1, (Vector3){0, -1, 0}));
+    U_GJK_HEADER(3 * pShape0->amountVertices)
+        gjkMetadata.support = Vector3Subtract(polyhedronFindFurthestPoint(pShape0, gjkMetadata.direction), sphereFindFurthestPoint(pShape1, Vector3Negate(gjkMetadata.direction)));
+    U_GJK_FOOTER()
+
+    U_GJK_EPA_HEADER()
+        gjkMetadata.support = Vector3Subtract(polyhedronFindFurthestPoint(pShape0, gjkMetadata.direction), sphereFindFurthestPoint(pShape1, Vector3Negate(gjkMetadata.direction)));
     U_GJK_EPA_FOOTER()
 
     gjkReturn.normal = gjkMetadata.direction;
@@ -347,9 +368,9 @@ static int gjkTetrahedron(UGJKMetaData *this) {
 
 static void epaGetFaceNormals(const Vector3 *pPolyTope, size_t polyTopeAmount, UGJKBackoutTriangle *pFaces, size_t facesAmount, size_t *pMinTriangleIndex) {
     assert(pPolyTope != NULL);
-    assert(polyTopeAmount >= 4);
+    //assert(polyTopeAmount >= 4);
     assert(pFaces != NULL);
-    assert(facesAmount >= 0);
+    //assert(facesAmount > 0);
     assert(pMinTriangleIndex != NULL);
 
     float minDistance = FLT_MAX;
@@ -424,4 +445,8 @@ static Vector3 polyhedronFindFurthestPoint(const UGJKPolyhedron *pPolygon, Vecto
     }
 
     return maxPoint;
+}
+
+static Vector3 sphereFindFurthestPoint(const UGJKSphere *pSphere, Vector3 direction) {
+    return Vector3Add(pSphere->position, Vector3Scale(Vector3Normalize(direction), pSphere->radius));
 }

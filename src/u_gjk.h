@@ -5,7 +5,7 @@
 
 UGJKReturn u_gjk_poly(const UGJKPolyhedron *pPoly0, const UGJKPolyhedron *pPoly1, UGJKBackoutCache *pBackoutCache);
 
-//UGJKReturn u_gjk_poly_sphere(..., int backout);
+UGJKReturn u_gjk_poly_sphere(const UGJKPolyhedron *pPoly, const UGJKSphere *pSphere, UGJKBackoutCache *pBackoutCache);
 
 //UGJKReturn u_gjk_sphere(..., int backout);
 

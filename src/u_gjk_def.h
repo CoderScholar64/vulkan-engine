@@ -12,6 +12,11 @@ typedef struct UGJKPolyhedron {
     Vector3 vertices[];
 } UGJKPolyhedron;
 
+typedef struct UGJKSphere {
+    Vector3 position;
+    float radius;
+} UGJKSphere;
+
 typedef enum UGJKState {
     U_GJK_NO_COLLISION,
     U_GJK_NOT_DETERMINED,
@@ -19,7 +24,6 @@ typedef enum UGJKState {
 } UGJKState;
 
 typedef struct UGJKMetaData {
-    const UGJKPolyhedron *pConvexShape[2];
     struct {
         size_t amountVertices;
         Vector3 vertices[U_GJK_SIMPLEX_VERTEX_AMOUNT];
