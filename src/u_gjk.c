@@ -16,6 +16,7 @@ static int epaAddIfUniqueEdge(const UGJKBackoutTriangle *pFaces, size_t facesAmo
 
 static inline int sameDirection(Vector3 direction, Vector3 ao) { return Vector3DotProduct(direction, ao) > 0.0f; }
 
+#include <stdio.h>
 UGJKReturn u_gjk_poly(const UGJKPolyhedron *pPoly0, const UGJKPolyhedron *pPoly1, UGJKBackoutCache *pBackoutCache) {
     assert(pPoly0 != NULL);
     assert(pPoly1 != NULL);
@@ -74,10 +75,10 @@ UGJKReturn u_gjk_poly(const UGJKPolyhedron *pPoly0, const UGJKPolyhedron *pPoly1
         pBackoutCache->pVertices[v] = gjkMetadata.simplex.vertices[v];
 
     pBackoutCache->faceAmount = 4;
-    pBackoutCache->pFaces[0] = (UGJKBackoutTriangle) {0, 1, 2};
-    pBackoutCache->pFaces[1] = (UGJKBackoutTriangle) {0, 3, 1};
-    pBackoutCache->pFaces[2] = (UGJKBackoutTriangle) {0, 2, 3};
-    pBackoutCache->pFaces[3] = (UGJKBackoutTriangle) {1, 3, 2};
+    pBackoutCache->pFaces[0] = (UGJKBackoutTriangle) {{}, 0, {0, 1, 2}};
+    pBackoutCache->pFaces[1] = (UGJKBackoutTriangle) {{}, 0, {0, 3, 1}};
+    pBackoutCache->pFaces[2] = (UGJKBackoutTriangle) {{}, 0, {0, 2, 3}};
+    pBackoutCache->pFaces[3] = (UGJKBackoutTriangle) {{}, 0, {1, 3, 2}};
 
     size_t minFaceIndex;
 
@@ -90,6 +91,8 @@ UGJKReturn u_gjk_poly(const UGJKPolyhedron *pPoly0, const UGJKPolyhedron *pPoly1
     float minDistance = FLT_MAX;
     float sDistance;
 
+    pBackoutCache->newFaceAmount = 1;
+
     while(minDistance == FLT_MAX) {
         gjkMetadata.direction = pBackoutCache->pFaces[minFaceIndex].normal;
         minDistance = pBackoutCache->pFaces[minFaceIndex].distance;
@@ -97,16 +100,28 @@ UGJKReturn u_gjk_poly(const UGJKPolyhedron *pPoly0, const UGJKPolyhedron *pPoly1
         gjkMetadata.support = Vector3Subtract(polyhedronFindFurthestPoint(pPoly0, gjkMetadata.direction), polyhedronFindFurthestPoint(pPoly1, Vector3Negate(gjkMetadata.direction)));
         sDistance = Vector3DotProduct(gjkMetadata.direction, gjkMetadata.support);
 
-        if(fabs(sDistance - minDistance ) > 0.001f && pBackoutCache->vertexAmount < pBackoutCache->vertexLimit) {
+        printf("gjkMetadata.direction = %f %f %f\n", gjkMetadata.direction.x,gjkMetadata.direction.y, gjkMetadata.direction.z);
+        printf("minDistance = %f\n", minDistance);
+        printf("pBackoutCache->vertexAmount = %zu\n", pBackoutCache->vertexAmount);
+
+        if(fabs(sDistance - minDistance) > 0.001f && pBackoutCache->vertexAmount < pBackoutCache->vertexLimit && pBackoutCache->newFaceAmount != 0) {
             minDistance = FLT_MAX;
 
             pBackoutCache->edgeAmount = 0;
 
+            int edgeLimitHit = 0;
+
             for(size_t i = 0; i < pBackoutCache->faceAmount; i++) {
                 if(sameDirection(pBackoutCache->pFaces[minFaceIndex].normal, gjkMetadata.support)) {
-                    epaAddIfUniqueEdge(pBackoutCache->pFaces, pBackoutCache->faceAmount, i, 0, 1, pBackoutCache->pEdges, &pBackoutCache->edgeAmount, pBackoutCache->edgeLimit);
-                    epaAddIfUniqueEdge(pBackoutCache->pFaces, pBackoutCache->faceAmount, i, 1, 2, pBackoutCache->pEdges, &pBackoutCache->edgeAmount, pBackoutCache->edgeLimit);
-                    epaAddIfUniqueEdge(pBackoutCache->pFaces, pBackoutCache->faceAmount, i, 2, 0, pBackoutCache->pEdges, &pBackoutCache->edgeAmount, pBackoutCache->edgeLimit);
+                    edgeLimitHit |= epaAddIfUniqueEdge(pBackoutCache->pFaces, pBackoutCache->faceAmount, i, 0, 1, pBackoutCache->pEdges, &pBackoutCache->edgeAmount, pBackoutCache->edgeLimit);
+                    edgeLimitHit |= epaAddIfUniqueEdge(pBackoutCache->pFaces, pBackoutCache->faceAmount, i, 1, 2, pBackoutCache->pEdges, &pBackoutCache->edgeAmount, pBackoutCache->edgeLimit);
+                    edgeLimitHit |= epaAddIfUniqueEdge(pBackoutCache->pFaces, pBackoutCache->faceAmount, i, 2, 0, pBackoutCache->pEdges, &pBackoutCache->edgeAmount, pBackoutCache->edgeLimit);
+
+                    if(edgeLimitHit) {
+                        printf("edgeLimitHit = %zu\n", pBackoutCache->edgeLimit);
+                        gjkReturn.result = U_GJK_NOT_DETERMINED;
+                        return gjkReturn;
+                    }
 
                     pBackoutCache->faceAmount--;
                     pBackoutCache->pFaces[i] = pBackoutCache->pFaces[pBackoutCache->faceAmount];
@@ -145,10 +160,16 @@ UGJKReturn u_gjk_poly(const UGJKPolyhedron *pPoly0, const UGJKPolyhedron *pPoly1
                 minFaceIndex = minNewFaceIndex + pBackoutCache->faceAmount;
             }
 
-            for(size_t i = 0; i < pBackoutCache->newFaceAmount; i++) {
-                pBackoutCache->pFaces[pBackoutCache->faceLimit + i] = pBackoutCache->pNewFaces[i];
+            if(pBackoutCache->faceAmount + pBackoutCache->newFaceAmount >= pBackoutCache->faceLimit) {
+                printf("faceLimit = %zu\n", pBackoutCache->faceLimit);
+                gjkReturn.result = U_GJK_NOT_DETERMINED;
+                return gjkReturn;
             }
-            pBackoutCache->faceLimit += pBackoutCache->newFaceAmount;
+
+            for(size_t i = 0; i < pBackoutCache->newFaceAmount; i++) {
+                pBackoutCache->pFaces[pBackoutCache->faceAmount + i] = pBackoutCache->pNewFaces[i];
+            }
+            pBackoutCache->faceAmount += pBackoutCache->newFaceAmount;
         }
     }
 
@@ -321,7 +342,7 @@ static void epaGetFaceNormals(const Vector3 *pPolyTope, size_t polyTopeAmount, U
     assert(pPolyTope != NULL);
     assert(polyTopeAmount >= 4);
     assert(pFaces != NULL);
-    assert(facesAmount >= 4);
+    assert(facesAmount >= 0);
     assert(pMinTriangleIndex != NULL);
 
     float minDistance = FLT_MAX;
@@ -350,13 +371,12 @@ static void epaGetFaceNormals(const Vector3 *pPolyTope, size_t polyTopeAmount, U
 
 static int epaAddIfUniqueEdge(const UGJKBackoutTriangle *pFaces, size_t facesAmount, size_t faceIndex, unsigned a, unsigned b, UGJKBackoutEdge *pEdges, size_t *pEdgeAmount, size_t edgeMax) {
     assert(pFaces != NULL);
-    assert(facesAmount >= 4);
+    assert(facesAmount >= 0);
     assert(faceIndex < facesAmount);
     assert(a < 3);
     assert(b < 3);
     assert(pEdges != NULL);
     assert(pEdgeAmount != NULL);
-    assert(*pEdgeAmount >= 6);
 
     size_t reverseEdgeIndex = *pEdgeAmount;
 
@@ -370,16 +390,16 @@ static int epaAddIfUniqueEdge(const UGJKBackoutTriangle *pFaces, size_t facesAmo
     }
 
     if(reverseEdgeIndex != *pEdgeAmount) {
-        pEdges[reverseEdgeIndex] = pEdges[*pEdgeAmount - 1];
         (*pEdgeAmount)--;
-        return 1;
+        pEdges[reverseEdgeIndex] = pEdges[*pEdgeAmount];
+        return 0;
     }
     else if(*pEdgeAmount < edgeMax) {
-        pEdges[*pEdgeAmount] = (UGJKBackoutEdge) {a, b};
+        pEdges[*pEdgeAmount] = (UGJKBackoutEdge) {pFaces[faceIndex].vertexIndexes[a], pFaces[faceIndex].vertexIndexes[b]};
         (*pEdgeAmount)++;
-        return 1;
+        return 0;
     }
-    return 0; // Not enough cache space.
+    return 1; // Not enough cache space.
 }
 
 static Vector3 polyhedronFindFurthestPoint(const UGJKPolyhedron *pPolygon, Vector3 direction) {
