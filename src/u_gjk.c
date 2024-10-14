@@ -197,6 +197,33 @@ UGJKReturn u_gjk_poly_sphere(const UGJKPolyhedron *pShape0, const UGJKSphere *pS
     return gjkReturn;
 }
 
+UGJKReturn u_gjk_sphere(const UGJKSphere *pSphere0, const UGJKSphere *pSphere1) {
+    assert(pSphere0 != NULL);
+    assert(pSphere0->radius > 0);
+    assert(pSphere1 != NULL);
+    assert(pSphere1->radius > 0);
+
+    UGJKReturn gjkReturn = {0};
+    gjkReturn.result = U_GJK_NO_COLLISION;
+
+    // GJK and EPA algorithms are overkill. Plus, this is more far more performant.
+    // So, I am using another algorithm from https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection
+
+    float distanceSq = Vector3DistanceSqr(pSphere0->position, pSphere1->position);
+    float radii = pSphere0->radius + pSphere1->radius;
+    float radiiSq = radii * radii;
+
+    if(distanceSq > radiiSq)
+        return gjkReturn;
+
+    gjkReturn.result = U_GJK_COLLISION;
+
+    gjkReturn.distance = (radii - sqrt(distanceSq));
+    gjkReturn.normal = Vector3Normalize(Vector3Subtract(pSphere1->position, pSphere0->position));
+
+    return gjkReturn;
+}
+
 UGJKBackoutCache u_gjk_alloc_backout_cache(size_t extraVertices) {
     size_t triangleAmount = 4 + 2 * extraVertices;
     size_t   vertexAmount = 4   +   extraVertices;
