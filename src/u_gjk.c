@@ -13,8 +13,8 @@ static int gjkModifySimplex(UCollisionGJK *this);
 static int gjkLine(UCollisionGJK *this);
 static int gjkTriangle(UCollisionGJK *this);
 static int gjkTetrahedron(UCollisionGJK *this);
-static void epaGetFaceNormals(const Vector3 *pPolyTope, size_t polyTopeAmount, UGJKBackoutTriangle *pFaces, size_t facesAmount, size_t *pMinTriangleIndex);
-static int epaAddIfUniqueEdge(const UGJKBackoutTriangle *pFaces, size_t facesAmount, size_t faceIndex, unsigned a, unsigned b, UCollisionEPAEdge *pEdges, size_t *pEdgeAmount, size_t edgeMax);
+static void epaGetFaceNormals(const Vector3 *pPolyTope, size_t polyTopeAmount, UCollisionEPATriangle *pFaces, size_t facesAmount, size_t *pMinTriangleIndex);
+static int epaAddIfUniqueEdge(const UCollisionEPATriangle *pFaces, size_t facesAmount, size_t faceIndex, unsigned a, unsigned b, UCollisionEPAEdge *pEdges, size_t *pEdgeAmount, size_t edgeMax);
 
 static inline int sameDirection(Vector3 direction, Vector3 ao) { return Vector3DotProduct(direction, ao) > 0.0f; }
 
@@ -71,10 +71,10 @@ static inline int sameDirection(Vector3 direction, Vector3 ao) { return Vector3D
         pBackoutCache->pVertices[v] = gjkMetadata.simplex.vertices[v];\
 \
     pBackoutCache->faceAmount = 4;\
-    pBackoutCache->pFaces[0] = (UGJKBackoutTriangle) {{}, 0, {0, 1, 2}};\
-    pBackoutCache->pFaces[1] = (UGJKBackoutTriangle) {{}, 0, {0, 3, 1}};\
-    pBackoutCache->pFaces[2] = (UGJKBackoutTriangle) {{}, 0, {0, 2, 3}};\
-    pBackoutCache->pFaces[3] = (UGJKBackoutTriangle) {{}, 0, {1, 3, 2}};\
+    pBackoutCache->pFaces[0] = (UCollisionEPATriangle) {{}, 0, {0, 1, 2}};\
+    pBackoutCache->pFaces[1] = (UCollisionEPATriangle) {{}, 0, {0, 3, 1}};\
+    pBackoutCache->pFaces[2] = (UCollisionEPATriangle) {{}, 0, {0, 2, 3}};\
+    pBackoutCache->pFaces[3] = (UCollisionEPATriangle) {{}, 0, {1, 3, 2}};\
 \
     size_t minFaceIndex;\
 \
@@ -237,8 +237,8 @@ UGJKBackoutCache u_collision_alloc_backout_cache(size_t extraVertices) {
 
     size_t memorySize = 0;
     memorySize += sizeof(UCollisionEPAEdge)     * backoutCache.edgeLimit;
-    memorySize += sizeof(UGJKBackoutTriangle) * backoutCache.faceLimit;
-    memorySize += sizeof(UGJKBackoutTriangle) * backoutCache.newFaceLimit;
+    memorySize += sizeof(UCollisionEPATriangle) * backoutCache.faceLimit;
+    memorySize += sizeof(UCollisionEPATriangle) * backoutCache.newFaceLimit;
     memorySize += sizeof(Vector3)             * backoutCache.vertexLimit;
 
     void *pMem = malloc(memorySize);
@@ -250,10 +250,10 @@ UGJKBackoutCache u_collision_alloc_backout_cache(size_t extraVertices) {
     pMem = pMem + sizeof(UCollisionEPAEdge) * backoutCache.edgeLimit;
 
     backoutCache.pFaces = pMem;
-    pMem = pMem + sizeof(UGJKBackoutTriangle) * backoutCache.faceLimit;
+    pMem = pMem + sizeof(UCollisionEPATriangle) * backoutCache.faceLimit;
 
     backoutCache.pNewFaces = pMem;
-    pMem = pMem + sizeof(UGJKBackoutTriangle) * backoutCache.newFaceLimit;
+    pMem = pMem + sizeof(UCollisionEPATriangle) * backoutCache.newFaceLimit;
 
     return backoutCache;
 }
@@ -383,7 +383,7 @@ static int gjkTetrahedron(UCollisionGJK *this) {
 
 }
 
-static void epaGetFaceNormals(const Vector3 *pPolyTope, size_t polyTopeAmount, UGJKBackoutTriangle *pFaces, size_t facesAmount, size_t *pMinTriangleIndex) {
+static void epaGetFaceNormals(const Vector3 *pPolyTope, size_t polyTopeAmount, UCollisionEPATriangle *pFaces, size_t facesAmount, size_t *pMinTriangleIndex) {
     assert(pPolyTope != NULL);
     //assert(polyTopeAmount >= 4);
     assert(pFaces != NULL);
@@ -414,7 +414,7 @@ static void epaGetFaceNormals(const Vector3 *pPolyTope, size_t polyTopeAmount, U
     }
 }
 
-static int epaAddIfUniqueEdge(const UGJKBackoutTriangle *pFaces, size_t facesAmount, size_t faceIndex, unsigned a, unsigned b, UCollisionEPAEdge *pEdges, size_t *pEdgeAmount, size_t edgeMax) {
+static int epaAddIfUniqueEdge(const UCollisionEPATriangle *pFaces, size_t facesAmount, size_t faceIndex, unsigned a, unsigned b, UCollisionEPAEdge *pEdges, size_t *pEdgeAmount, size_t edgeMax) {
     assert(pFaces != NULL);
     assert(facesAmount >= 0);
     assert(faceIndex < facesAmount);

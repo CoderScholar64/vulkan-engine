@@ -43,24 +43,24 @@ typedef struct UCollisionEPAEdge {
     size_t edgeIndexes[2];
 } UCollisionEPAEdge;
 
-typedef struct UGJKBackoutTriangle {
+typedef struct UCollisionEPATriangle {
     Vector3 normal;
     float distance;
     size_t vertexIndexes[3];
-} UGJKBackoutTriangle;
+} UCollisionEPATriangle;
 
 typedef struct UGJKBackoutCache {
     size_t              edgeAmount;
     size_t              edgeLimit;
     UCollisionEPAEdge *pEdges;
 
-    size_t                faceAmount;
-    size_t                faceLimit;
-    UGJKBackoutTriangle *pFaces;
+    size_t                 faceAmount;
+    size_t                 faceLimit;
+    UCollisionEPATriangle *pFaces;
 
-    size_t                newFaceAmount;
-    size_t                newFaceLimit;
-    UGJKBackoutTriangle *pNewFaces;
+    size_t                 newFaceAmount;
+    size_t                 newFaceLimit;
+    UCollisionEPATriangle *pNewFaces;
 
     size_t   vertexAmount;
     size_t   vertexLimit;
