@@ -124,8 +124,8 @@ static inline int sameDirection(Vector3 direction, Vector3 ao) { return Vector3D
 \
             pBackoutCache->newFaceAmount = 0;\
             for(size_t edgeIndex = 0; edgeIndex < pBackoutCache->edgeAmount; edgeIndex++) {\
-                pBackoutCache->pNewFaces[pBackoutCache->newFaceAmount].vertexIndexes[0] = pBackoutCache->pEdges[edgeIndex].edgeIndexes[0];\
-                pBackoutCache->pNewFaces[pBackoutCache->newFaceAmount].vertexIndexes[1] = pBackoutCache->pEdges[edgeIndex].edgeIndexes[1];\
+                pBackoutCache->pNewFaces[pBackoutCache->newFaceAmount].vertexIndexes[0] = pBackoutCache->pEdges[edgeIndex].vertexIndexes[0];\
+                pBackoutCache->pNewFaces[pBackoutCache->newFaceAmount].vertexIndexes[1] = pBackoutCache->pEdges[edgeIndex].vertexIndexes[1];\
                 pBackoutCache->pNewFaces[pBackoutCache->newFaceAmount].vertexIndexes[2] = pBackoutCache->vertexAmount;\
                 pBackoutCache->newFaceAmount++;\
             }\
@@ -426,8 +426,8 @@ static int epaAddIfUniqueEdge(const UCollisionEPATriangle *pFaces, size_t facesA
     size_t reverseEdgeIndex = *pEdgeAmount;
 
     for(size_t edgeIndex = 0; edgeIndex < *pEdgeAmount; edgeIndex++) {
-        if( pEdges[edgeIndex].edgeIndexes[0] == pFaces[faceIndex].vertexIndexes[b] &&
-            pEdges[edgeIndex].edgeIndexes[1] == pFaces[faceIndex].vertexIndexes[a] )
+        if( pEdges[edgeIndex].vertexIndexes[0] == pFaces[faceIndex].vertexIndexes[b] &&
+            pEdges[edgeIndex].vertexIndexes[1] == pFaces[faceIndex].vertexIndexes[a] )
         {
             reverseEdgeIndex = edgeIndex;
             break;
@@ -440,8 +440,8 @@ static int epaAddIfUniqueEdge(const UCollisionEPATriangle *pFaces, size_t facesA
         return 0;
     }
     else if(*pEdgeAmount < edgeMax) {
-        pEdges[*pEdgeAmount].edgeIndexes[0] = pFaces[faceIndex].vertexIndexes[a];
-        pEdges[*pEdgeAmount].edgeIndexes[1] = pFaces[faceIndex].vertexIndexes[b];
+        pEdges[*pEdgeAmount].vertexIndexes[0] = pFaces[faceIndex].vertexIndexes[a];
+        pEdges[*pEdgeAmount].vertexIndexes[1] = pFaces[faceIndex].vertexIndexes[b];
         (*pEdgeAmount)++;
         return 0;
     }

@@ -40,7 +40,7 @@ typedef struct UCollisionReturn {
 } UCollisionReturn;
 
 typedef struct UCollisionEPAEdge {
-    size_t edgeIndexes[2];
+    size_t vertexIndexes[2];
 } UCollisionEPAEdge;
 
 typedef struct UCollisionEPATriangle {
