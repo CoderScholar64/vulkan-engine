@@ -7,15 +7,15 @@
 
 #define U_GJK_SIMPLEX_VERTEX_AMOUNT 4
 
-typedef struct UGJKPolyhedron {
+typedef struct UCollisionPolyhedron {
     size_t amountVertices;
     Vector3 vertices[];
-} UGJKPolyhedron;
+} UCollisionPolyhedron;
 
-typedef struct UGJKSphere {
+typedef struct UCollisionSphere {
     Vector3 position;
     float radius;
-} UGJKSphere;
+} UCollisionSphere;
 
 typedef enum UGJKState {
     U_GJK_NO_COLLISION,
@@ -68,7 +68,7 @@ typedef struct UGJKBackoutCache {
 } UGJKBackoutCache;
 
 #define U_GJK_EMPTY_POLYGON(name, count)\
-    UGJKPolyhedron name = {count}
+    UCollisionPolyhedron name = {count}
 
 #define U_GJK_BOX(a_x, a_y, a_z, b_x, b_y, b_z) {\
     8, {\

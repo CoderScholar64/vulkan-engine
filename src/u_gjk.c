@@ -6,8 +6,8 @@
 
 #define U_GJK_MAX_RESOLVE 8
 
-static Vector3 polyhedronFindFurthestPoint(const UGJKPolyhedron *pPolygon, Vector3 direction);
-static Vector3 sphereFindFurthestPoint(const UGJKSphere *pSphere, Vector3 direction);
+static Vector3 polyhedronFindFurthestPoint(const UCollisionPolyhedron *pPolygon, Vector3 direction);
+static Vector3 sphereFindFurthestPoint(const UCollisionSphere *pSphere, Vector3 direction);
 
 static int gjkModifySimplex(UGJKMetaData *this);
 static int gjkLine(UGJKMetaData *this);
@@ -164,7 +164,7 @@ static inline int sameDirection(Vector3 direction, Vector3 ao) { return Vector3D
         }\
     }
 
-UGJKReturn u_collision_poly(const UGJKPolyhedron *pShape0, const UGJKPolyhedron *pShape1, UGJKBackoutCache *pBackoutCache) {
+UGJKReturn u_collision_poly(const UCollisionPolyhedron *pShape0, const UCollisionPolyhedron *pShape1, UGJKBackoutCache *pBackoutCache) {
     assert(pShape0 != NULL);
     assert(pShape1 != NULL);
     assert(pShape0->amountVertices != 0);
@@ -181,7 +181,7 @@ UGJKReturn u_collision_poly(const UGJKPolyhedron *pShape0, const UGJKPolyhedron 
     return gjkReturn;
 }
 
-UGJKReturn u_collision_poly_sphere(const UGJKPolyhedron *pShape0, const UGJKSphere *pShape1, UGJKBackoutCache *pBackoutCache) {
+UGJKReturn u_collision_poly_sphere(const UCollisionPolyhedron *pShape0, const UCollisionSphere *pShape1, UGJKBackoutCache *pBackoutCache) {
     assert(pShape0 != NULL);
     assert(pShape1 != NULL);
     assert(pShape0->amountVertices != 0);
@@ -197,7 +197,7 @@ UGJKReturn u_collision_poly_sphere(const UGJKPolyhedron *pShape0, const UGJKSphe
     return gjkReturn;
 }
 
-UGJKReturn u_collision_sphere(const UGJKSphere *pSphere0, const UGJKSphere *pSphere1) {
+UGJKReturn u_collision_sphere(const UCollisionSphere *pSphere0, const UCollisionSphere *pSphere1) {
     assert(pSphere0 != NULL);
     assert(pSphere0->radius > 0);
     assert(pSphere1 != NULL);
@@ -447,7 +447,7 @@ static int epaAddIfUniqueEdge(const UGJKBackoutTriangle *pFaces, size_t facesAmo
     return 1; // Not enough cache space.
 }
 
-static Vector3 polyhedronFindFurthestPoint(const UGJKPolyhedron *pPolygon, Vector3 direction) {
+static Vector3 polyhedronFindFurthestPoint(const UCollisionPolyhedron *pPolygon, Vector3 direction) {
     Vector3 maxPoint = pPolygon->vertices[pPolygon->amountVertices - 1];
     float maxDistance = Vector3DotProduct(pPolygon->vertices[pPolygon->amountVertices - 1], direction);
     float distance;
@@ -464,6 +464,6 @@ static Vector3 polyhedronFindFurthestPoint(const UGJKPolyhedron *pPolygon, Vecto
     return maxPoint;
 }
 
-static Vector3 sphereFindFurthestPoint(const UGJKSphere *pSphere, Vector3 direction) {
+static Vector3 sphereFindFurthestPoint(const UCollisionSphere *pSphere, Vector3 direction) {
     return Vector3Add(pSphere->position, Vector3Scale(Vector3Normalize(direction), pSphere->radius));
 }

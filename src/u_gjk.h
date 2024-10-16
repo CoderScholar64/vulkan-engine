@@ -11,7 +11,7 @@
  * @return U_GJK_NO_COLLISION if there is no collision. U_GJK_COLLISION if the collision happended U_GJK_NOT_DETERMINED if the collision cannot be confirmed.
  *          UGJKReturn::normal and UGJKReturn::depth is returned if pBackoutCache is used for this function. @note To backout pPoly0 multiply the normal by negative depth and add it to pPoly0
  */
-UGJKReturn u_collision_poly(const UGJKPolyhedron *pPoly0, const UGJKPolyhedron *pPoly1, UGJKBackoutCache *pBackoutCache);
+UGJKReturn u_collision_poly(const UCollisionPolyhedron *pPoly0, const UCollisionPolyhedron *pPoly1, UGJKBackoutCache *pBackoutCache);
 
 /**
  * This function determines if a polyhedron would collide with a sphere.
@@ -21,7 +21,7 @@ UGJKReturn u_collision_poly(const UGJKPolyhedron *pPoly0, const UGJKPolyhedron *
  * @return U_GJK_NO_COLLISION if there is no collision. U_GJK_COLLISION if the collision happended U_GJK_NOT_DETERMINED if the collision cannot be confirmed.
  *          UGJKReturn::normal and UGJKReturn::depth is returned if pBackoutCache is used for this function. @note To backout pPoly multiply the normal by negative depth and add it to pPoly
  */
-UGJKReturn u_collision_poly_sphere(const UGJKPolyhedron *pPoly, const UGJKSphere *pSphere, UGJKBackoutCache *pBackoutCache);
+UGJKReturn u_collision_poly_sphere(const UCollisionPolyhedron *pPoly, const UCollisionSphere *pSphere, UGJKBackoutCache *pBackoutCache);
 
 /**
  * This function determines if a sphere would collide with a sphere.
@@ -31,7 +31,7 @@ UGJKReturn u_collision_poly_sphere(const UGJKPolyhedron *pPoly, const UGJKSphere
  * @return U_GJK_NO_COLLISION if there is no collision. U_GJK_COLLISION if the collision happended U_GJK_NOT_DETERMINED if the collision cannot be confirmed.
  *          UGJKReturn::normal and UGJKReturn::depth is also returned. @note To backout pPoly multiply the normal by negative depth and add it to pPoly
  */
-UGJKReturn u_collision_sphere(const UGJKSphere *pSphere0, const UGJKSphere *pSphere1);
+UGJKReturn u_collision_sphere(const UCollisionSphere *pSphere0, const UCollisionSphere *pSphere1);
 
 /**
  * This function allocates the backout cache.
