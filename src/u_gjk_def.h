@@ -39,9 +39,9 @@ typedef struct UCollisionReturn {
     UCollisionState result; // normal is only valid if this is set to COLLISION.
 } UCollisionReturn;
 
-typedef struct UGJKBackoutEdge {
+typedef struct UCollisionEPAEdge {
     size_t edgeIndexes[2];
-} UGJKBackoutEdge;
+} UCollisionEPAEdge;
 
 typedef struct UGJKBackoutTriangle {
     Vector3 normal;
@@ -50,9 +50,9 @@ typedef struct UGJKBackoutTriangle {
 } UGJKBackoutTriangle;
 
 typedef struct UGJKBackoutCache {
-    size_t            edgeAmount;
-    size_t            edgeLimit;
-    UGJKBackoutEdge *pEdges;
+    size_t              edgeAmount;
+    size_t              edgeLimit;
+    UCollisionEPAEdge *pEdges;
 
     size_t                faceAmount;
     size_t                faceLimit;

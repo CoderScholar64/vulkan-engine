@@ -14,7 +14,7 @@ static int gjkLine(UCollisionGJK *this);
 static int gjkTriangle(UCollisionGJK *this);
 static int gjkTetrahedron(UCollisionGJK *this);
 static void epaGetFaceNormals(const Vector3 *pPolyTope, size_t polyTopeAmount, UGJKBackoutTriangle *pFaces, size_t facesAmount, size_t *pMinTriangleIndex);
-static int epaAddIfUniqueEdge(const UGJKBackoutTriangle *pFaces, size_t facesAmount, size_t faceIndex, unsigned a, unsigned b, UGJKBackoutEdge *pEdges, size_t *pEdgeAmount, size_t edgeMax);
+static int epaAddIfUniqueEdge(const UGJKBackoutTriangle *pFaces, size_t facesAmount, size_t faceIndex, unsigned a, unsigned b, UCollisionEPAEdge *pEdges, size_t *pEdgeAmount, size_t edgeMax);
 
 static inline int sameDirection(Vector3 direction, Vector3 ao) { return Vector3DotProduct(direction, ao) > 0.0f; }
 
@@ -236,7 +236,7 @@ UGJKBackoutCache u_collision_alloc_backout_cache(size_t extraVertices) {
     backoutCache.vertexLimit  =   vertexAmount;
 
     size_t memorySize = 0;
-    memorySize += sizeof(UGJKBackoutEdge)     * backoutCache.edgeLimit;
+    memorySize += sizeof(UCollisionEPAEdge)     * backoutCache.edgeLimit;
     memorySize += sizeof(UGJKBackoutTriangle) * backoutCache.faceLimit;
     memorySize += sizeof(UGJKBackoutTriangle) * backoutCache.newFaceLimit;
     memorySize += sizeof(Vector3)             * backoutCache.vertexLimit;
@@ -247,7 +247,7 @@ UGJKBackoutCache u_collision_alloc_backout_cache(size_t extraVertices) {
     pMem = pMem + sizeof(Vector3) * backoutCache.vertexLimit;
 
     backoutCache.pEdges = pMem;
-    pMem = pMem + sizeof(UGJKBackoutEdge) * backoutCache.edgeLimit;
+    pMem = pMem + sizeof(UCollisionEPAEdge) * backoutCache.edgeLimit;
 
     backoutCache.pFaces = pMem;
     pMem = pMem + sizeof(UGJKBackoutTriangle) * backoutCache.faceLimit;
@@ -414,7 +414,7 @@ static void epaGetFaceNormals(const Vector3 *pPolyTope, size_t polyTopeAmount, U
     }
 }
 
-static int epaAddIfUniqueEdge(const UGJKBackoutTriangle *pFaces, size_t facesAmount, size_t faceIndex, unsigned a, unsigned b, UGJKBackoutEdge *pEdges, size_t *pEdgeAmount, size_t edgeMax) {
+static int epaAddIfUniqueEdge(const UGJKBackoutTriangle *pFaces, size_t facesAmount, size_t faceIndex, unsigned a, unsigned b, UCollisionEPAEdge *pEdges, size_t *pEdgeAmount, size_t edgeMax) {
     assert(pFaces != NULL);
     assert(facesAmount >= 0);
     assert(faceIndex < facesAmount);
@@ -440,7 +440,7 @@ static int epaAddIfUniqueEdge(const UGJKBackoutTriangle *pFaces, size_t facesAmo
         return 0;
     }
     else if(*pEdgeAmount < edgeMax) {
-        pEdges[*pEdgeAmount] = (UGJKBackoutEdge) {pFaces[faceIndex].vertexIndexes[a], pFaces[faceIndex].vertexIndexes[b]};
+        pEdges[*pEdgeAmount] = (UCollisionEPAEdge) {pFaces[faceIndex].vertexIndexes[a], pFaces[faceIndex].vertexIndexes[b]};
         (*pEdgeAmount)++;
         return 0;
     }
