@@ -67,19 +67,4 @@ typedef struct UCollisionBackoutCache {
     Vector3 *pVertices;
 } UCollisionBackoutCache;
 
-#define U_GJK_EMPTY_POLYGON(name, count)\
-    UCollisionPolyhedron name = {count}
-
-#define U_GJK_BOX(a_x, a_y, a_z, b_x, b_y, b_z) {\
-    8, {\
-    {a_x, a_y, a_z},\
-    {a_x, a_y, b_z},\
-    {a_x, b_y, a_z},\
-    {a_x, b_y, b_z},\
-    {b_x, a_y, a_z},\
-    {b_x, a_y, b_z},\
-    {b_x, b_y, a_z},\
-    {b_x, b_y, b_z}\
-    }}
-
 #endif // U_GJK_DEF_29
