@@ -9,9 +9,9 @@
  * @param pPoly1 The second polyhedron to compute. @warning Do not put a zero point polyhedron.
  * @param pBackoutCache The back out cache if it is needed. @note This can actually be NULL, but then the backout code will not be run.
  * @return U_GJK_NO_COLLISION if there is no collision. U_GJK_COLLISION if the collision happended U_GJK_NOT_DETERMINED if the collision cannot be confirmed.
- *          UGJKReturn::normal and UGJKReturn::depth is returned if pBackoutCache is used for this function. @note To backout pPoly0 multiply the normal by negative depth and add it to pPoly0
+ *          UCollisionReturn::normal and UCollisionReturn::depth is returned if pBackoutCache is used for this function. @note To backout pPoly0 multiply the normal by negative depth and add it to pPoly0
  */
-UGJKReturn u_collision_poly(const UCollisionPolyhedron *pPoly0, const UCollisionPolyhedron *pPoly1, UGJKBackoutCache *pBackoutCache);
+UCollisionReturn u_collision_poly(const UCollisionPolyhedron *pPoly0, const UCollisionPolyhedron *pPoly1, UGJKBackoutCache *pBackoutCache);
 
 /**
  * This function determines if a polyhedron would collide with a sphere.
@@ -19,9 +19,9 @@ UGJKReturn u_collision_poly(const UCollisionPolyhedron *pPoly0, const UCollision
  * @param pSphere The sphere to test the collision with.
  * @param pBackoutCache The back out cache if it is needed. @note This can actually be NULL, but then the backout code will not be run.
  * @return U_GJK_NO_COLLISION if there is no collision. U_GJK_COLLISION if the collision happended U_GJK_NOT_DETERMINED if the collision cannot be confirmed.
- *          UGJKReturn::normal and UGJKReturn::depth is returned if pBackoutCache is used for this function. @note To backout pPoly multiply the normal by negative depth and add it to pPoly
+ *          UCollisionReturn::normal and UCollisionReturn::depth is returned if pBackoutCache is used for this function. @note To backout pPoly multiply the normal by negative depth and add it to pPoly
  */
-UGJKReturn u_collision_poly_sphere(const UCollisionPolyhedron *pPoly, const UCollisionSphere *pSphere, UGJKBackoutCache *pBackoutCache);
+UCollisionReturn u_collision_poly_sphere(const UCollisionPolyhedron *pPoly, const UCollisionSphere *pSphere, UGJKBackoutCache *pBackoutCache);
 
 /**
  * This function determines if a sphere would collide with a sphere.
@@ -29,9 +29,9 @@ UGJKReturn u_collision_poly_sphere(const UCollisionPolyhedron *pPoly, const UCol
  * @param pSphere0 A sphere to test the collision with.
  * @param pSphere1 A sphere to test the collision with.
  * @return U_GJK_NO_COLLISION if there is no collision. U_GJK_COLLISION if the collision happended U_GJK_NOT_DETERMINED if the collision cannot be confirmed.
- *          UGJKReturn::normal and UGJKReturn::depth is also returned. @note To backout pPoly multiply the normal by negative depth and add it to pPoly
+ *          UCollisionReturn::normal and UCollisionReturn::depth is also returned. @note To backout pPoly multiply the normal by negative depth and add it to pPoly
  */
-UGJKReturn u_collision_sphere(const UCollisionSphere *pSphere0, const UCollisionSphere *pSphere1);
+UCollisionReturn u_collision_sphere(const UCollisionSphere *pSphere0, const UCollisionSphere *pSphere1);
 
 /**
  * This function allocates the backout cache.

@@ -19,7 +19,7 @@ static int epaAddIfUniqueEdge(const UGJKBackoutTriangle *pFaces, size_t facesAmo
 static inline int sameDirection(Vector3 direction, Vector3 ao) { return Vector3DotProduct(direction, ao) > 0.0f; }
 
 #define U_GJK_IMPLEMENTATION(maxResolve, shape0SupportFunction, shape1SupportFunction) \
-    UGJKReturn gjkReturn = {0};\
+    UCollisionReturn gjkReturn = {0};\
     gjkReturn.result = U_COLLISION_FALSE;\
 \
     UCollisionGJK gjkMetadata = {0};\
@@ -164,7 +164,7 @@ static inline int sameDirection(Vector3 direction, Vector3 ao) { return Vector3D
         }\
     }
 
-UGJKReturn u_collision_poly(const UCollisionPolyhedron *pShape0, const UCollisionPolyhedron *pShape1, UGJKBackoutCache *pBackoutCache) {
+UCollisionReturn u_collision_poly(const UCollisionPolyhedron *pShape0, const UCollisionPolyhedron *pShape1, UGJKBackoutCache *pBackoutCache) {
     assert(pShape0 != NULL);
     assert(pShape1 != NULL);
     assert(pShape0->amountVertices != 0);
@@ -181,7 +181,7 @@ UGJKReturn u_collision_poly(const UCollisionPolyhedron *pShape0, const UCollisio
     return gjkReturn;
 }
 
-UGJKReturn u_collision_poly_sphere(const UCollisionPolyhedron *pShape0, const UCollisionSphere *pShape1, UGJKBackoutCache *pBackoutCache) {
+UCollisionReturn u_collision_poly_sphere(const UCollisionPolyhedron *pShape0, const UCollisionSphere *pShape1, UGJKBackoutCache *pBackoutCache) {
     assert(pShape0 != NULL);
     assert(pShape1 != NULL);
     assert(pShape0->amountVertices != 0);
@@ -197,13 +197,13 @@ UGJKReturn u_collision_poly_sphere(const UCollisionPolyhedron *pShape0, const UC
     return gjkReturn;
 }
 
-UGJKReturn u_collision_sphere(const UCollisionSphere *pSphere0, const UCollisionSphere *pSphere1) {
+UCollisionReturn u_collision_sphere(const UCollisionSphere *pSphere0, const UCollisionSphere *pSphere1) {
     assert(pSphere0 != NULL);
     assert(pSphere0->radius > 0);
     assert(pSphere1 != NULL);
     assert(pSphere1->radius > 0);
 
-    UGJKReturn gjkReturn = {0};
+    UCollisionReturn gjkReturn = {0};
     gjkReturn.result = U_COLLISION_FALSE;
 
     // GJK and EPA algorithms are overkill. Plus, this is more far more performant.

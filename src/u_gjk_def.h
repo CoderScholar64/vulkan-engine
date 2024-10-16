@@ -33,11 +33,11 @@ typedef struct UCollisionGJK {
     unsigned countDown;
 } UCollisionGJK;
 
-typedef struct UGJKReturn {
+typedef struct UCollisionReturn {
     Vector3 normal;
     float distance;
     UCollisionState result; // normal is only valid if this is set to COLLISION.
-} UGJKReturn;
+} UCollisionReturn;
 
 typedef struct UGJKBackoutEdge {
     size_t edgeIndexes[2];
