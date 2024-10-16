@@ -9,10 +9,10 @@
 static Vector3 polyhedronFindFurthestPoint(const UCollisionPolyhedron *pPolygon, Vector3 direction);
 static Vector3 sphereFindFurthestPoint(const UCollisionSphere *pSphere, Vector3 direction);
 
-static int gjkModifySimplex(UGJKMetaData *this);
-static int gjkLine(UGJKMetaData *this);
-static int gjkTriangle(UGJKMetaData *this);
-static int gjkTetrahedron(UGJKMetaData *this);
+static int gjkModifySimplex(UCollisionGJK *this);
+static int gjkLine(UCollisionGJK *this);
+static int gjkTriangle(UCollisionGJK *this);
+static int gjkTetrahedron(UCollisionGJK *this);
 static void epaGetFaceNormals(const Vector3 *pPolyTope, size_t polyTopeAmount, UGJKBackoutTriangle *pFaces, size_t facesAmount, size_t *pMinTriangleIndex);
 static int epaAddIfUniqueEdge(const UGJKBackoutTriangle *pFaces, size_t facesAmount, size_t faceIndex, unsigned a, unsigned b, UGJKBackoutEdge *pEdges, size_t *pEdgeAmount, size_t edgeMax);
 
@@ -22,7 +22,7 @@ static inline int sameDirection(Vector3 direction, Vector3 ao) { return Vector3D
     UGJKReturn gjkReturn = {0};\
     gjkReturn.result = U_COLLISION_FALSE;\
 \
-    UGJKMetaData gjkMetadata = {0};\
+    UCollisionGJK gjkMetadata = {0};\
 \
     gjkMetadata.simplex.amountVertices = 1;\
     gjkMetadata.simplex.vertices[0] = Vector3Subtract(shape0SupportFunction(pShape0, (Vector3){0, 1, 0}), shape1SupportFunction(pShape1, (Vector3){0, -1, 0}));\
@@ -264,7 +264,7 @@ void u_collision_free_backout_cache(UGJKBackoutCache *pBackoutCache) {
     free(pBackoutCache->pVertices);
 }
 
-static int gjkModifySimplex(UGJKMetaData *this) {
+static int gjkModifySimplex(UCollisionGJK *this) {
     switch(this->simplex.amountVertices) {
         case 2:
             return gjkLine(this);
@@ -277,7 +277,7 @@ static int gjkModifySimplex(UGJKMetaData *this) {
     }
 }
 
-static int gjkLine(UGJKMetaData *this) {
+static int gjkLine(UCollisionGJK *this) {
     const Vector3 a = this->simplex.vertices[0];
     const Vector3 b = this->simplex.vertices[1];
 
@@ -295,7 +295,7 @@ static int gjkLine(UGJKMetaData *this) {
     return 0;
 }
 
-static int gjkTriangle(UGJKMetaData *this) {
+static int gjkTriangle(UCollisionGJK *this) {
     const Vector3 a = this->simplex.vertices[0];
     const Vector3 b = this->simplex.vertices[1];
     const Vector3 c = this->simplex.vertices[2];
@@ -342,7 +342,7 @@ static int gjkTriangle(UGJKMetaData *this) {
     return 0;
 }
 
-static int gjkTetrahedron(UGJKMetaData *this) {
+static int gjkTetrahedron(UCollisionGJK *this) {
     const Vector3 a = this->simplex.vertices[0];
     const Vector3 b = this->simplex.vertices[1];
     const Vector3 c = this->simplex.vertices[2];

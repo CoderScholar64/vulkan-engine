@@ -23,7 +23,7 @@ typedef enum UCollisionState {
     U_COLLISION_TRUE
 } UCollisionState;
 
-typedef struct UGJKMetaData {
+typedef struct UCollisionGJK {
     struct {
         size_t amountVertices;
         Vector3 vertices[U_COLLISION_SIMPLEX_VERTEX_AMOUNT];
@@ -31,7 +31,7 @@ typedef struct UGJKMetaData {
     Vector3 direction;
     Vector3 support;
     unsigned countDown;
-} UGJKMetaData;
+} UCollisionGJK;
 
 typedef struct UGJKReturn {
     Vector3 normal;
