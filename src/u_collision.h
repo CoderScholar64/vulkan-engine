@@ -1,7 +1,7 @@
 #ifndef U_GJK_29
 #define U_GJK_29
 
-#include "u_gjk_def.h"
+#include "u_collision_def.h"
 
 /**
  * This function determines if a polyhedron would collide with another polyhedron.
