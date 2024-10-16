@@ -11,7 +11,7 @@
  * @return U_GJK_NO_COLLISION if there is no collision. U_GJK_COLLISION if the collision happended U_GJK_NOT_DETERMINED if the collision cannot be confirmed.
  *          UCollisionReturn::normal and UCollisionReturn::depth is returned if pBackoutCache is used for this function. @note To backout pPoly0 multiply the normal by negative depth and add it to pPoly0
  */
-UCollisionReturn u_collision_poly(const UCollisionPolyhedron *pPoly0, const UCollisionPolyhedron *pPoly1, UGJKBackoutCache *pBackoutCache);
+UCollisionReturn u_collision_poly(const UCollisionPolyhedron *pPoly0, const UCollisionPolyhedron *pPoly1, UCollisionBackoutCache *pBackoutCache);
 
 /**
  * This function determines if a polyhedron would collide with a sphere.
@@ -21,7 +21,7 @@ UCollisionReturn u_collision_poly(const UCollisionPolyhedron *pPoly0, const UCol
  * @return U_GJK_NO_COLLISION if there is no collision. U_GJK_COLLISION if the collision happended U_GJK_NOT_DETERMINED if the collision cannot be confirmed.
  *          UCollisionReturn::normal and UCollisionReturn::depth is returned if pBackoutCache is used for this function. @note To backout pPoly multiply the normal by negative depth and add it to pPoly
  */
-UCollisionReturn u_collision_poly_sphere(const UCollisionPolyhedron *pPoly, const UCollisionSphere *pSphere, UGJKBackoutCache *pBackoutCache);
+UCollisionReturn u_collision_poly_sphere(const UCollisionPolyhedron *pPoly, const UCollisionSphere *pSphere, UCollisionBackoutCache *pBackoutCache);
 
 /**
  * This function determines if a sphere would collide with a sphere.
@@ -40,12 +40,12 @@ UCollisionReturn u_collision_sphere(const UCollisionSphere *pSphere0, const UCol
  * @param extraVertices The amount of extra vertices to add. @note The amount of zero will still work, but other functions will not work well with the returned result.
  * @return A backout cache used to calculate getting shapes out of shapes.
  */
-UGJKBackoutCache u_collision_alloc_backout_cache(size_t extraVertices);
+UCollisionBackoutCache u_collision_alloc_backout_cache(size_t extraVertices);
 
 /**
  * This function frees the pBackoutCache.
  * @param pBackoutCache A pointer to the backout cache to delete the internals used.
  */
-void u_collision_free_backout_cache(UGJKBackoutCache *pBackoutCache);
+void u_collision_free_backout_cache(UCollisionBackoutCache *pBackoutCache);
 
 #endif // U_GJK_DEF_29

@@ -49,7 +49,7 @@ typedef struct UCollisionEPATriangle {
     size_t vertexIndexes[3];
 } UCollisionEPATriangle;
 
-typedef struct UGJKBackoutCache {
+typedef struct UCollisionBackoutCache {
     size_t              edgeAmount;
     size_t              edgeLimit;
     UCollisionEPAEdge *pEdges;
@@ -65,7 +65,7 @@ typedef struct UGJKBackoutCache {
     size_t   vertexAmount;
     size_t   vertexLimit;
     Vector3 *pVertices;
-} UGJKBackoutCache;
+} UCollisionBackoutCache;
 
 #define U_GJK_EMPTY_POLYGON(name, count)\
     UCollisionPolyhedron name = {count}

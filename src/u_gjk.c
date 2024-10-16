@@ -164,7 +164,7 @@ static inline int sameDirection(Vector3 direction, Vector3 ao) { return Vector3D
         }\
     }
 
-UCollisionReturn u_collision_poly(const UCollisionPolyhedron *pShape0, const UCollisionPolyhedron *pShape1, UGJKBackoutCache *pBackoutCache) {
+UCollisionReturn u_collision_poly(const UCollisionPolyhedron *pShape0, const UCollisionPolyhedron *pShape1, UCollisionBackoutCache *pBackoutCache) {
     assert(pShape0 != NULL);
     assert(pShape1 != NULL);
     assert(pShape0->amountVertices != 0);
@@ -181,7 +181,7 @@ UCollisionReturn u_collision_poly(const UCollisionPolyhedron *pShape0, const UCo
     return gjkReturn;
 }
 
-UCollisionReturn u_collision_poly_sphere(const UCollisionPolyhedron *pShape0, const UCollisionSphere *pShape1, UGJKBackoutCache *pBackoutCache) {
+UCollisionReturn u_collision_poly_sphere(const UCollisionPolyhedron *pShape0, const UCollisionSphere *pShape1, UCollisionBackoutCache *pBackoutCache) {
     assert(pShape0 != NULL);
     assert(pShape1 != NULL);
     assert(pShape0->amountVertices != 0);
@@ -224,12 +224,12 @@ UCollisionReturn u_collision_sphere(const UCollisionSphere *pSphere0, const UCol
     return gjkReturn;
 }
 
-UGJKBackoutCache u_collision_alloc_backout_cache(size_t extraVertices) {
+UCollisionBackoutCache u_collision_alloc_backout_cache(size_t extraVertices) {
     size_t triangleAmount = 4 + 2 * extraVertices;
     size_t   vertexAmount = 4   +   extraVertices;
     size_t     edgeAmount = 6 + 3 * extraVertices;
 
-    UGJKBackoutCache backoutCache;
+    UCollisionBackoutCache backoutCache;
     backoutCache.edgeLimit    =     edgeAmount;
     backoutCache.faceLimit    = triangleAmount;
     backoutCache.newFaceLimit = triangleAmount;
@@ -258,7 +258,7 @@ UGJKBackoutCache u_collision_alloc_backout_cache(size_t extraVertices) {
     return backoutCache;
 }
 
-void u_collision_free_backout_cache(UGJKBackoutCache *pBackoutCache) {
+void u_collision_free_backout_cache(UCollisionBackoutCache *pBackoutCache) {
     assert(pBackoutCache != NULL);
 
     free(pBackoutCache->pVertices);
