@@ -5,7 +5,7 @@
 
 #include <stddef.h>
 
-#define U_GJK_SIMPLEX_VERTEX_AMOUNT 4
+#define U_COLLISION_SIMPLEX_VERTEX_AMOUNT 4
 
 typedef struct UCollisionPolyhedron {
     size_t amountVertices;
@@ -17,16 +17,16 @@ typedef struct UCollisionSphere {
     float radius;
 } UCollisionSphere;
 
-typedef enum UGJKState {
-    U_GJK_NO_COLLISION,
-    U_GJK_NOT_DETERMINED,
-    U_GJK_COLLISION
-} UGJKState;
+typedef enum UCollisionState {
+    U_COLLISION_FALSE,
+    U_COLLISION_NOT_DETERMINED,
+    U_COLLISION_TRUE
+} UCollisionState;
 
 typedef struct UGJKMetaData {
     struct {
         size_t amountVertices;
-        Vector3 vertices[U_GJK_SIMPLEX_VERTEX_AMOUNT];
+        Vector3 vertices[U_COLLISION_SIMPLEX_VERTEX_AMOUNT];
     } simplex;
     Vector3 direction;
     Vector3 support;
@@ -36,7 +36,7 @@ typedef struct UGJKMetaData {
 typedef struct UGJKReturn {
     Vector3 normal;
     float distance;
-    UGJKState result; // normal is only valid if this is set to COLLISION.
+    UCollisionState result; // normal is only valid if this is set to COLLISION.
 } UGJKReturn;
 
 typedef struct UGJKBackoutEdge {

@@ -20,7 +20,7 @@ static inline int sameDirection(Vector3 direction, Vector3 ao) { return Vector3D
 
 #define U_GJK_IMPLEMENTATION(maxResolve, shape0SupportFunction, shape1SupportFunction) \
     UGJKReturn gjkReturn = {0};\
-    gjkReturn.result = U_GJK_NO_COLLISION;\
+    gjkReturn.result = U_COLLISION_FALSE;\
 \
     UGJKMetaData gjkMetadata = {0};\
 \
@@ -52,15 +52,15 @@ static inline int sameDirection(Vector3 direction, Vector3 ao) { return Vector3D
         assert(state != -1);\
 \
         if(state == 1) {\
-            gjkReturn.result = U_GJK_COLLISION;\
+            gjkReturn.result = U_COLLISION_TRUE;\
             break;\
         }\
 \
         gjkMetadata.countDown--;\
     }\
 \
-    if(gjkReturn.result == U_GJK_NO_COLLISION)\
-        gjkReturn.result = U_GJK_NOT_DETERMINED;\
+    if(gjkReturn.result == U_COLLISION_FALSE)\
+        gjkReturn.result = U_COLLISION_NOT_DETERMINED;\
 
 #define U_GJK_EPA_IMPLEMENTATION(shape0SupportFunction, shape1SupportFunction)\
     if(pBackoutCache == NULL)\
@@ -111,7 +111,7 @@ static inline int sameDirection(Vector3 direction, Vector3 ao) { return Vector3D
                     edgeLimitHit |= epaAddIfUniqueEdge(pBackoutCache->pFaces, pBackoutCache->faceAmount, i, 2, 0, pBackoutCache->pEdges, &pBackoutCache->edgeAmount, pBackoutCache->edgeLimit);\
 \
                     if(edgeLimitHit) {\
-                        gjkReturn.result = U_GJK_NOT_DETERMINED;\
+                        gjkReturn.result = U_COLLISION_NOT_DETERMINED;\
                         return gjkReturn;\
                     }\
 \
@@ -153,7 +153,7 @@ static inline int sameDirection(Vector3 direction, Vector3 ao) { return Vector3D
             }\
 \
             if(pBackoutCache->faceAmount + pBackoutCache->newFaceAmount >= pBackoutCache->faceLimit) {\
-                gjkReturn.result = U_GJK_NOT_DETERMINED;\
+                gjkReturn.result = U_COLLISION_NOT_DETERMINED;\
                 return gjkReturn;\
             }\
 \
@@ -204,7 +204,7 @@ UGJKReturn u_collision_sphere(const UCollisionSphere *pSphere0, const UCollision
     assert(pSphere1->radius > 0);
 
     UGJKReturn gjkReturn = {0};
-    gjkReturn.result = U_GJK_NO_COLLISION;
+    gjkReturn.result = U_COLLISION_FALSE;
 
     // GJK and EPA algorithms are overkill. Plus, this is more far more performant.
     // So, I am using another algorithm from https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection
@@ -216,7 +216,7 @@ UGJKReturn u_collision_sphere(const UCollisionSphere *pSphere0, const UCollision
     if(distanceSq > radiiSq)
         return gjkReturn;
 
-    gjkReturn.result = U_GJK_COLLISION;
+    gjkReturn.result = U_COLLISION_TRUE;
 
     gjkReturn.distance = (radii - sqrt(distanceSq));
     gjkReturn.normal = Vector3Normalize(Vector3Subtract(pSphere1->position, pSphere0->position));
