@@ -164,7 +164,7 @@ static inline int sameDirection(Vector3 direction, Vector3 ao) { return Vector3D
         }\
     }
 
-UGJKReturn u_gjk_poly(const UGJKPolyhedron *pShape0, const UGJKPolyhedron *pShape1, UGJKBackoutCache *pBackoutCache) {
+UGJKReturn u_collision_poly(const UGJKPolyhedron *pShape0, const UGJKPolyhedron *pShape1, UGJKBackoutCache *pBackoutCache) {
     assert(pShape0 != NULL);
     assert(pShape1 != NULL);
     assert(pShape0->amountVertices != 0);
@@ -181,7 +181,7 @@ UGJKReturn u_gjk_poly(const UGJKPolyhedron *pShape0, const UGJKPolyhedron *pShap
     return gjkReturn;
 }
 
-UGJKReturn u_gjk_poly_sphere(const UGJKPolyhedron *pShape0, const UGJKSphere *pShape1, UGJKBackoutCache *pBackoutCache) {
+UGJKReturn u_collision_poly_sphere(const UGJKPolyhedron *pShape0, const UGJKSphere *pShape1, UGJKBackoutCache *pBackoutCache) {
     assert(pShape0 != NULL);
     assert(pShape1 != NULL);
     assert(pShape0->amountVertices != 0);
@@ -197,7 +197,7 @@ UGJKReturn u_gjk_poly_sphere(const UGJKPolyhedron *pShape0, const UGJKSphere *pS
     return gjkReturn;
 }
 
-UGJKReturn u_gjk_sphere(const UGJKSphere *pSphere0, const UGJKSphere *pSphere1) {
+UGJKReturn u_collision_sphere(const UGJKSphere *pSphere0, const UGJKSphere *pSphere1) {
     assert(pSphere0 != NULL);
     assert(pSphere0->radius > 0);
     assert(pSphere1 != NULL);
@@ -224,7 +224,7 @@ UGJKReturn u_gjk_sphere(const UGJKSphere *pSphere0, const UGJKSphere *pSphere1) 
     return gjkReturn;
 }
 
-UGJKBackoutCache u_gjk_alloc_backout_cache(size_t extraVertices) {
+UGJKBackoutCache u_collision_alloc_backout_cache(size_t extraVertices) {
     size_t triangleAmount = 4 + 2 * extraVertices;
     size_t   vertexAmount = 4   +   extraVertices;
     size_t     edgeAmount = 6 + 3 * extraVertices;
@@ -258,7 +258,7 @@ UGJKBackoutCache u_gjk_alloc_backout_cache(size_t extraVertices) {
     return backoutCache;
 }
 
-void u_gjk_free_backout_cache(UGJKBackoutCache *pBackoutCache) {
+void u_collision_free_backout_cache(UGJKBackoutCache *pBackoutCache) {
     assert(pBackoutCache != NULL);
 
     free(pBackoutCache->pVertices);
