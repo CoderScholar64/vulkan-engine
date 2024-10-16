@@ -1,5 +1,5 @@
-#ifndef U_GJK_29
-#define U_GJK_29
+#ifndef U_COLLISION_29
+#define U_COLLISION_29
 
 #include "u_collision_def.h"
 
@@ -48,4 +48,4 @@ UCollisionBackoutCache u_collision_alloc_backout_cache(size_t extraVertices);
  */
 void u_collision_free_backout_cache(UCollisionBackoutCache *pBackoutCache);
 
-#endif // U_GJK_DEF_29
+#endif // U_COLLISION_29

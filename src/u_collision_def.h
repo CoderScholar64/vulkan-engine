@@ -1,5 +1,5 @@
-#ifndef U_GJK_DEF_29
-#define U_GJK_DEF_29
+#ifndef U_COLLISION_DEF_29
+#define U_COLLISION_DEF_29
 
 #include "raymath.h"
 
@@ -67,4 +67,4 @@ typedef struct UCollisionBackoutCache {
     Vector3 *pVertices;
 } UCollisionBackoutCache;
 
-#endif // U_GJK_DEF_29
+#endif // U_COLLISION_DEF_29
