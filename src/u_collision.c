@@ -440,7 +440,8 @@ static int epaAddIfUniqueEdge(const UCollisionEPATriangle *pFaces, size_t facesA
         return 0;
     }
     else if(*pEdgeAmount < edgeMax) {
-        pEdges[*pEdgeAmount] = (UCollisionEPAEdge) {pFaces[faceIndex].vertexIndexes[a], pFaces[faceIndex].vertexIndexes[b]};
+        pEdges[*pEdgeAmount].edgeIndexes[0] = pFaces[faceIndex].vertexIndexes[a];
+        pEdges[*pEdgeAmount].edgeIndexes[1] = pFaces[faceIndex].vertexIndexes[b];
         (*pEdgeAmount)++;
         return 0;
     }
