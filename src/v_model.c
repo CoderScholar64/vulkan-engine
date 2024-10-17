@@ -31,33 +31,38 @@ VEngineResult v_model_load(Context *this, const char *const pUTF8Filepath, unsig
         RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 1)
     }
 
+    if(pModel->buffers_count == 0) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "This glTF file has no buffers!");
+        cgltf_free(pModel);
+        RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 2)
+    }
+
     // TODO Find cleaner and more stable loading algorithm.
 
     VModelData *pVModel = malloc(sizeof(VModelData) * pModel->meshes_count );
 
+    if(pVModel == NULL) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "This glTF file has no buffers!");
+        cgltf_free(pModel);
+        free(pVModel);
+        RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 3)
+    }
+
+
     for(unsigned mesh_index = 0; mesh_index < pModel->meshes_count; mesh_index++) {
         if(pModel->meshes[mesh_index].primitives_count == 0) {
             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "This glTF file has no primitives stored in it!");
-            cgltf_free(pModel);
-            RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 2)
-        }
-
-        if(pModel->buffers_count == 0) {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "This glTF file has no buffers!");
-            cgltf_free(pModel);
-            RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 3)
+            continue;
         }
 
         if(pModel->meshes[mesh_index].primitives[0].attributes_count == 0) {
             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "This glTF file has no attributes!");
-            cgltf_free(pModel);
-            RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 4)
+            continue;
         }
 
         if(pModel->meshes[mesh_index].primitives[0].type != cgltf_primitive_type_triangles) {
             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "This glTF file has unsupported triangle type %d!", pModel->meshes[mesh_index].primitives[0].type);
-            cgltf_free(pModel);
-            RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 5)
+            continue;
         }
 
         cgltf_size loadBufferSize = 0;
@@ -128,8 +133,7 @@ VEngineResult v_model_load(Context *this, const char *const pUTF8Filepath, unsig
 
         if(pPositionAttribute == NULL) {
             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "No position attribute found!");
-            cgltf_free(pModel);
-            RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 6)
+            continue;
         }
 
         cgltf_accessor* pIndices = NULL;
@@ -142,8 +146,7 @@ VEngineResult v_model_load(Context *this, const char *const pUTF8Filepath, unsig
 
             if(pIndices->type != cgltf_type_scalar) {
                 SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "This model has component_type = %i", pIndices->type);
-                cgltf_free(pModel);
-                RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 7)
+                continue;
             }
 
             switch(pIndices->component_type) {
@@ -163,8 +166,7 @@ VEngineResult v_model_load(Context *this, const char *const pUTF8Filepath, unsig
                     break;
                 default:
                     SDL_Log("This model has invalid component_type = %i", pIndices->component_type);
-                    cgltf_free(pModel);
-                    RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 8)
+                    continue;
             }
 
             indexBufferSize = indexComponentSize * cgltf_accessor_unpack_indices(pIndices, NULL, indexComponentSize, pIndices->count);
@@ -179,11 +181,9 @@ VEngineResult v_model_load(Context *this, const char *const pUTF8Filepath, unsig
 
         void *pLoadBuffer = malloc(loadBufferSize + indexBufferSize + sizeof(VBufferVertex) * vertexAmount);
 
-        if(pLoadBuffer == NULL || pVModel == NULL) {
+        if(pLoadBuffer == NULL) {
             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to allocate a %li large buffer", loadBufferSize);
-            cgltf_free(pModel);
-            free(pVModel);
-            RETURN_RESULT_CODE(VE_LOAD_MODEL_FAILURE, 9)
+            continue;
         }
 
         void             *pIndexedBuffer = pLoadBuffer + (loadBufferSize);
