@@ -129,7 +129,7 @@ VEngineResult v_render_record_command_buffer(Context *this, VkCommandBuffer comm
     clearValues[1].depthStencil.depth   = 0.0f; // Far plane is 0, near plane is 1.
     clearValues[1].depthStencil.stencil = 0;
 
-    renderPassBeginInfo.clearValueCount = 2;
+    renderPassBeginInfo.clearValueCount = sizeof(clearValues) / sizeof(clearValues[0]);
     renderPassBeginInfo.pClearValues = clearValues;
 
     vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
