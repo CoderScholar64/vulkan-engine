@@ -154,8 +154,8 @@ VEngineResult v_render_record_command_buffer(Context *this, VkCommandBuffer comm
     vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->vk.pipelineLayout, 0, 1, &this->vk.frames[this->vk.currentFrame].descriptorSet, 0, NULL);
 
     for(unsigned m = 0; m < this->vk.modelArrayAmount; m++) {
-        if(this->vk.ppVModelArray[m]->pModelData != NULL)
-            v_model_draw_record(this, commandBuffer, this->vk.ppVModelArray[m]->pModelData, this->vk.ppVModelArray[m]->instanceAmount, this->vk.ppVModelArray[m]->instances);
+        if(this->vk.pVModelArray[m].pModelData != NULL)
+            v_model_draw_record(this, commandBuffer, this->vk.pVModelArray[m].pModelData, this->vk.pVModelArray[m].instanceVector.size, this->vk.pVModelArray[m].instanceVector.pBuffer);
     }
 
     vkCmdEndRenderPass(commandBuffer);

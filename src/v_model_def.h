@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <vulkan/vulkan.h>
 
+#include "u_vector_def.h"
 #include "v_buffer_def.h"
 
 typedef struct VModelData {
@@ -18,8 +19,7 @@ typedef struct VModelData {
 
 typedef struct VModelArray {
     VModelData *pModelData; // Reference do not delete.
-    size_t instanceAmount;
-    VBufferPushConstantObject instances[];
+    UVector instanceVector; // VBufferPushConstantObject
 } VModelArray;
 
 #endif // V_MODEL_DEF_29

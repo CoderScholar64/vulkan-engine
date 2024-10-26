@@ -3,6 +3,7 @@
 #include "context.h"
 #include "u_read.h"
 #include "u_maze.h"
+#include "u_vector.h"
 #include "v_buffer.h"
 #include "v_model.h"
 #include "v_render.h"
@@ -191,19 +192,11 @@ VEngineResult v_init_alloc(Context *this) {
 
     this->vk.modelArrayAmount = (sizeof(mazePieceAmounts) / sizeof(mazePieceAmounts[0]));
 
-    void *pMem = malloc(
-        (sizeof(VModelArray*) + sizeof(VModelArray)) * (sizeof(mazePieceAmounts) / sizeof(mazePieceAmounts[0])) +
-        sizeof(VBufferPushConstantObject) * mazeGenResult.vertexMazeData.vertexAmount);
-    this->vk.ppVModelArray = pMem;
-
-    pMem += sizeof(VModelArray*) * (sizeof(mazePieceAmounts) / sizeof(mazePieceAmounts[0]));
+    this->vk.pVModelArray = malloc( sizeof(VModelArray) * (sizeof(mazePieceAmounts) / sizeof(mazePieceAmounts[0])) );
 
     for(unsigned i = 0; i < sizeof(mazePieceAmounts) / sizeof(mazePieceAmounts[0]); i++) {
-        this->vk.ppVModelArray[i] = pMem;
-        this->vk.ppVModelArray[i]->pModelData = pMazeIndexes[i];
-        this->vk.ppVModelArray[i]->instanceAmount = mazePieceAmounts[i];
-
-        pMem += sizeof(VModelArray) + this->vk.ppVModelArray[i]->instanceAmount * sizeof(VBufferPushConstantObject);
+        this->vk.pVModelArray[i].pModelData = pMazeIndexes[i];
+        this->vk.pVModelArray[i].instanceVector = u_vector_alloc(sizeof(VBufferPushConstantObject), mazePieceAmounts[i]);
 
         mazePieceAmounts[i] = 0;
     }
@@ -228,7 +221,8 @@ VEngineResult v_init_alloc(Context *this) {
         }
         bitfield = bitfield ^ 0b1111;
 
-        this->vk.ppVModelArray[bitfield]->instances[mazePieceAmounts[bitfield]].matrix = MatrixTranslate(2 * pVertex->metadata.position.x, 2 * pVertex->metadata.position.y, -3);
+        VBufferPushConstantObject *pPushConst = this->vk.pVModelArray[bitfield].instanceVector.pBuffer;
+        pPushConst[mazePieceAmounts[bitfield]].matrix = MatrixTranslate(2 * pVertex->metadata.position.x, 2 * pVertex->metadata.position.y, -3);
 
         mazePieceAmounts[bitfield]++;
     }
@@ -281,8 +275,11 @@ void v_init_dealloc(Context *this) {
         }
         free(this->vk.pModels);
     }
-    if(this->vk.ppVModelArray != NULL) {
-        free(this->vk.ppVModelArray);
+    if(this->vk.pVModelArray != NULL) {
+        for(unsigned i = 0; i < this->vk.modelArrayAmount; i++) {
+            u_vector_free(&this->vk.pVModelArray[i].instanceVector);
+        }
+        free(this->vk.pVModelArray);
     }
     vkDestroyCommandPool(this->vk.device, this->vk.commandPool, NULL);
     vkDestroyPipeline(this->vk.device, this->vk.graphicsPipeline, NULL);
