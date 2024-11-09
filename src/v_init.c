@@ -553,13 +553,13 @@ static VEngineResult findPhysicalDevice(Context *this, const char * const* ppReq
     }
     VkPhysicalDeviceProperties physicalDeviceProperties;
 
-    unsigned int deviceIndex = physicalDevicesCount;
+    uint32_t deviceIndex = physicalDevicesCount;
     uint32_t queueFamilyPropertyCount;
     VkQueueFamilyProperties *pQueueFamilyProperties;
     VkBool32 surfaceSupported;
     int requiredParameters;
 
-    for(unsigned int i = physicalDevicesCount; i != 0; i--) {
+    for(uint32_t i = physicalDevicesCount; i != 0; i--) {
         memset(&physicalDeviceProperties, 0, sizeof(physicalDeviceProperties));
 
         vkGetPhysicalDeviceProperties(pPhysicalDevices[i - 1], &physicalDeviceProperties);
