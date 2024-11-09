@@ -6,6 +6,28 @@ void u_config_defaults(UConfig *this) {
     this->current.sample_count = 1;
     this->current.graphics_card_index = -1;
     this->current.pixel_format_index  = -1;
+
+    u_config_bound(this);
+}
+
+void u_config_bound(UConfig *this) {
+    if(this->current.width < this->min.width)
+        this->current.width = this->min.width;
+    else
+    if(this->current.width > this->max.width)
+        this->current.width = this->max.width;
+
+    if(this->current.height < this->min.height)
+        this->current.height = this->min.height;
+    else
+    if(this->current.height > this->max.height)
+        this->current.height = this->max.height;
+
+    if(this->current.sample_count < this->min.sample_count)
+        this->current.sample_count = this->min.sample_count;
+    else
+    if(this->current.sample_count > this->max.sample_count)
+        this->current.sample_count = this->max.sample_count;
 }
 
 int u_config_gather_vulkan_devices(UConfig *this, const Context *const pContext) {

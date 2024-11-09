@@ -6,6 +6,8 @@
 
 void u_config_defaults(UConfig *this);
 
+void u_config_bound(UConfig *this);
+
 int u_config_gather_vulkan_devices(UConfig *this, const Context *const pContext);
 
 int u_config_gather_vulkan_limits(UConfig *this, const Context *const pContext);
