@@ -994,7 +994,7 @@ static VEngineResult allocateDescriptorSetLayout(Context *this) {
     result = vkCreateDescriptorSetLayout(this->vk.device, &descriptorSetLayoutCreateInfo, NULL, &this->vk.descriptorSetLayout);
 
     if(result != VK_SUCCESS) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "vkCreateRenderPass() Failed to allocate %i", result);
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "allocateDescriptorSetLayout() Failed to allocate %i", result);
         RETURN_RESULT_CODE(VE_DESCRIPTOR_SET_LAYOUT_FAILURE, 0)
     }
 
