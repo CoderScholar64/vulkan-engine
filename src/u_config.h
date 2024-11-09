@@ -12,8 +12,8 @@ int u_config_gather_vulkan_devices(UConfig *this, uint32_t physicalDeviceCount, 
 
 int u_config_gather_vulkan_limits(UConfig *this, VkPhysicalDevice physicalDevice);
 
-int u_config_load(UConfig *this, const char *const pUTF8Filepath);
+int u_config_load(UConfig *this, const char *const pPath);
 
-int u_config_save(const UConfig *const this, const char *const pUTF8Filepath);
+int u_config_save(const UConfig *const this, const char *const pPath);
 
 #endif // U_CONFIG_29

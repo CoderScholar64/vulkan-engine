@@ -1,5 +1,9 @@
 #include "u_config.h"
 
+#include <stdio.h>
+
+#include "iniparser.h"
+
 void u_config_defaults(UConfig *this) {
     this->current.width = 1024;
     this->current.height = 764;
@@ -78,10 +82,29 @@ int u_config_gather_vulkan_limits(UConfig *this, VkPhysicalDevice physicalDevice
     return 1;
 }
 
-int u_config_load(UConfig *this, const char *const pUTF8Filepath) {
-    //
+int u_config_load(UConfig *this, const char *const pPath) {
+    u_config_bound(this);
 }
 
-int u_config_save(const UConfig *const this, const char *const pUTF8Filepath) {
-    //
+int u_config_save(const UConfig *const this, const char *const pPath) {
+    FILE *pData = fopen(pPath, "w");
+
+    if(pData == NULL) {
+        return 0;
+    }
+
+    dictionary *pDictionary = iniparser_load_file(pData, pPath);
+
+    if(pDictionary == NULL)
+        return -1;
+
+    iniparser_set(pDictionary, "WINDOW", NULL);
+    iniparser_set(pDictionary, "WINDOW:width", "this->current.width");
+    iniparser_set(pDictionary, "WINDOW:height", "this->current.height");
+    iniparser_set(pDictionary, "WINDOW:sample_count", "this->current.sample_count");
+
+    iniparser_dump_ini(pDictionary, pData);
+    fclose(pData);
+    iniparser_freedict(pDictionary);
+    return 1;
 }
