@@ -30,16 +30,22 @@ void u_config_bound(UConfig *this) {
         this->current.sample_count = this->max.sample_count;
 }
 
-int u_config_gather_vulkan_devices(UConfig *this, const Context *const pContext) {
-    //
+int u_config_gather_vulkan_devices(UConfig *this, uint32_t physicalDeviceCount, VkPhysicalDevice *pPhysicalDevices) {
+    UConfigParameters *pMin = &this->min;
+    UConfigParameters *pMax = &this->max;
+
+    pMin->graphics_card_index = 0;
+    pMax->graphics_card_index = physicalDeviceCount;
+
+    return 1;
 }
 
-int u_config_gather_vulkan_limits(UConfig *this, const Context *const pContext) {
+int u_config_gather_vulkan_limits(UConfig *this, VkPhysicalDevice physicalDevice) {
     VkPhysicalDeviceProperties physicalDeviceProperties;
     UConfigParameters *pMin = &this->min;
     UConfigParameters *pMax = &this->max;
 
-    vkGetPhysicalDeviceProperties(pContext->vk.physicalDevice, &physicalDeviceProperties);
+    vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);
 
     pMin->width  = 1;
     pMin->height = 1;
