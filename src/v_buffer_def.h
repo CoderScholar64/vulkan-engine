@@ -17,7 +17,7 @@ typedef struct {
     Matrix matrix;
 } VBufferPushConstantObject;
 
-extern const VkVertexInputBindingDescription vBufferVertexBindingDescription;
-extern const VkVertexInputAttributeDescription vBufferVertexInputAttributeDescriptions[3];
+extern const VkVertexInputBindingDescription   V_BUFFER_VertexBindingDescription;
+extern const VkVertexInputAttributeDescription V_BUFFER_VertexInputAttributeDescriptions[3];
 
 #endif // V_BUFFER_DEFINE_29

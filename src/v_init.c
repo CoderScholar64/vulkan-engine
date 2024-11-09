@@ -1079,13 +1079,12 @@ static VEngineResult allocateGraphicsPipeline(Context *this) {
     pipelineShaderStageCreateInfos[FRAGMENT_INDEX].pName = "main";
     // pipelineShaderStageCreateInfos[FRAGMENT_INDEX].pSpecializationInfo = NULL; // This allows the specification of constraints
 
-    //TODO Get to the point where vertex data could be added.
     VkPipelineVertexInputStateCreateInfo pipelineVertexInputStateCreateInfo = {0};
     pipelineVertexInputStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     pipelineVertexInputStateCreateInfo.vertexBindingDescriptionCount = 1;
-    pipelineVertexInputStateCreateInfo.pVertexBindingDescriptions = &vBufferVertexBindingDescription;
-    pipelineVertexInputStateCreateInfo.vertexAttributeDescriptionCount = sizeof(vBufferVertexInputAttributeDescriptions) / sizeof(vBufferVertexInputAttributeDescriptions[0]);
-    pipelineVertexInputStateCreateInfo.pVertexAttributeDescriptions = vBufferVertexInputAttributeDescriptions;
+    pipelineVertexInputStateCreateInfo.pVertexBindingDescriptions = &V_BUFFER_VertexBindingDescription;
+    pipelineVertexInputStateCreateInfo.vertexAttributeDescriptionCount = sizeof(V_BUFFER_VertexInputAttributeDescriptions) / sizeof(V_BUFFER_VertexInputAttributeDescriptions[0]);
+    pipelineVertexInputStateCreateInfo.pVertexAttributeDescriptions = V_BUFFER_VertexInputAttributeDescriptions;
 
     VkPipelineInputAssemblyStateCreateInfo pipelineInputAssemblyStateCreateInfo = {0};
     pipelineInputAssemblyStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;

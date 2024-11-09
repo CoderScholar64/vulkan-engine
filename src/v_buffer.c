@@ -5,12 +5,12 @@
 
 #include "SDL_log.h"
 
-const VkVertexInputBindingDescription vBufferVertexBindingDescription = {
+const VkVertexInputBindingDescription V_BUFFER_VertexBindingDescription = {
 //  binding,                stride,                   inputRate
           0, sizeof(VBufferVertex), VK_VERTEX_INPUT_RATE_VERTEX
 };
 
-const VkVertexInputAttributeDescription vBufferVertexInputAttributeDescriptions[3] = {
+const VkVertexInputAttributeDescription V_BUFFER_VertexInputAttributeDescriptions[3] = {
 //   location, binding,                     format,                           offset
     {       0,       0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(VBufferVertex,      pos)},
     {       1,       0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(VBufferVertex,    color)},
