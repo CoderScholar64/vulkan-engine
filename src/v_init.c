@@ -628,7 +628,8 @@ static VEngineResult findPhysicalDevice(Context *this, const char * const* ppReq
         RETURN_RESULT_CODE(VE_FIND_PHYSICAL_DEVICE_FAILURE, 4)
     }
 
-    this->vk.mmaa.samples = v_buffer_sample_flag_bit(this, VK_SAMPLE_COUNT_64_BIT);
+    this->vk.mmaa.samples = v_buffer_sample_flag_bit(this, this->config.current.sample_count);
+    this->config.current.sample_count = this->vk.mmaa.samples;
 
     free(pPhysicalDevices);
 
