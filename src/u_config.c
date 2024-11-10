@@ -10,8 +10,6 @@ void u_config_defaults(UConfig *this) {
     this->current.sample_count = 1;
     this->current.graphics_card_index = -1;
     this->current.pixel_format_index  = -1;
-
-    u_config_bound(this);
 }
 
 void u_config_bound(UConfig *this) {
@@ -95,8 +93,6 @@ int u_config_load(UConfig *this, const char *const pPath) {
     this->current.height = iniparser_getint(pDictionary, "window:height",  this->min.height);
 
     this->current.sample_count = iniparser_getint(pDictionary, "window:sample_count", this->min.sample_count);
-
-    u_config_bound(this);
 
     return 1;
 }

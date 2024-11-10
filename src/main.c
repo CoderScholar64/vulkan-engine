@@ -140,6 +140,13 @@ int main(int argc, char **argv) {
         return -1;
     }
 
+    if(!u_config_load(&context.config, "config.ini")) {
+        u_config_defaults(&context.config);
+    }
+
+    context.w = context.config.current.width;
+    context.h = context.config.current.height;
+
     context.pWindow = SDL_CreateWindow(context.title, context.x, context.y, context.w, context.h, context.flags);
 
     if(context.pWindow == NULL) {
@@ -166,6 +173,12 @@ int main(int argc, char **argv) {
     }
     else {
         loop();
+    }
+
+    context.config.current.width  = context.vk.swapExtent.width;
+    context.config.current.height = context.vk.swapExtent.height;
+
+    if(!u_config_save(&context.config, "config.ini")) {
     }
 
     v_init_dealloc(&context);
