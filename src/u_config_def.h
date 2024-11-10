@@ -1,12 +1,13 @@
 #ifndef U_CONFIG_DEF_29
 #define U_CONFIG_DEF_29
 
+#include <vulkan/vulkan.h>
+
 typedef struct UConfigParameters {
     int width;
     int height;
-    int sample_count;
-    int graphics_card_index;
-    int pixel_format_index;
+    int sampleCount;
+    uint8_t graphicsCardPipelineCacheUUID[VK_UUID_SIZE];
 } UConfigParameters;
 
 typedef struct UConfig {
