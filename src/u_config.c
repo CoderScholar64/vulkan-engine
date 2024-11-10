@@ -39,12 +39,23 @@ void u_config_bound(UConfig *this) {
 }
 
 int u_config_gather_vulkan_devices(UConfig *this, uint32_t physicalDeviceCount, VkPhysicalDevice *pPhysicalDevices) {
+    char textBuffer[256];
+    VkPhysicalDeviceProperties physicalDeviceProperties;
+
     UConfigParameters *pMin = &this->min;
     UConfigParameters *pMax = &this->max;
 
     for(unsigned i = 0; i < VK_UUID_SIZE; i++) {
         pMin->graphicsCardPipelineCacheUUID[i] = 0x00;
         pMax->graphicsCardPipelineCacheUUID[i] = 0xff;
+    }
+
+    for(uint32_t i = 0; i < physicalDeviceCount; i++) {
+        vkGetPhysicalDeviceProperties(pPhysicalDevices[i], &physicalDeviceProperties);
+
+        snprintUUID(textBuffer, sizeof(textBuffer) / sizeof(textBuffer[0]), physicalDeviceProperties.pipelineCacheUUID);
+
+        SDL_Log( "[%i] %s %s", i, textBuffer, physicalDeviceProperties.deviceName);
     }
 
     return 1;

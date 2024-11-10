@@ -601,17 +601,25 @@ static VEngineResult findPhysicalDevice(Context *this, const char * const* ppReq
         free(pQueueFamilyProperties);
 
         if(requiredParameters == 7) {
-            if(deviceIndex == physicalDevicesCount) {
+            if(memcmp(this->config.current.graphicsCardPipelineCacheUUID, physicalDeviceProperties.pipelineCacheUUID, VK_UUID_SIZE) == 0) {
+                deviceIndex = i - 1;
+                break;
+            }
+            else if(deviceIndex == physicalDevicesCount) {
                 deviceIndex = i - 1;
             }
             else if(physicalDeviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
                 deviceIndex = i - 1;
             }
         }
-
-        SDL_Log( "[%i] %s", i - 1, physicalDeviceProperties.deviceName);
     }
     SDL_Log( "Index %i device selected", deviceIndex);
+
+    memset(&physicalDeviceProperties, 0, sizeof(physicalDeviceProperties));
+    vkGetPhysicalDeviceProperties(pPhysicalDevices[deviceIndex], &physicalDeviceProperties);
+    for(unsigned i = 0; i < VK_UUID_SIZE; i++) {
+        this->config.current.graphicsCardPipelineCacheUUID[i] = physicalDeviceProperties.pipelineCacheUUID[i];
+    }
 
     if(deviceIndex != physicalDevicesCount) {
         this->vk.physicalDevice = pPhysicalDevices[deviceIndex];
