@@ -4,10 +4,18 @@
 
 #include "iniparser.h"
 
+static const char UUID_FORMAT[] = "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x";
+
+static void snprintUUID(char* pTextBuffer, size_t textBufferSize, const uint8_t uuid[VK_UUID_SIZE]);
+
 void u_config_defaults(UConfig *this) {
     this->current.width = 1024;
     this->current.height = 764;
     this->current.sampleCount = 1;
+
+    for(unsigned i = 0; i < VK_UUID_SIZE; i++) {
+        this->current.graphicsCardPipelineCacheUUID[i] = 0;
+    }
 }
 
 void u_config_bound(UConfig *this) {
@@ -33,6 +41,11 @@ void u_config_bound(UConfig *this) {
 int u_config_gather_vulkan_devices(UConfig *this, uint32_t physicalDeviceCount, VkPhysicalDevice *pPhysicalDevices) {
     UConfigParameters *pMin = &this->min;
     UConfigParameters *pMax = &this->max;
+
+    for(unsigned i = 0; i < VK_UUID_SIZE; i++) {
+        pMin->graphicsCardPipelineCacheUUID[i] = 0x00;
+        pMax->graphicsCardPipelineCacheUUID[i] = 0xff;
+    }
 
     return 1;
 }
@@ -89,6 +102,23 @@ int u_config_load(UConfig *this, const char *const pPath) {
 
     this->current.sampleCount = iniparser_getint(pDictionary, "window:sample_count", this->min.sampleCount);
 
+    const char *pUUIDString = iniparser_getstring(pDictionary, "window:graphics_card_pipeline_cache_uuid", NULL);
+
+    unsigned uuid[VK_UUID_SIZE] = {0};
+
+    if(pUUIDString != NULL) {
+        sscanf(pUUIDString, UUID_FORMAT,
+            &uuid[ 0], &uuid[ 1], &uuid[ 2], &uuid[ 3],
+            &uuid[ 4], &uuid[ 5],
+            &uuid[ 6], &uuid[ 7],
+            &uuid[ 8], &uuid[ 9],
+            &uuid[10], &uuid[11], &uuid[12], &uuid[13], &uuid[14], &uuid[15]);
+    }
+
+    for(unsigned i = 0; i < VK_UUID_SIZE; i++) {
+        this->current.graphicsCardPipelineCacheUUID[i] = uuid[i];
+    }
+
     return 1;
 }
 
@@ -116,8 +146,20 @@ int u_config_save(const UConfig *const this, const char *const pPath) {
     snprintf(textBuffer, sizeof(textBuffer) / sizeof(textBuffer[0]), "%i", this->current.sampleCount);
     iniparser_set(pDictionary, "window:sample_count", textBuffer);
 
+    snprintUUID(textBuffer, sizeof(textBuffer) / sizeof(textBuffer[0]), this->current.graphicsCardPipelineCacheUUID);
+    iniparser_set(pDictionary, "window:graphics_card_pipeline_cache_uuid", textBuffer);
+
     iniparser_dump_ini(pDictionary, pData);
     fclose(pData);
     iniparser_freedict(pDictionary);
     return 1;
+}
+
+static void snprintUUID(char* pTextBuffer, size_t textBufferSize, const uint8_t uuid[VK_UUID_SIZE]) {
+    snprintf(pTextBuffer, textBufferSize, UUID_FORMAT,
+        uuid[ 0], uuid[ 1], uuid[ 2], uuid[ 3],
+        uuid[ 4], uuid[ 5],
+        uuid[ 6], uuid[ 7],
+        uuid[ 8], uuid[ 9],
+        uuid[10], uuid[11], uuid[12], uuid[13], uuid[14], uuid[15]);
 }
