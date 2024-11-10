@@ -4,6 +4,7 @@
 #include "SDL.h"
 #include <vulkan/vulkan.h>
 
+#include "u_config_def.h"
 #include "v_buffer_def.h"
 #include "v_model_def.h"
 
@@ -21,6 +22,8 @@ typedef struct Context {
     float yaw;
     float pitch;
     Matrix modelView;
+
+    UConfig config;
 
     struct {
         VkDevice device;

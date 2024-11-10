@@ -1,6 +1,7 @@
 #include "v_init.h"
 
 #include "context.h"
+#include "u_config.h"
 #include "u_read.h"
 #include "u_maze.h"
 #include "u_vector.h"
@@ -551,6 +552,8 @@ static VEngineResult findPhysicalDevice(Context *this, const char * const* ppReq
         free(pPhysicalDevices);
         RETURN_RESULT_CODE(VE_FIND_PHYSICAL_DEVICE_FAILURE, 3)
     }
+    u_config_gather_vulkan_devices(&this->config, physicalDevicesCount, pPhysicalDevices);
+
     VkPhysicalDeviceProperties physicalDeviceProperties;
 
     uint32_t deviceIndex = physicalDevicesCount;
@@ -614,6 +617,8 @@ static VEngineResult findPhysicalDevice(Context *this, const char * const* ppReq
         this->vk.physicalDevice = pPhysicalDevices[deviceIndex];
 
         this->vk.pQueueFamilyProperties = allocateQueueFamilyArray(this->vk.physicalDevice, &this->vk.queueFamilyPropertyCount);
+
+        u_config_gather_vulkan_limits(&this->config, this->vk.physicalDevice);
     }
     else {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to find suitable device!");
