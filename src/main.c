@@ -24,10 +24,6 @@ void loop() {
     int movement[4] = {0};
     int dirtyModelView = 0;
 
-    UConfig config = {{1, 1}, {692, 487}, {1235, 1235}};
-
-    u_config_save(&config, "config.ini");
-
     while(run) {
         currentTime = lastTime;
         lastTime = SDL_GetTicks64();

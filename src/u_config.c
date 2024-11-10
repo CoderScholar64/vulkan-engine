@@ -83,7 +83,13 @@ int u_config_gather_vulkan_limits(UConfig *this, VkPhysicalDevice physicalDevice
 }
 
 int u_config_load(UConfig *this, const char *const pPath) {
-    dictionary *pDictionary = iniparser_load(pPath);
+    FILE *pData = fopen(pPath, "r");
+
+    if(pData == NULL) {
+        return 0;
+    }
+
+    dictionary *pDictionary = iniparser_load_file(pData, pPath);
 
     this->current.width  = iniparser_getint(pDictionary, "window:width",   this->min.width);
     this->current.height = iniparser_getint(pDictionary, "window:height",  this->min.height);
@@ -91,6 +97,8 @@ int u_config_load(UConfig *this, const char *const pPath) {
     this->current.sample_count = iniparser_getint(pDictionary, "window:sample_count", this->min.sample_count);
 
     u_config_bound(this);
+
+    return 1;
 }
 
 int u_config_save(const UConfig *const this, const char *const pPath) {

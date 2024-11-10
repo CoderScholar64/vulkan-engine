@@ -619,6 +619,10 @@ static VEngineResult findPhysicalDevice(Context *this, const char * const* ppReq
         this->vk.pQueueFamilyProperties = allocateQueueFamilyArray(this->vk.physicalDevice, &this->vk.queueFamilyPropertyCount);
 
         u_config_gather_vulkan_limits(&this->config, this->vk.physicalDevice);
+
+        if(!u_config_load(&this->config, "config.ini")) {
+            u_config_defaults(&this->config);
+        }
     }
     else {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to find suitable device!");
