@@ -83,11 +83,19 @@ int u_config_gather_vulkan_limits(UConfig *this, VkPhysicalDevice physicalDevice
 }
 
 int u_config_load(UConfig *this, const char *const pPath) {
+    dictionary *pDictionary = iniparser_load(pPath);
+
+    this->current.width  = iniparser_getint(pDictionary, "window:width",   this->min.width);
+    this->current.height = iniparser_getint(pDictionary, "window:height",  this->min.height);
+
+    this->current.sample_count = iniparser_getint(pDictionary, "window:sample_count", this->min.sample_count);
+
     u_config_bound(this);
 }
 
 int u_config_save(const UConfig *const this, const char *const pPath) {
     FILE *pData = fopen(pPath, "w");
+    char textBuffer[256];
 
     if(pData == NULL) {
         return 0;
@@ -98,10 +106,16 @@ int u_config_save(const UConfig *const this, const char *const pPath) {
     if(pDictionary == NULL)
         return -1;
 
-    iniparser_set(pDictionary, "WINDOW", NULL);
-    iniparser_set(pDictionary, "WINDOW:width", "this->current.width");
-    iniparser_set(pDictionary, "WINDOW:height", "this->current.height");
-    iniparser_set(pDictionary, "WINDOW:sample_count", "this->current.sample_count");
+    iniparser_set(pDictionary, "window", NULL);
+
+    snprintf(textBuffer, sizeof(textBuffer) / sizeof(textBuffer[0]), "%i", this->current.width);
+    iniparser_set(pDictionary, "window:width", textBuffer);
+
+    snprintf(textBuffer, sizeof(textBuffer) / sizeof(textBuffer[0]), "%i", this->current.height);
+    iniparser_set(pDictionary, "window:height", textBuffer);
+
+    snprintf(textBuffer, sizeof(textBuffer) / sizeof(textBuffer[0]), "%i", this->current.sample_count);
+    iniparser_set(pDictionary, "window:sample_count", textBuffer);
 
     iniparser_dump_ini(pDictionary, pData);
     fclose(pData);
